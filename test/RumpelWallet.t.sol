@@ -20,6 +20,10 @@ contract RumpelWalletTest is Test {
         safeModule = new SafeModule();
 
         enableModules = new EnableModules();
+
+        string memory MAINNET_RPC_URL = vm.envString("MAINNET_RPC_URL");
+        uint256 mainnetFork = vm.createFork(MAINNET_RPC_URL);
+        vm.selectFork(mainnetFork);
     }
 
     function test_createWalletModuleEnabled() public {
