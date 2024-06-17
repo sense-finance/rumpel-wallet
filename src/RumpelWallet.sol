@@ -1,23 +1,21 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+
+import {ISafe, Enum} from "./interfaces/external/ISafe.sol";
+import {ISafeProxyFactory} from "./interfaces/external/ISafeProxyFactory.sol";
+
 // singleton vs proxies?
 
-library Enum {
-    enum Operation {
-        Call,
-        DelegateCall
-    }
-}
-
-contract RumpelGuard {
-    constructor() {}
+contract RumpelGuard is Ownable {
+    constructor() Ownable(msg.sender) {}
 
     function setUp() public {}
 
     mapping(address => mapping(bytes4 => bool)) public allowedTargets;
 
-    function setCallAllowed(address target, bytes4 functionSig, bool allow) public {
+    function setCallAllowed(address target, bytes4 functionSig, bool allow) public onlyOwner {
         allowedTargets[target][functionSig] = allow;
     }
 
@@ -48,44 +46,27 @@ contract RumpelGuard {
     function checkAfterExecution(bytes32, bool) external view {}
 }
 
-contract SafeModule {
+contract SafeModule is Ownable {
     uint256 public number;
 
-    function exec(IGnosisSafe safe, address to, uint256 value, bytes memory data, Enum.Operation operation)
+    constructor() Ownable(msg.sender) {}
+
+    function exec(ISafe safe, address to, uint256 value, bytes memory data, Enum.Operation operation)
         public
         virtual
+        onlyOwner
         returns (bool success)
     {
-        // require(auth)
         safe.execTransactionFromModule(to, value, data, operation);
     }
 }
 
-interface IGnosisSafeProxyFactory {
-    function createProxyWithNonce(address _singleton, bytes memory _initializer, uint256 _saltNonce)
-        external
-        returns (address);
-}
-
-interface IGnosisSafe {
-    function setup(
-        address[] calldata _owners,
-        uint256 _threshold,
-        address to,
-        bytes calldata data,
-        address fallbackHandler,
-        address paymentToken,
-        uint256 payment,
-        address payable paymentReceiver
-    ) external;
-}
-
-contract RumpelWalletFactory {
-    IGnosisSafeProxyFactory public immutable proxyFactory;
+contract RumpelWalletFactory is Ownable {
+    ISafeProxyFactory public immutable proxyFactory;
     address public immutable singleton;
     uint256 public saltNonce;
 
-    constructor(IGnosisSafeProxyFactory _proxyFactory, address _singleton) {
+    constructor(ISafeProxyFactory _proxyFactory, address _singleton) Ownable(msg.sender) {
         proxyFactory = _proxyFactory;
         singleton = _singleton;
     }
@@ -135,7 +116,7 @@ contract RumpelWalletFactory {
         }
 
         return abi.encodeWithSelector(
-            IGnosisSafe.setup.selector,
+            ISafe.setup.selector,
             _owners,
             _threshold,
             to,
@@ -145,5 +126,11 @@ contract RumpelWalletFactory {
             payment,
             paymentReceiver
         );
+    }
+}
+
+contract EnableModules {
+    function enableModule(address module) public {
+        ISafe(address(this)).enableModule(module);
     }
 }
