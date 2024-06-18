@@ -3,13 +3,14 @@ pragma solidity ^0.8.13;
 
 import {Test, console} from "forge-std/Test.sol";
 import {MockERC20} from "solmate/test/utils/mocks/MockERC20.sol";
+import {ERC20} from "solmate/tokens/ERC20.sol";
 
 import {RumpelWalletFactory} from "../src/RumpelWallet.sol";
 import {RumpelGuard} from "../src/RumpelGuard.sol";
 import {InitializationScript} from "../src/InitializationScript.sol";
 import {RumpelModule} from "../src/RumpelModule.sol";
 
-import {ISafe} from "../src/interfaces/external/ISafe.sol";
+import {ISafe, Enum} from "../src/interfaces/external/ISafe.sol";
 import {ISafeProxyFactory} from "../src/interfaces/external/ISafeProxyFactory.sol";
 
 contract RumpelWalletTest is Test {
@@ -84,17 +85,26 @@ contract RumpelWalletTest is Test {
         ISafe safe = ISafe(rumpelWalletFactory.createWallet(owners, 1, address(0), address(0), 0, payable(address(0))));
 
         MockERC20 token = new MockERC20("Mock Token", "MTKN", 18);
-        token.mint(1.1e18);
+        token.mint(address(this), 1.1e18);
         token.transfer(address(safe), 1.1e18);
 
         assertEq(token.balanceOf(address(safe)), 1.1e18);
         assertEq(token.balanceOf(address(this)), 0);
 
-        safe.execTransactionFromModule(address(token), 0, abi.encodeCall(MockERC20.transfer, address(this), 1.1e18));
+        rumpelModule.exec(
+            safe, address(token), 0, abi.encodeCall(ERC20.transfer, (address(this), 1.1e18)), Enum.Operation.Call
+        );
 
         assertEq(token.balanceOf(address(safe)), 0);
         assertEq(token.balanceOf(address(this)), 1.1e18);
     }
 
     // test owner is blocked for actions not on the whitelist
+    // - cant disable module
+    // - cant change guard
+    // - cant change owners
+    // - cant withdraw funds
+    // test owner is allowed for actions on the whitelist
+    // test whitelist can be updated
+    // test migrations
 }
