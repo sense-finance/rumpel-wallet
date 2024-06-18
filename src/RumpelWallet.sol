@@ -8,6 +8,10 @@ import {ISafeProxyFactory} from "./interfaces/external/ISafeProxyFactory.sol";
 import {InitializationScript} from "./InitializationScript.sol";
 import {RumpelModule} from "./RumpelModule.sol";
 
+// delegate claiming fnc?
+// more admin controls on the guard?
+// * roles for different interactions from e.g. the sweeper contract
+
 contract RumpelWalletFactory is Ownable {
     uint256 public saltNonce;
 
@@ -34,8 +38,8 @@ contract RumpelWalletFactory is Ownable {
     }
 
     function createWallet(
-        address[] calldata _owners,
-        uint256 _threshold,
+        address[] calldata owners,
+        uint256 threshold,
         address fallbackHandler,
         address paymentToken,
         uint256 payment,
@@ -43,10 +47,10 @@ contract RumpelWalletFactory is Ownable {
     ) public returns (address) {
         bytes memory initializer = abi.encodeWithSelector(
             ISafe.setup.selector,
-            _owners,
-            _threshold,
-            initializationScript,
-            abi.encodeWithSignature("initialize(address,address)", rumpelModule, rumpelGuard), // Initializing call to enable modules
+            owners,
+            threshold,
+            initializationScript, // Target contract we delegatecall for initialization
+            abi.encodeWithSelector(InitializationScript.initialize.selector, rumpelModule, rumpelGuard), // Initializing call to enable module and guard
             fallbackHandler,
             paymentToken,
             payment,

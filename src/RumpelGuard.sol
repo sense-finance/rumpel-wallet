@@ -7,22 +7,15 @@ import {Enum} from "./interfaces/external/ISafe.sol";
 import {IGuard} from "./interfaces/external/IGuard.sol";
 
 contract RumpelGuard is Ownable, IGuard {
-    constructor() Ownable(msg.sender) {}
+    error CallNotAllowed();
 
-    function setUp() public {}
+    constructor() Ownable(msg.sender) {}
 
     mapping(address => mapping(bytes4 => bool)) public allowedTargets;
 
+    // TODO: should we allow more fine-grained control for which args are allowed?
     function setCallAllowed(address target, bytes4 functionSig, bool allow) public onlyOwner {
         allowedTargets[target][functionSig] = allow;
-    }
-
-    function isAllowedCall(address target, bytes4 functionSig) public view returns (bool) {
-        return (allowedTargets[target][functionSig]);
-    }
-
-    fallback() external {
-        // Don't revert on fallback to avoid issues in case of a Safe upgrade
     }
 
     function checkTransaction(
@@ -38,7 +31,9 @@ contract RumpelGuard is Ownable, IGuard {
         bytes memory,
         address
     ) external view {
-        require(allowedTargets[to][bytes4(data)], "Call is not allowed");
+        if (!allowedTargets[to][bytes4(data)]) {
+            revert CallNotAllowed();
+        }
     }
 
     function checkAfterExecution(bytes32, bool) external view {}
@@ -46,4 +41,6 @@ contract RumpelGuard is Ownable, IGuard {
     function supportsInterface(bytes4 interfaceId) external pure returns (bool) {
         return interfaceId == type(IGuard).interfaceId;
     }
+
+    fallback() external {}
 }
