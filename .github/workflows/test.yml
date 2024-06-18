@@ -28,12 +28,6 @@ jobs:
           forge build --sizes
         id: build
 
-      - name: echo secret
-        env:
-          MAINNET_RPC_URL: ${{ secrets.MAINNET_RPC_URL }}
-        run: |
-          echo "$MAINNET_RPC_URL"
-
       - name: Run Forge tests
         run: |
           forge test -vvv
