@@ -8,9 +8,7 @@ import {ISafeProxyFactory} from "./interfaces/external/ISafeProxyFactory.sol";
 import {InitializationScript} from "./InitializationScript.sol";
 import {RumpelModule} from "./RumpelModule.sol";
 
-// delegate claiming fnc?
-// more admin controls on the guard?
-// * roles for different interactions from e.g. the sweeper contract
+// delegate claiming fnc in the vault?
 
 contract RumpelWalletFactory is Ownable {
     uint256 public saltNonce;
@@ -49,7 +47,7 @@ contract RumpelWalletFactory is Ownable {
             ISafe.setup.selector,
             owners,
             threshold,
-            initializationScript, // Target contract we delegatecall for initialization
+            initializationScript, // Target contract we delegatecall to for initialization
             abi.encodeWithSelector(InitializationScript.initialize.selector, rumpelModule, rumpelGuard), // Initializing call to enable module and guard
             fallbackHandler,
             paymentToken,
@@ -57,7 +55,7 @@ contract RumpelWalletFactory is Ownable {
             paymentReceiver
         );
 
-        return proxyFactory.createProxyWithNonce(singleton, initializer, saltNonce++);
+        return proxyFactory.createProxyWithNonce(singleton, initializer, saltNonce++); // TODO: do we want to limit each owner to one wallet via nonce?
     }
 
     // Admin ---

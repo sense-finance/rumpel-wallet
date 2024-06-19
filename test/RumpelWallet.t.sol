@@ -4,8 +4,9 @@ pragma solidity ^0.8.13;
 import {Test, console} from "forge-std/Test.sol";
 import {MockERC20} from "solmate/test/utils/mocks/MockERC20.sol";
 import {ERC20} from "solmate/tokens/ERC20.sol";
+import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol";
 
-import {RumpelWalletFactory} from "../src/RumpelWallet.sol";
+import {RumpelWalletFactory} from "../src/RumpelWalletFactory.sol";
 import {RumpelGuard} from "../src/RumpelGuard.sol";
 import {InitializationScript} from "../src/InitializationScript.sol";
 import {RumpelModule} from "../src/RumpelModule.sol";
@@ -134,6 +135,7 @@ contract RumpelWalletTest is Test {
             operation: Enum.Operation.Call
         });
 
+        // Sign tx for execution
         bytes32 txHash = safe.getTransactionHash(
             safeTX.to, safeTX.value, safeTX.data, safeTX.operation, 0, 0, 0, address(0), payable(address(0)), 0
         );
@@ -155,6 +157,37 @@ contract RumpelWalletTest is Test {
         );
 
         assertEq(counter.count(), 1);
+    }
+
+    function test_moduleAuth(address lad) public {
+        vm.assume(lad != admin);
+
+        address[] memory owners = new address[](1);
+        owners[0] = address(makeAddr("random 111")); // random owner
+
+        ISafe safe = ISafe(rumpelWalletFactory.createWallet(owners, 1, address(0), address(0), 0, payable(address(0))));
+
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IAccessControl.AccessControlUnauthorizedAccount.selector, lad, rumpelModule.DEFAULT_ADMIN_ROLE()
+            )
+        );
+        vm.prank(lad);
+        rumpelModule.exec(
+            safe, address(mockToken), 0, abi.encodeCall(ERC20.transfer, (RUMPEL_VAULT, 1.1e18)), Enum.Operation.Call
+        );
+    }
+
+    function test_guardAuth(address lad) public {
+        vm.assume(lad != admin);
+
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IAccessControl.AccessControlUnauthorizedAccount.selector, lad, rumpelModule.DEFAULT_ADMIN_ROLE()
+            )
+        );
+        vm.prank(lad);
+        rumpelGuard.setCallAllowed(address(counter), Counter.increment.selector, true);
     }
 
     // test owner is blocked for actions not on the whitelist

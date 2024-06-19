@@ -1,20 +1,18 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
 
 import {Enum} from "./interfaces/external/ISafe.sol";
 import {IGuard} from "./interfaces/external/IGuard.sol";
 
-contract RumpelGuard is Ownable, IGuard {
+contract RumpelGuard is AccessControl, IGuard {
     error CallNotAllowed();
-
-    constructor() Ownable(msg.sender) {}
 
     mapping(address => mapping(bytes4 => bool)) public allowedTargets;
 
-    // TODO: should we allow more fine-grained control for which args are allowed?
-    function setCallAllowed(address target, bytes4 functionSig, bool allow) public onlyOwner {
+    // TODO: should we allow more fine-grained control on which args are allowed?
+    function setCallAllowed(address target, bytes4 functionSig, bool allow) public onlyRole(DEFAULT_ADMIN_ROLE) {
         allowedTargets[target][functionSig] = allow;
     }
 
@@ -38,8 +36,8 @@ contract RumpelGuard is Ownable, IGuard {
 
     function checkAfterExecution(bytes32, bool) external view {}
 
-    function supportsInterface(bytes4 interfaceId) external pure returns (bool) {
-        return interfaceId == type(IGuard).interfaceId;
+    function supportsInterface(bytes4 interfaceId) public view override returns (bool) {
+        return super.supportsInterface(interfaceId) || interfaceId == type(IGuard).interfaceId;
     }
 
     fallback() external {}

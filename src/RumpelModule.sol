@@ -8,6 +8,8 @@ import {Enum} from "./interfaces/external/ISafe.sol";
 import {ISafe} from "./interfaces/external/ISafe.sol";
 
 contract RumpelModule is AccessControl {
+    error ExecFailed();
+
     bytes32 public constant SWEEPER_ROLE = keccak256("SWEEPER_ROLE");
     address public rumpelVault;
 
@@ -21,17 +23,25 @@ contract RumpelModule is AccessControl {
         public
         virtual
         onlyRole(DEFAULT_ADMIN_ROLE)
-        returns (bool)
     {
-        return safe.execTransactionFromModule(to, value, data, operation);
+        bool success = safe.execTransactionFromModule(to, value, data, operation);
+        if (!success) {
+            revert ExecFailed();
+        }
     }
 
-    function sweep(ISafe[] memory safes, ERC20 token) public virtual onlyRole(SWEEPER_ROLE) {
-        for (uint256 i = 0; i < safes.length; i++) {
-            safes[i].execTransactionFromModule(
-                address(token),
+    struct Sweep {
+        ISafe safe;
+        ERC20 token;
+        uint256 amount;
+    }
+
+    function sweep(Sweep[] memory sweeps) public virtual onlyRole(SWEEPER_ROLE) {
+        for (uint256 i = 0; i < sweeps.length; i++) {
+            sweeps[i].safe.execTransactionFromModule(
+                address(sweeps[i].token),
                 0,
-                abi.encodeCall(ERC20.transfer, (rumpelVault, token.balanceOf(address(safes[i])))),
+                abi.encodeCall(ERC20.transfer, (rumpelVault, sweeps[i].amount)),
                 Enum.Operation.Call
             );
         }
