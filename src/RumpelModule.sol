@@ -8,26 +8,28 @@ import {Enum} from "./interfaces/external/ISafe.sol";
 import {ISafe} from "./interfaces/external/ISafe.sol";
 
 contract RumpelModule is AccessControl {
-    error ExecFailed();
+    error CallGuarded(address target, bytes4 data);
+    error ExecFailed(address safe, address target, bytes data);
 
+    event ExecutionFromModule(address indexed safe, address indexed target, uint256 value, bytes data);
+    event TokensSwepped(address indexed safe, address indexed token, uint256 amount);
+    event RumpelVaultUpdated(address indexed newVault);
+    event GuardedCallAdded(address indexed target, bytes4 indexed data);
+
+    mapping(address => mapping(bytes4 => bool)) public guardedCalls;
     bytes32 public constant SWEEPER_ROLE = keccak256("SWEEPER_ROLE");
     address public rumpelVault;
 
     constructor(address _rumpelVault) {
-        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
-
         rumpelVault = _rumpelVault;
+        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
 
-    function exec(ISafe safe, address to, uint256 value, bytes memory data, Enum.Operation operation)
-        public
-        virtual
-        onlyRole(DEFAULT_ADMIN_ROLE)
-    {
-        bool success = safe.execTransactionFromModule(to, value, data, operation);
-        if (!success) {
-            revert ExecFailed();
-        }
+    struct Call {
+        ISafe safe;
+        address to;
+        uint256 value;
+        bytes data;
     }
 
     struct Sweep {
@@ -36,6 +38,33 @@ contract RumpelModule is AccessControl {
         uint256 amount;
     }
 
+    /**
+     * @dev Executes a series of calls on behalf of Safe contracts.
+     * @param calls An array of Call structs containing the details of each call to be executed.
+     */
+    function exec(Call[] memory calls) public virtual onlyRole(DEFAULT_ADMIN_ROLE) {
+        for (uint256 i = 0; i < calls.length; i++) {
+            if (guardedCalls[calls[i].to][bytes4(calls[i].data)]) {
+                // Calls that the module is prevented from making
+                revert CallGuarded(calls[i].to, bytes4(calls[i].data));
+            }
+            // TODO: what about eth trasnfers?
+
+            // No delegatecalls
+            bool success =
+                calls[i].safe.execTransactionFromModule(calls[i].to, calls[i].value, calls[i].data, Enum.Operation.Call);
+
+            if (!success) {
+                revert ExecFailed(address(calls[i].safe), calls[i].to, calls[i].data);
+            }
+
+            emit ExecutionFromModule(address(calls[i].safe), calls[i].to, calls[i].value, calls[i].data);
+        }
+    }
+
+    // Utils ----
+
+    // Sweep token from multiple safes at once
     function sweep(Sweep[] memory sweeps) public virtual onlyRole(SWEEPER_ROLE) {
         for (uint256 i = 0; i < sweeps.length; i++) {
             sweeps[i].safe.execTransactionFromModule(
@@ -44,10 +73,24 @@ contract RumpelModule is AccessControl {
                 abi.encodeCall(ERC20.transfer, (rumpelVault, sweeps[i].amount)),
                 Enum.Operation.Call
             );
+            emit TokensSwepped(address(sweeps[i].safe), address(sweeps[i].token), sweeps[i].amount);
         }
+    }
+
+    // Admin ---
+
+    /**
+     * @dev Add a protected call to prevent it from being executed via the module.
+     * Useful so that for e.g. DAI or USDC, users can be assured that the
+     * RumpelModule will never transfer their tokens.
+     */
+    function addGuardedCall(address to, bytes4 data) public virtual onlyRole(DEFAULT_ADMIN_ROLE) {
+        guardedCalls[to][data] = true;
+        emit GuardedCallAdded(to, data);
     }
 
     function setRumpelVault(address _rumpelVault) public virtual onlyRole(DEFAULT_ADMIN_ROLE) {
         rumpelVault = _rumpelVault;
+        emit RumpelVaultUpdated(_rumpelVault);
     }
 }

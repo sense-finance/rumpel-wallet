@@ -3,7 +3,7 @@ pragma solidity ^0.8.13;
 
 import {ISafe} from "./interfaces/external/ISafe.sol";
 
-// For delegatecalls from the safe
+// For delegatecalls for safe initialization
 contract InitializationScript {
     function initialize(address module, address guard) public {
         ISafe(address(this)).enableModule(module);

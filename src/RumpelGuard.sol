@@ -9,13 +9,27 @@ import {IGuard} from "./interfaces/external/IGuard.sol";
 contract RumpelGuard is AccessControl, IGuard {
     error CallNotAllowed();
 
-    mapping(address => mapping(bytes4 => bool)) public allowedTargets;
+    event SetCallAllowed(address indexed target, bytes4 indexed functionSig, bool allow);
+    event SetCallPermenantlyAllowed(address indexed target, bytes4 indexed functionSig);
 
-    // TODO: should we allow more fine-grained control on which args are allowed?
-    function setCallAllowed(address target, bytes4 functionSig, bool allow) public onlyRole(DEFAULT_ADMIN_ROLE) {
-        allowedTargets[target][functionSig] = allow;
+    mapping(address => mapping(bytes4 => bool)) public allowedTargets;
+    mapping(address => mapping(bytes4 => bool)) public permanentlyAllowedTargets;
+
+    constructor() {
+        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
 
+    function setCallAllowed(address target, bytes4 functionSig, bool allow) public onlyRole(DEFAULT_ADMIN_ROLE) {
+        allowedTargets[target][functionSig] = allow;
+        emit SetCallAllowed(target, functionSig, allow);
+    }
+
+    function setCallPermenantlyAllowed(address target, bytes4 functionSig) public onlyRole(DEFAULT_ADMIN_ROLE) {
+        permanentlyAllowedTargets[target][functionSig] = true;
+        emit SetCallPermenantlyAllowed(target, functionSig);
+    }
+
+    // This guard blocks all calls by default, including delegatecalls, unless explicitly whitelisted
     function checkTransaction(
         address to,
         uint256,
@@ -29,7 +43,10 @@ contract RumpelGuard is AccessControl, IGuard {
         bytes memory,
         address
     ) external view {
-        if (!allowedTargets[to][bytes4(data)]) {
+        bytes4 functionSig = bytes4(data);
+        // TODO: check value?
+
+        if (!allowedTargets[to][functionSig] && !permanentlyAllowedTargets[to][functionSig]) {
             revert CallNotAllowed();
         }
     }
@@ -39,6 +56,4 @@ contract RumpelGuard is AccessControl, IGuard {
     function supportsInterface(bytes4 interfaceId) public view override returns (bool) {
         return super.supportsInterface(interfaceId) || interfaceId == type(IGuard).interfaceId;
     }
-
-    fallback() external {}
 }
