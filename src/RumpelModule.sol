@@ -8,15 +8,15 @@ import {Enum} from "./interfaces/external/ISafe.sol";
 import {ISafe} from "./interfaces/external/ISafe.sol";
 
 contract RumpelModule is AccessControl {
-    error CallGuarded(address target, bytes4 data);
+    error CallBlocked(address target, bytes4 data);
     error ExecFailed(address safe, address target, bytes data);
 
     event ExecutionFromModule(address indexed safe, address indexed target, uint256 value, bytes data);
     event TokensSwepped(address indexed safe, address indexed token, uint256 amount);
     event RumpelVaultUpdated(address indexed newVault);
-    event GuardedCallAdded(address indexed target, bytes4 indexed data);
+    event BlockedCallAdded(address indexed target, bytes4 indexed data);
 
-    mapping(address => mapping(bytes4 => bool)) public guardedCalls;
+    mapping(address => mapping(bytes4 => bool)) public blockedCalls;
     bytes32 public constant SWEEPER_ROLE = keccak256("SWEEPER_ROLE");
     address public rumpelVault;
 
@@ -44,9 +44,9 @@ contract RumpelModule is AccessControl {
      */
     function exec(Call[] memory calls) public virtual onlyRole(DEFAULT_ADMIN_ROLE) {
         for (uint256 i = 0; i < calls.length; i++) {
-            if (guardedCalls[calls[i].to][bytes4(calls[i].data)]) {
+            if (blockedCalls[calls[i].to][bytes4(calls[i].data)]) {
                 // Calls that the module is prevented from making
-                revert CallGuarded(calls[i].to, bytes4(calls[i].data));
+                revert CallBlocked(calls[i].to, bytes4(calls[i].data));
             }
             // TODO: what about eth trasnfers?
 
@@ -80,13 +80,12 @@ contract RumpelModule is AccessControl {
     // Admin ---
 
     /**
-     * @dev Add a protected call to prevent it from being executed via the module.
-     * Useful so that for e.g. DAI or USDC, users can be assured that the
-     * RumpelModule will never transfer their tokens.
+     * @dev Add address.call to prevent it from being executed via the module.
+     * Useful as an assurance that the RumpelModule will never e.g. transfer a user's USDC.
      */
-    function addGuardedCall(address to, bytes4 data) public virtual onlyRole(DEFAULT_ADMIN_ROLE) {
-        guardedCalls[to][data] = true;
-        emit GuardedCallAdded(to, data);
+    function addBlockedCall(address to, bytes4 data) public virtual onlyRole(DEFAULT_ADMIN_ROLE) {
+        blockedCalls[to][data] = true;
+        emit BlockedCallAdded(to, data);
     }
 
     function setRumpelVault(address _rumpelVault) public virtual onlyRole(DEFAULT_ADMIN_ROLE) {

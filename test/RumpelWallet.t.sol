@@ -317,12 +317,12 @@ contract RumpelWalletTest is Test {
 
         // Guard the transfer call
         vm.prank(admin);
-        rumpelModule.addGuardedCall(address(mockToken), ERC20.transfer.selector);
+        rumpelModule.addBlockedCall(address(mockToken), ERC20.transfer.selector);
 
         // Attempt to execute the guarded call
         vm.expectRevert(
             abi.encodeWithSelector(
-                RumpelModule.CallGuarded.selector,
+                RumpelModule.CallBlocked.selector,
                 address(mockToken),
                 bytes4(abi.encodeCall(ERC20.transfer, (RUMPEL_VAULT, 1e18)))
             )

@@ -25,7 +25,7 @@ contract RumpelGuard is AccessControl, IGuard {
     }
 
     function setCallPermenantlyAllowed(address target, bytes4 functionSig) public onlyRole(DEFAULT_ADMIN_ROLE) {
-        permanentlyAllowedTargets[target][functionSig] = true;
+        permanentlyAllowedTargets[target][functionSig] = true; // One way, only true
         emit SetCallPermenantlyAllowed(target, functionSig);
     }
 
