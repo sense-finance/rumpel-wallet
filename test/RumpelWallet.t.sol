@@ -162,11 +162,11 @@ contract RumpelWalletTest is Test {
     function testFuzz_GuardAllowAndDisallowCalls(address target, bytes4 functionSig) public {
         vm.prank(admin);
         rumpelGuard.setCallAllowed(target, functionSig, true);
-        assertTrue(rumpelGuard.allowedTargets(target, functionSig));
+        assertTrue(rumpelGuard.allowedCalls(target, functionSig));
 
         vm.prank(admin);
         rumpelGuard.setCallAllowed(target, functionSig, false);
-        assertFalse(rumpelGuard.allowedTargets(target, functionSig));
+        assertFalse(rumpelGuard.allowedCalls(target, functionSig));
     }
 
     function test_rumpelWalletIsGuarded() public {

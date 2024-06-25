@@ -10,17 +10,16 @@ import {InitializationScript} from "./InitializationScript.sol";
 import {RumpelModule} from "./RumpelModule.sol";
 
 // delegate claiming fnc in the vault?
-// restrict what we can do with the wallet (top 20 no approve and transfer)
 // upgradable?'
 // TODO: do we handle safe contract upgrades?
 
 contract RumpelWalletFactory is Ownable, Pausable {
-    event SafeCreated(address indexed safe, address[] owners, uint256 threshold);
-    event RumpelGuardUpdated(address indexed newGuard);
-    event RumpelModuleUpdated(address indexed newModule);
-    event InitializationScriptUpdated(address indexed newScript);
-    event SafeSingletonUpdated(address indexed newSafeSingleton);
-    event ProxyFactoryUpdated(address indexed newProxyFactory);
+    event SafeCreated(address indexed safe, address[] indexed owners, uint256 threshold);
+    event RumpelGuardUpdated(address prevGuard, address newGuard);
+    event RumpelModuleUpdated(address prevModule, address newModule);
+    event InitializationScriptUpdated(address prevScript, address newScript);
+    event SafeSingletonUpdated(address prevSafeSingleton, address newSafeSingleton);
+    event ProxyFactoryUpdated(address prevProxyFactory, address newProxyFactory);
 
     uint256 public saltNonce;
 
@@ -46,14 +45,15 @@ contract RumpelWalletFactory is Ownable, Pausable {
         rumpelGuard = _rumpelGuard;
     }
 
+    // Address can be predicted off-chain
     function createWallet(address[] calldata owners, uint256 threshold) public whenNotPaused returns (address) {
         address safe = proxyFactory.createProxyWithNonce(
             safeSingleton,
-            abi.encodeWithSelector( // initializer
+            abi.encodeWithSelector(
                 ISafe.setup.selector,
                 owners,
                 threshold,
-                initializationScript, // Target contract we delegatecall to for initialization
+                initializationScript, // Contract with initialization logic
                 abi.encodeWithSelector(InitializationScript.initialize.selector, rumpelModule, rumpelGuard), // Initializing call to enable module and guard
                 address(0), // fallbackHandler TODO: do we want to set the default compatibility fallback handler? will any UIs be harder without this?
                 address(0), // paymentToken
@@ -71,40 +71,34 @@ contract RumpelWalletFactory is Ownable, Pausable {
     // Admin ----
 
     function setRumpelGuard(address _rumpelGuard) public onlyOwner {
+        emit RumpelGuardUpdated(rumpelGuard, _rumpelGuard);
         rumpelGuard = _rumpelGuard;
-        emit RumpelGuardUpdated(_rumpelGuard);
     }
 
     function setRumpelModule(address _rumpelModule) public onlyOwner {
+        emit RumpelModuleUpdated(rumpelModule, _rumpelModule);
         rumpelModule = _rumpelModule;
-        emit RumpelModuleUpdated(_rumpelModule);
     }
 
     function setInitializationScript(address _initializationScript) public onlyOwner {
+        emit InitializationScriptUpdated(initializationScript, _initializationScript);
         initializationScript = _initializationScript;
-        emit InitializationScriptUpdated(_initializationScript);
     }
 
     function setSafeSingleton(address _safeSingleton) public onlyOwner {
+        emit SafeSingletonUpdated(safeSingleton, _safeSingleton);
         safeSingleton = _safeSingleton;
-        emit SafeSingletonUpdated(_safeSingleton);
     }
 
     function setProxyFactory(ISafeProxyFactory _proxyFactory) public onlyOwner {
+        emit ProxyFactoryUpdated(address(proxyFactory), address(_proxyFactory));
         proxyFactory = _proxyFactory;
-        emit ProxyFactoryUpdated(address(_proxyFactory));
     }
 
-    /**
-     * @dev Pauses wallet creation. Can only be called by the owner.
-     */
     function pauseWalletCreation() public onlyOwner {
         _pause();
     }
 
-    /**
-     * @dev Unpauses wallet creation. Can only be called by the owner.
-     */
     function unpauseWalletCreation() public onlyOwner {
         _unpause();
     }

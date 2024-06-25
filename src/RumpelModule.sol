@@ -13,7 +13,7 @@ contract RumpelModule is AccessControl {
 
     event ExecutionFromModule(address indexed safe, address indexed target, uint256 value, bytes data);
     event TokensSwepped(address indexed safe, address indexed token, uint256 amount);
-    event RumpelVaultUpdated(address indexed newVault);
+    event RumpelVaultUpdated(address prevVault, address newVault);
     event BlockedCallAdded(address indexed target, bytes4 indexed data);
 
     mapping(address => mapping(bytes4 => bool)) public blockedCalls;
@@ -89,7 +89,7 @@ contract RumpelModule is AccessControl {
     }
 
     function setRumpelVault(address _rumpelVault) public virtual onlyRole(DEFAULT_ADMIN_ROLE) {
+        emit RumpelVaultUpdated(rumpelVault, _rumpelVault);
         rumpelVault = _rumpelVault;
-        emit RumpelVaultUpdated(_rumpelVault);
     }
 }

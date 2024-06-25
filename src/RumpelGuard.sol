@@ -12,20 +12,20 @@ contract RumpelGuard is AccessControl, IGuard {
     event SetCallAllowed(address indexed target, bytes4 indexed functionSig, bool allow);
     event SetCallPermenantlyAllowed(address indexed target, bytes4 indexed functionSig);
 
-    mapping(address => mapping(bytes4 => bool)) public allowedTargets;
-    mapping(address => mapping(bytes4 => bool)) public permanentlyAllowedTargets;
+    mapping(address => mapping(bytes4 => bool)) public allowedCalls;
+    mapping(address => mapping(bytes4 => bool)) public permanentlyAllowedCalls;
 
     constructor() {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
 
     function setCallAllowed(address target, bytes4 functionSig, bool allow) public onlyRole(DEFAULT_ADMIN_ROLE) {
-        allowedTargets[target][functionSig] = allow;
+        allowedCalls[target][functionSig] = allow;
         emit SetCallAllowed(target, functionSig, allow);
     }
 
     function setCallPermenantlyAllowed(address target, bytes4 functionSig) public onlyRole(DEFAULT_ADMIN_ROLE) {
-        permanentlyAllowedTargets[target][functionSig] = true; // One way, only true
+        permanentlyAllowedCalls[target][functionSig] = true; // One way, only true
         emit SetCallPermenantlyAllowed(target, functionSig);
     }
 
@@ -46,7 +46,7 @@ contract RumpelGuard is AccessControl, IGuard {
         bytes4 functionSig = bytes4(data);
         // TODO: check value?
 
-        if (!allowedTargets[to][functionSig] && !permanentlyAllowedTargets[to][functionSig]) {
+        if (!allowedCalls[to][functionSig] && !permanentlyAllowedCalls[to][functionSig]) {
             revert CallNotAllowed();
         }
     }
