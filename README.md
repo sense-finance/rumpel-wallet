@@ -10,7 +10,7 @@ Tl;dr
 - Users create and manage unique positions using their Rumpel Wallets
 - Points accrue as pTokens via the Point Tokenization Vault
 - Users can sell their pTokens at any time
-- After point-providing protocol enables conversion of points to reward tokens, Rumpel claims the rewards for users and sweeps them into the vault
+- After point-providing protocol releases the reward tokens, Rumpel claims the rewards for users and sweeps them into the vault
 - All pToken holders can redeem their pTokens for rewards using the vault
 
 The redemption process will be the same as it has been for the Point Tokenization Vault, just with a new source of reward tokens.
@@ -21,8 +21,8 @@ The redemption process will be the same as it has been for the Point Tokenizatio
 ### Rumpel Module
 
 Enables admin actions on a user's behalf, specifically:
-- Claiming reward tokens after point conversion
-- Transferring reward tokens to the Point Tokenization Vault for pToken redemption
+- Claim reward tokens after point conversion
+- Transfer reward tokens to the Point Tokenization Vault for broad pToken redemption
 
 Includes a permanent, irrevocable blocklist for restricted actions (e.g., transferring user's USDC).
 
