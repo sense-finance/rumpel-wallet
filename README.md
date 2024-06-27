@@ -7,10 +7,10 @@ This is an extension of the Rumpel Point Tokenization protocol, enabling a wider
 <img src="./assets/point-tokenization-system.png" width="500" height="500">
 
 Tl;dr
-- Users create and manage unique positions using their Rumpel wallets
+- Users create and manage unique positions using their Rumpel Wallets
 - Points accrue as pTokens via the Point Tokenization Vault
 - Users can sell their pTokens at any time
-- After redemption, the protocol converts points to reward tokens, claims them for users, and transfers them to the vault
+- After point-providing protocol enables conversion of points to reward tokens, Rumpel claims the rewards for users and sweeps them into the vault
 - All pToken holders can redeem their pTokens for rewards using the vault
 
 The redemption process will be the same as it has been for the Point Tokenization Vault, just with a new source of reward tokens.
@@ -23,11 +23,14 @@ The redemption process will be the same as it has been for the Point Tokenizatio
 Enables admin actions on a user's behalf, specifically:
 - Claiming reward tokens after point conversion
 - Transferring reward tokens to the Point Tokenization Vault for pToken redemption
+
 Includes a permanent, irrevocable blocklist for restricted actions (e.g., transferring user's USDC).
 
 ### Rumpel Guard
 
-Restricts wallet actions to admin-allowed <address>.<functionSig> calls. Includes a permanent, irrevocable allowlist for unrestricted user actions (e.g., transferring USDC).
+Restricts wallet actions to admin-allowed `<address>.<functionSig>` calls. 
+
+Includes a permanent, irrevocable allowlist for unrestricted user actions (e.g., transferring USDC).
 
 ### RumpelWalletFactory
 
