@@ -23,9 +23,11 @@ contract RumpelWalletTest is Test {
     Counter public counter;
     MockERC20 public mockToken;
 
+    // Mainnet addresses
     ISafeProxyFactory public PROXY_FACTORY = ISafeProxyFactory(0xa6B71E26C5e0845f74c812102Ca7114b6a896AB2);
     address public SAFE_SINGLETON = 0xd9Db270c1B5E3Bd161E8c8503c55cEABeE709552;
     address public RUMPEL_VAULT = 0x1EeEBa76f211C4Dce994b9c5A74BDF25DB649Fa1;
+    address public POINT_TOKENIZATION_VAULT = 0x1EeEBa76f211C4Dce994b9c5A74BDF25DB649Fa1;
 
     address alice;
     uint256 alicePk;
@@ -341,6 +343,7 @@ contract RumpelWalletTest is Test {
         assertEq(mockToken.balanceOf(RUMPEL_VAULT), 0);
     }
 
+    // e2e vault redemption test
     // test owner is blocked for actions not on the whitelist
     // - cant disable module
     // - cant change guard

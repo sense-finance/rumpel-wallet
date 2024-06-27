@@ -50,9 +50,8 @@ contract RumpelModule is AccessControl {
             }
             // TODO: what about eth trasnfers?
 
-            // No delegatecalls
             bool success =
-                calls[i].safe.execTransactionFromModule(calls[i].to, calls[i].value, calls[i].data, Enum.Operation.Call);
+                calls[i].safe.execTransactionFromModule(calls[i].to, calls[i].value, calls[i].data, Enum.Operation.Call); // No delegatecalls
 
             if (!success) {
                 revert ExecFailed(address(calls[i].safe), calls[i].to, calls[i].data);
