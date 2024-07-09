@@ -1,29 +1,19 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.19;
 
-import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
-import {ERC20} from "solmate/tokens/ERC20.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 import {Enum} from "./interfaces/external/ISafe.sol";
 import {ISafe} from "./interfaces/external/ISafe.sol";
 
-contract RumpelModule is AccessControl {
-    error CallBlocked(address target, bytes4 data);
+contract RumpelModule is Ownable {
     error ExecFailed(address safe, address target, bytes data);
+    error CallBlocked(address target, bytes4 functionSelector);
 
     event ExecutionFromModule(address indexed safe, address indexed target, uint256 value, bytes data);
-    event TokensSwepped(address indexed safe, address indexed token, uint256 amount);
-    event RumpelVaultUpdated(address prevVault, address newVault);
-    event BlockedCallAdded(address indexed target, bytes4 indexed data);
+    event SetModuleCallBlocked(address indexed target, bytes4 indexed functionSelector);
 
-    mapping(address => mapping(bytes4 => bool)) public blockedCalls;
-    bytes32 public constant SWEEPER_ROLE = keccak256("SWEEPER_ROLE");
-    address public rumpelVault;
-
-    constructor(address _rumpelVault) {
-        rumpelVault = _rumpelVault;
-        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
-    }
+    mapping(address => mapping(bytes4 => bool)) public blockedModuleCalls; // target => functionSelector => blocked
 
     struct Call {
         ISafe safe;
@@ -32,63 +22,44 @@ contract RumpelModule is AccessControl {
         bytes data;
     }
 
-    struct Sweep {
-        ISafe safe;
-        ERC20 token;
-        uint256 amount;
-    }
+    constructor() Ownable(msg.sender) {}
 
     /**
      * @dev Executes a series of calls on behalf of Safe contracts.
      * @param calls An array of Call structs containing the details of each call to be executed.
      */
-    function exec(Call[] memory calls) public virtual onlyRole(DEFAULT_ADMIN_ROLE) {
-        for (uint256 i = 0; i < calls.length; i++) {
-            if (blockedCalls[calls[i].to][bytes4(calls[i].data)]) {
-                // Calls that the module is prevented from making
-                revert CallBlocked(calls[i].to, bytes4(calls[i].data));
-            }
-            // TODO: what about eth trasnfers?
+    function exec(Call[] calldata calls) external onlyOwner {
+        for (uint256 i = 0; i < calls.length;) {
+            Call calldata call = calls[i];
+            bool blockedCall = blockedModuleCalls[call.to][bytes4(call.data)];
+            bool callingSafe = address(call.safe) == call.to;
 
-            bool success =
-                calls[i].safe.execTransactionFromModule(calls[i].to, calls[i].value, calls[i].data, Enum.Operation.Call); // No delegatecalls
+            // If this transaction is to a safe itself, to e.g. update config, we check the zero address for blocked calls.
+            if (blockedCall || (callingSafe && blockedModuleCalls[address(0)][bytes4(call.data)])) {
+                revert CallBlocked(call.to, bytes4(call.data));
+            }
+
+            bool success = call.safe.execTransactionFromModule(call.to, call.value, call.data, Enum.Operation.Call); // No delegatecalls
 
             if (!success) {
-                revert ExecFailed(address(calls[i].safe), calls[i].to, calls[i].data);
+                revert ExecFailed(address(call.safe), call.to, call.data);
             }
 
-            emit ExecutionFromModule(address(calls[i].safe), calls[i].to, calls[i].value, calls[i].data);
+            emit ExecutionFromModule(address(call.safe), call.to, call.value, call.data);
+
+            unchecked {
+                ++i;
+            }
         }
     }
-
-    // Utils ----
-
-    // Sweep token from multiple safes at once
-    function sweep(Sweep[] memory sweeps) public virtual onlyRole(SWEEPER_ROLE) {
-        for (uint256 i = 0; i < sweeps.length; i++) {
-            sweeps[i].safe.execTransactionFromModule(
-                address(sweeps[i].token),
-                0,
-                abi.encodeCall(ERC20.transfer, (rumpelVault, sweeps[i].amount)),
-                Enum.Operation.Call
-            );
-            emit TokensSwepped(address(sweeps[i].safe), address(sweeps[i].token), sweeps[i].amount);
-        }
-    }
-
-    // Admin ---
 
     /**
-     * @dev Add address.call to prevent it from being executed via the module.
+     * @dev Add <address>.<functionSelector> to prevent it from being executed via the module.
      * Useful as an assurance that the RumpelModule will never e.g. transfer a user's USDC.
+     * Zero address is used for the target to block calls to a safe itself.
      */
-    function addBlockedCall(address to, bytes4 data) public virtual onlyRole(DEFAULT_ADMIN_ROLE) {
-        blockedCalls[to][data] = true;
-        emit BlockedCallAdded(to, data);
-    }
-
-    function setRumpelVault(address _rumpelVault) public virtual onlyRole(DEFAULT_ADMIN_ROLE) {
-        emit RumpelVaultUpdated(rumpelVault, _rumpelVault);
-        rumpelVault = _rumpelVault;
+    function addModuleCallBlocked(address target, bytes4 functionSelector) external onlyOwner {
+        blockedModuleCalls[target][functionSelector] = true;
+        emit SetModuleCallBlocked(target, functionSelector);
     }
 }

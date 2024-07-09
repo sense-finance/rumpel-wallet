@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.19;
 
 library Enum {
     enum Operation {
@@ -61,4 +61,6 @@ interface ISafe {
     function getThreshold() external view returns (uint256);
 
     function isModuleEnabled(address module) external view returns (bool);
+
+    function nonce() external view returns (uint256);
 }

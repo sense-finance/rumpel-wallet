@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.19;
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {Pausable} from "@openzeppelin/contracts/utils/Pausable.sol";
@@ -9,9 +9,8 @@ import {ISafeProxyFactory} from "./interfaces/external/ISafeProxyFactory.sol";
 import {InitializationScript} from "./InitializationScript.sol";
 import {RumpelModule} from "./RumpelModule.sol";
 
-// delegate claiming fnc in the vault?
-// upgradable?'
 // TODO: do we handle safe contract upgrades?
+// interface for the factory
 
 contract RumpelWalletFactory is Ownable, Pausable {
     event SafeCreated(address indexed safe, address[] indexed owners, uint256 threshold);
@@ -33,20 +32,21 @@ contract RumpelWalletFactory is Ownable, Pausable {
     constructor(
         ISafeProxyFactory _proxyFactory,
         address _safeSingleton,
-        address _initializationScript,
         address _rumpelModule,
-        address _rumpelGuard
+        address _rumpelGuard,
+        address _initializationScript
     ) Ownable(msg.sender) {
         proxyFactory = _proxyFactory;
         safeSingleton = _safeSingleton;
-        initializationScript = _initializationScript;
 
         rumpelModule = _rumpelModule;
         rumpelGuard = _rumpelGuard;
+
+        initializationScript = _initializationScript;
     }
 
     // Address can be predicted off-chain
-    function createWallet(address[] calldata owners, uint256 threshold) public whenNotPaused returns (address) {
+    function createWallet(address[] calldata owners, uint256 threshold) external whenNotPaused returns (address) {
         address safe = proxyFactory.createProxyWithNonce(
             safeSingleton,
             abi.encodeWithSelector(
@@ -55,7 +55,7 @@ contract RumpelWalletFactory is Ownable, Pausable {
                 threshold,
                 initializationScript, // Contract with initialization logic
                 abi.encodeWithSelector(InitializationScript.initialize.selector, rumpelModule, rumpelGuard), // Initializing call to enable module and guard
-                address(0), // fallbackHandler TODO: do we want to set the default compatibility fallback handler? will any UIs be harder without this?
+                address(0), // fallbackHandler
                 address(0), // paymentToken
                 0, // payment
                 address(0) // paymentReceiver
@@ -70,36 +70,36 @@ contract RumpelWalletFactory is Ownable, Pausable {
 
     // Admin ----
 
-    function setRumpelGuard(address _rumpelGuard) public onlyOwner {
+    function setRumpelGuard(address _rumpelGuard) external onlyOwner {
         emit RumpelGuardUpdated(rumpelGuard, _rumpelGuard);
         rumpelGuard = _rumpelGuard;
     }
 
-    function setRumpelModule(address _rumpelModule) public onlyOwner {
+    function setRumpelModule(address _rumpelModule) external onlyOwner {
         emit RumpelModuleUpdated(rumpelModule, _rumpelModule);
         rumpelModule = _rumpelModule;
     }
 
-    function setInitializationScript(address _initializationScript) public onlyOwner {
+    function setInitializationScript(address _initializationScript) external onlyOwner {
         emit InitializationScriptUpdated(initializationScript, _initializationScript);
         initializationScript = _initializationScript;
     }
 
-    function setSafeSingleton(address _safeSingleton) public onlyOwner {
+    function setSafeSingleton(address _safeSingleton) external onlyOwner {
         emit SafeSingletonUpdated(safeSingleton, _safeSingleton);
         safeSingleton = _safeSingleton;
     }
 
-    function setProxyFactory(ISafeProxyFactory _proxyFactory) public onlyOwner {
+    function setProxyFactory(ISafeProxyFactory _proxyFactory) external onlyOwner {
         emit ProxyFactoryUpdated(address(proxyFactory), address(_proxyFactory));
         proxyFactory = _proxyFactory;
     }
 
-    function pauseWalletCreation() public onlyOwner {
+    function pauseWalletCreation() external onlyOwner {
         _pause();
     }
 
-    function unpauseWalletCreation() public onlyOwner {
+    function unpauseWalletCreation() external onlyOwner {
         _unpause();
     }
 }

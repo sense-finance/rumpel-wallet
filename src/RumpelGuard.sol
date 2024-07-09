@@ -1,35 +1,48 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.19;
 
-import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 import {Enum} from "./interfaces/external/ISafe.sol";
 import {IGuard} from "./interfaces/external/IGuard.sol";
 
-contract RumpelGuard is AccessControl, IGuard {
-    error CallNotAllowed();
+// Need to be compatiable with 1.3.0 safe, so we can't use the latest module execution hooks
+contract RumpelGuard is Ownable, IGuard {
+    error CallNotAllowed(address target, bytes4 functionSelector);
+    error PermanentlyOn();
 
-    event SetCallAllowed(address indexed target, bytes4 indexed functionSig, bool allow);
-    event SetCallPermenantlyAllowed(address indexed target, bytes4 indexed functionSig);
+    event SetCallAllowed(address indexed target, bytes4 indexed functionSelector, AllowListState allowListState);
 
-    mapping(address => mapping(bytes4 => bool)) public allowedCalls;
-    mapping(address => mapping(bytes4 => bool)) public permanentlyAllowedCalls;
-
-    constructor() {
-        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+    enum AllowListState {
+        OFF,
+        ON,
+        PERMANENTLY_ON
     }
 
-    function setCallAllowed(address target, bytes4 functionSig, bool allow) public onlyRole(DEFAULT_ADMIN_ROLE) {
-        allowedCalls[target][functionSig] = allow;
-        emit SetCallAllowed(target, functionSig, allow);
+    mapping(address => mapping(bytes4 => AllowListState)) public allowedCalls; // target => functionSelector => allowListState
+
+    constructor() Ownable(msg.sender) {}
+
+    /**
+     * @dev Add an <address>.<selector> to allow it to be called from the safe.
+     * @dev Any arguments are allowed for the enabled functions.
+     */
+    function setCallAllowed(address target, bytes4 functionSelector, AllowListState allowListState)
+        external
+        onlyOwner
+    {
+        if (allowedCalls[target][functionSelector] == AllowListState.PERMANENTLY_ON) {
+            revert PermanentlyOn();
+        }
+
+        allowedCalls[target][functionSelector] = allowListState;
+        emit SetCallAllowed(target, functionSelector, allowListState);
     }
 
-    function setCallPermenantlyAllowed(address target, bytes4 functionSig) public onlyRole(DEFAULT_ADMIN_ROLE) {
-        permanentlyAllowedCalls[target][functionSig] = true; // One way, only true
-        emit SetCallPermenantlyAllowed(target, functionSig);
-    }
-
-    // This guard blocks all calls by default, including delegatecalls, unless explicitly whitelisted
+    /**
+     * @notice Called by the Safe contract before a transaction is executed.
+     * @dev Safe user execution hook that blocks all calls by default, including delegatecalls, unless explicitly added to the allowlist.
+     */
     function checkTransaction(
         address to,
         uint256,
@@ -43,17 +56,20 @@ contract RumpelGuard is AccessControl, IGuard {
         bytes memory,
         address
     ) external view {
-        bytes4 functionSig = bytes4(data);
-        // TODO: check value?
+        bytes4 functionSelector = bytes4(data);
 
-        if (!allowedCalls[to][functionSig] && !permanentlyAllowedCalls[to][functionSig]) {
-            revert CallNotAllowed();
+        if (allowedCalls[to][functionSelector] == AllowListState.OFF) {
+            revert CallNotAllowed(to, functionSelector);
         }
     }
 
+    /**
+     * @notice Called by the Safe contract after a transaction is executed.
+     * @dev No-op.
+     */
     function checkAfterExecution(bytes32, bool) external view {}
 
-    function supportsInterface(bytes4 interfaceId) public view override returns (bool) {
-        return super.supportsInterface(interfaceId) || interfaceId == type(IGuard).interfaceId;
+    function supportsInterface(bytes4 interfaceId) public pure returns (bool) {
+        return interfaceId == type(IGuard).interfaceId;
     }
 }

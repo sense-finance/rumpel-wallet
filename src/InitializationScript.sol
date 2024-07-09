@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.19;
 
 import {ISafe} from "./interfaces/external/ISafe.sol";
 
-// For delegatecalls for safe initialization
+// Delegatecall script to initialize safes
 contract InitializationScript {
-    function initialize(address module, address guard) public {
+    // This function is called via delegatecall by newly created safes
+    function initialize(address module, address guard) external {
         ISafe(address(this)).enableModule(module);
         ISafe(address(this)).setGuard(guard);
     }
