@@ -7,10 +7,6 @@ import {ISafe} from "./interfaces/external/ISafe.sol";
 import {ISafeProxyFactory} from "./interfaces/external/ISafeProxyFactory.sol";
 import {InitializationScript} from "./InitializationScript.sol";
 
-// TODO: do we handle safe contract upgrades?
-// interface for the factory
-// smarter salt?
-
 /// @notice Factory to create Rumpel Wallets; Safes with the Rumpel Guard and Rumpel Module added on.
 contract RumpelWalletFactory is Ownable, Pausable {
     uint256 public saltNonce;
