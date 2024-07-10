@@ -2,18 +2,18 @@
 
 Rumpel Wallet is an extension of the Rumpel Point Tokenization protocol that enables more points to be tokenized from a wider range of point-earning activities. Familiarity with the [Point Tokenization Vault](https://github.com/sense-finance/point-tokenization-vault) is recommended before proceeding.
 
-Rumpel Wallet is built on top of [Safe](https://docs.gnosis.io/safe/latest/): each user wallet is simply a standard Safe with a special Rumpel [Module](https://docs.safe.global/advanced/smart-account-modules) and Rumpel [Guard](https://docs.safe.global/advanced/smart-account-guards) added on.
+Rumpel Wallet is built on top of [Safe](https://docs.gnosis.io/safe/latest/). Each user wallet is simply a standard Safe with a special Rumpel [Module](https://docs.safe.global/advanced/smart-account-modules) and Rumpel [Guard](https://docs.safe.global/advanced/smart-account-guards) added on.
 
 Flow tl;dr
 - Users create and manage unique positions using their Rumpel Wallets
-- Points accrue as pTokens claimable via merkle proofs from the Point Tokenization Vault
+- Points accrue as pTokens claimable with merkle proofs via the Point Tokenization Vault
 - Users can sell their pTokens at any time
 - After the point-generating protocol releases the reward tokens, Rumpel claims the rewards on users' behalf and sweeps them into the Vault
 - All pToken holders can redeem their pTokens for rewards using the Vault as normal
 
-Essentially, the redemption process for pTokens will be the same as it has been for the Point Tokenization Vault, but with an additional source for reward tokens/pToken generation. 
+Essentially, the redemption process for pTokens will be the same as it has been for the Point Tokenization Vault, but with an additional source for reward tokens.
 
-Another way to think about the comparison between the Vault and the Wallet is that the Point Tokenization Vault enables users to deposit tokenized positions that earn points, and because the points are accruing to the Vault, users are able to trade pTokens – rights to the eventual reward token distribution – freely. The Rumpel Wallet expands the size of Rumpel's network to individual user wallets, and because Rumpel is maintaining enough access to claim and sweep the eventual reward token distribution, users are able to mint pTokens just as if they had deposited a position in the Vault.
+Another way to think about the relationship between the Vault and Wallet is that the Point Tokenization Vault enables users to deposit tokenized positions that earn points, and because the points are accruing to the Vault, users are able to trade pTokens – rights to the eventual reward token distribution – freely. The Rumpel Wallet expands the size of Rumpel's network to individual user wallets, and because Rumpel is maintaining enough access to claim and sweep the eventual reward token distribution, users are able to mint pTokens just as if they had deposited a position in the Vault.
 
 ## Components
 
