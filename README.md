@@ -33,7 +33,7 @@ Restricts wallet actions to specific admin-allowed `<address>.<functionSelector>
 
 Includes the ability to permanently allow a call, e.g. USDC.transfer, to give guarantees around which actions a user will always be able to take with their Safe.
 
-### RumpelWalletFactory
+### Rumpel Wallet Factory
 
 Creates and initializes new Safe wallets with the Rumpel Module and Rumpel Guard.
 
