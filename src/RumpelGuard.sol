@@ -50,7 +50,7 @@ contract RumpelGuard is Ownable, IGuard {
     /// @dev No-op.
     function checkAfterExecution(bytes32, bool) external view {}
 
-    function supportsInterface(bytes4 interfaceId) public pure returns (bool) {
+    function supportsInterface(bytes4 interfaceId) public view returns (bool) {
         return interfaceId == type(IGuard).interfaceId;
     }
 
