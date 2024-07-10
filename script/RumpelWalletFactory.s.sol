@@ -34,9 +34,9 @@ contract RumpelWalletFactoryScripts is Script {
             address(initializationScript)
         );
 
-        rumpelModule.addModuleCallBlocked(address(0), ISafe.enableModule.selector);
+        // Prevent us from just swapping out the Rumpel Module for one without a blocklist.
+        rumpelModule.addBlockedModuleCall(address(0), ISafe.enableModule.selector);
 
-        // different role levels?
         rumpelGuard.transferOwnership(admin);
         rumpelModule.transferOwnership(admin);
         rumpelWalletFactory.transferOwnership(admin);
@@ -47,7 +47,7 @@ contract RumpelWalletFactoryScripts is Script {
     }
 
     function addModuleCallBlocked(RumpelModule rumpelModule, address target, bytes4 functionSelector) public {
-        rumpelModule.addModuleCallBlocked(target, functionSelector);
+        rumpelModule.addBlockedModuleCall(target, functionSelector);
     }
 
     function setCallAllowed(

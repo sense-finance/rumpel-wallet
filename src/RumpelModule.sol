@@ -6,13 +6,8 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {Enum} from "./interfaces/external/ISafe.sol";
 import {ISafe} from "./interfaces/external/ISafe.sol";
 
+/// @notice Rumpel Safe Module allowing an admin to execute calls on behalf of the Safe.
 contract RumpelModule is Ownable {
-    error ExecFailed(address safe, address target, bytes data);
-    error CallBlocked(address target, bytes4 functionSelector);
-
-    event ExecutionFromModule(address indexed safe, address indexed target, uint256 value, bytes data);
-    event SetModuleCallBlocked(address indexed target, bytes4 indexed functionSelector);
-
     mapping(address => mapping(bytes4 => bool)) public blockedModuleCalls; // target => functionSelector => blocked
 
     struct Call {
@@ -22,30 +17,34 @@ contract RumpelModule is Ownable {
         bytes data;
     }
 
+    event ExecutionFromModule(ISafe indexed safe, address indexed target, uint256 value, bytes data);
+    event SetModuleCallBlocked(address indexed target, bytes4 indexed functionSelector);
+
+    error ExecFailed(ISafe safe, address target, bytes data);
+    error CallBlocked(address target, bytes4 functionSelector);
+
     constructor() Ownable(msg.sender) {}
 
-    /**
-     * @dev Executes a series of calls on behalf of Safe contracts.
-     * @param calls An array of Call structs containing the details of each call to be executed.
-     */
+    /// @notice Execute a series of calls through Safe contracts.
+    /// @param calls An array of Call structs containing the details of each call to be executed.
     function exec(Call[] calldata calls) external onlyOwner {
         for (uint256 i = 0; i < calls.length;) {
             Call calldata call = calls[i];
             bool blockedCall = blockedModuleCalls[call.to][bytes4(call.data)];
-            bool callingSafe = address(call.safe) == call.to;
+            bool toSafe = address(call.safe) == call.to;
 
-            // If this transaction is to a safe itself, to e.g. update config, we check the zero address for blocked calls.
-            if (blockedCall || (callingSafe && blockedModuleCalls[address(0)][bytes4(call.data)])) {
+            // If this transaction is to a Safe itself, to e.g. update config, we check the zero address for blocked calls.
+            if (blockedCall || (toSafe && blockedModuleCalls[address(0)][bytes4(call.data)])) {
                 revert CallBlocked(call.to, bytes4(call.data));
             }
 
             bool success = call.safe.execTransactionFromModule(call.to, call.value, call.data, Enum.Operation.Call); // No delegatecalls
 
             if (!success) {
-                revert ExecFailed(address(call.safe), call.to, call.data);
+                revert ExecFailed(call.safe, call.to, call.data);
             }
 
-            emit ExecutionFromModule(address(call.safe), call.to, call.value, call.data);
+            emit ExecutionFromModule(call.safe, call.to, call.value, call.data);
 
             unchecked {
                 ++i;
@@ -53,12 +52,10 @@ contract RumpelModule is Ownable {
         }
     }
 
-    /**
-     * @dev Add <address>.<functionSelector> to prevent it from being executed via the module.
-     * Useful as an assurance that the RumpelModule will never e.g. transfer a user's USDC.
-     * Zero address is used for the target to block calls to a safe itself.
-     */
-    function addModuleCallBlocked(address target, bytes4 functionSelector) external onlyOwner {
+    /// @notice Prevent call from being executed via the module permanently. Useful as an assurance that e.g. and admin will never transfer a user's USDC.
+    /// @dev Scoped to <address>.<selector>, so all calls to added address <> selector pairs are blocked.
+    /// @dev To block calls to arbitrary Safes, to prevent an admin from updating config, the Zero address is used for the target.
+    function addBlockedModuleCall(address target, bytes4 functionSelector) external onlyOwner {
         blockedModuleCalls[target][functionSelector] = true;
         emit SetModuleCallBlocked(target, functionSelector);
     }

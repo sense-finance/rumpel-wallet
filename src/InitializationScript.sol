@@ -3,9 +3,9 @@ pragma solidity ^0.8.19;
 
 import {ISafe} from "./interfaces/external/ISafe.sol";
 
-// Delegatecall script to initialize safes
+/// @notice Delegatecall script to initialize Safes.
 contract InitializationScript {
-    // This function is called via delegatecall by newly created safes
+    /// @notice This function is called via delegatecall by newly created Safes.
     function initialize(address module, address guard) external {
         ISafe(address(this)).enableModule(module);
         ISafe(address(this)).setGuard(guard);

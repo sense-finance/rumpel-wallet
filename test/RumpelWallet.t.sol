@@ -7,6 +7,7 @@ import {ERC20} from "solmate/tokens/ERC20.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {Pausable} from "@openzeppelin/contracts/utils/Pausable.sol";
 import {PointTokenVault, LibString} from "point-tokenization-vault/PointTokenVault.sol";
+import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
 import {RumpelWalletFactory} from "../src/RumpelWalletFactory.sol";
 import {RumpelGuard} from "../src/RumpelGuard.sol";
@@ -89,11 +90,11 @@ contract RumpelWalletTest is Test {
         address newProxyFactory = makeAddr("newProxyFactory");
 
         vm.startPrank(admin);
-        rumpelWalletFactory.setRumpelGuard(newGuard);
-        rumpelWalletFactory.setRumpelModule(newModule);
-        rumpelWalletFactory.setInitializationScript(newScript);
-        rumpelWalletFactory.setSafeSingleton(newSingleton);
-        rumpelWalletFactory.setProxyFactory(ISafeProxyFactory(newProxyFactory));
+        rumpelWalletFactory.setParam("RUMPEL_GUARD", newGuard);
+        rumpelWalletFactory.setParam("RUMPEL_MODULE", newModule);
+        rumpelWalletFactory.setParam("INITIALIZATION_SCRIPT", newScript);
+        rumpelWalletFactory.setParam("SAFE_SINGLETON", newSingleton);
+        rumpelWalletFactory.setParam("PROXY_FACTORY", newProxyFactory);
         vm.stopPrank();
 
         assertEq(rumpelWalletFactory.rumpelGuard(), newGuard);
@@ -166,33 +167,19 @@ contract RumpelWalletTest is Test {
 
         ISafe safe = ISafe(rumpelWalletFactory.createWallet(owners, 1));
 
-        SafeTX memory safeTX = SafeTX({
-            to: address(counter),
-            value: 0,
-            data: abi.encodeCall(Counter.increment, ()),
-            operation: Enum.Operation.Call
-        });
-
-        // Sign tx for execution
-        bytes32 txHash = safe.getTransactionHash(
-            safeTX.to, safeTX.value, safeTX.data, safeTX.operation, 0, 0, 0, address(0), payable(address(0)), 0
-        );
-        (uint8 v, bytes32 r, bytes32 s) = vm.sign(alicePk, txHash);
-        bytes memory signature = abi.encodePacked(r, s, v);
-
         // Will revert if the address.func has not been allowed
-        vm.expectRevert(abi.encodeWithSelector(RumpelGuard.CallNotAllowed.selector, safeTX.to, bytes4(safeTX.data)));
-        safe.execTransaction(
-            safeTX.to, safeTX.value, safeTX.data, safeTX.operation, 0, 0, 0, address(0), payable(address(0)), signature
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                RumpelGuard.CallNotAllowed.selector, address(counter), bytes4(abi.encodeCall(Counter.increment, ()))
+            )
         );
+        this._execSafeTx(safe, address(counter), 0, abi.encodeCall(Counter.increment, ()));
 
         vm.prank(admin);
         rumpelGuard.setCallAllowed(address(counter), Counter.increment.selector, RumpelGuard.AllowListState.ON);
 
         // Will succeed if the address.func has been allowed
-        safe.execTransaction(
-            safeTX.to, safeTX.value, safeTX.data, safeTX.operation, 0, 0, 0, address(0), payable(address(0)), signature
-        );
+        this._execSafeTx(safe, address(counter), 0, abi.encodeCall(Counter.increment, ()));
 
         assertEq(counter.count(), 1);
     }
@@ -203,13 +190,6 @@ contract RumpelWalletTest is Test {
 
         ISafe safe = ISafe(rumpelWalletFactory.createWallet(owners, 1));
 
-        SafeTX memory safeTX = SafeTX({
-            to: address(counter),
-            value: 0,
-            data: abi.encodeCall(Counter.increment, ()),
-            operation: Enum.Operation.Call
-        });
-
         // Set the call as permanently allowed
         vm.prank(admin);
         rumpelGuard.setCallAllowed(
@@ -217,15 +197,7 @@ contract RumpelWalletTest is Test {
         );
 
         // Sign and execute the transaction
-        bytes32 txHash = safe.getTransactionHash(
-            safeTX.to, safeTX.value, safeTX.data, safeTX.operation, 0, 0, 0, address(0), payable(address(0)), 0
-        );
-        (uint8 v, bytes32 r, bytes32 s) = vm.sign(alicePk, txHash);
-        bytes memory signature = abi.encodePacked(r, s, v);
-
-        safe.execTransaction(
-            safeTX.to, safeTX.value, safeTX.data, safeTX.operation, 0, 0, 0, address(0), payable(address(0)), signature
-        );
+        this._execSafeTx(safe, address(counter), 0, abi.encodeCall(Counter.increment, ()));
 
         assertEq(counter.count(), 1);
 
@@ -235,15 +207,7 @@ contract RumpelWalletTest is Test {
         rumpelGuard.setCallAllowed(address(counter), Counter.increment.selector, RumpelGuard.AllowListState.OFF);
 
         // Execute the transaction again (should still work)
-        txHash = safe.getTransactionHash(
-            safeTX.to, safeTX.value, safeTX.data, safeTX.operation, 0, 0, 0, address(0), payable(address(0)), 1
-        );
-        (v, r, s) = vm.sign(alicePk, txHash);
-        signature = abi.encodePacked(r, s, v);
-
-        safe.execTransaction(
-            safeTX.to, safeTX.value, safeTX.data, safeTX.operation, 0, 0, 0, address(0), payable(address(0)), signature
-        );
+        this._execSafeTx(safe, address(counter), 0, abi.encodeCall(Counter.increment, ()));
 
         assertEq(counter.count(), 2);
     }
@@ -307,7 +271,7 @@ contract RumpelWalletTest is Test {
 
         // Guard the transfer call
         vm.prank(admin);
-        rumpelModule.addModuleCallBlocked(address(mockToken), ERC20.transfer.selector);
+        rumpelModule.addBlockedModuleCall(address(mockToken), ERC20.transfer.selector);
 
         // Attempt to execute the guarded call
         vm.prank(admin);
@@ -368,21 +332,41 @@ contract RumpelWalletTest is Test {
     //     // Deploy a mock reward token
     //     MockERC20 rewardToken = new MockERC20("Reward Token", "RWT", 18);
 
-    //     // Setup point tokenization vault
-    //     PointTokenVault vault = new PointTokenVault();
-    //     vault.initialize(admin);
+    //     // Deploy the PointTokenVault
+    //     PointTokenVault pointTokenVaultImplementation = new PointTokenVault();
+    //     PointTokenVault vault = PointTokenVault(
+    //         payable(
+    //             address(
+    //                 new ERC1967Proxy(
+    //                     address(pointTokenVaultImplementation), abi.encodeCall(PointTokenVault.initialize, (admin))
+    //                 )
+    //             )
+    //         )
+    //     );
+    //     vm.startPrank(admin);
+    //     vault.grantRole(vault.MERKLE_UPDATER_ROLE(), admin);
+    //     vm.stopPrank();
+
+    //     // Setup the Point Token
     //     bytes32 pointsId = LibString.packTwo("Test Points", "TP");
     //     vault.deployPToken(pointsId);
 
     //     // Allow safe to interact with external protocol and vault
     //     vm.startPrank(admin);
-    //     rumpelGuard.setCallAllowed(address(externalProtocol), MockExternalProtocol.stake.selector, true);
-    //     rumpelGuard.setCallAllowed(address(vault), PointTokenVault.claimPTokens.selector, true);
-    //     rumpelGuard.setCallAllowed(address(vault.pTokens(pointsId)), ERC20.transfer.selector, true);
+    //     rumpelGuard.setCallAllowed(address(externalToken), ERC20.approve.selector, RumpelGuard.AllowListState.ON);
+    //     rumpelGuard.setCallAllowed(
+    //         address(externalProtocol), MockExternalProtocol.stake.selector, RumpelGuard.AllowListState.ON
+    //     );
+    //     rumpelGuard.setCallAllowed(address(vault), PointTokenVault.claimPTokens.selector, RumpelGuard.AllowListState.ON);
+    //     rumpelGuard.setCallAllowed(
+    //         address(vault.pTokens(pointsId)), ERC20.transfer.selector, RumpelGuard.AllowListState.ON
+    //     );
     //     vm.stopPrank();
 
     //     // 1. Stake in external protocol to earn points
     //     uint256 stakeAmount = 50e18;
+    //     bytes memory approveData = abi.encodeCall(ERC20.approve, (address(externalProtocol), stakeAmount));
+    //     _execSafeTx(safe, address(externalToken), 0, approveData);
     //     bytes memory stakeData = abi.encodeCall(MockExternalProtocol.stake, (externalToken, stakeAmount));
     //     _execSafeTx(safe, address(externalProtocol), 0, stakeData);
     //     assertEq(externalProtocol.stakedBalance(address(safe)), stakeAmount);
@@ -399,47 +383,48 @@ contract RumpelWalletTest is Test {
     //     );
     //     _execSafeTx(safe, address(vault), 0, claimData);
     //     assertEq(vault.pTokens(pointsId).balanceOf(address(safe)), 10e18);
+    //     return;
 
-    //     // 4. Transfer some pTokens to Bob
-    //     bytes memory transferData = abi.encodeCall(ERC20.transfer, (bob, 3e18));
-    //     _execSafeTx(safe, address(vault.pTokens(pointsId)), 0, transferData);
-    //     assertEq(vault.pTokens(pointsId).balanceOf(address(safe)), 7e18);
-    //     assertEq(vault.pTokens(pointsId).balanceOf(bob), 3e18);
+    // 4. Transfer some pTokens to Bob
+    // bytes memory transferData = abi.encodeCall(ERC20.transfer, (bob, 3e18));
+    // _execSafeTx(safe, address(vault.pTokens(pointsId)), 0, transferData);
+    // assertEq(vault.pTokens(pointsId).balanceOf(address(safe)), 7e18);
+    // assertEq(vault.pTokens(pointsId).balanceOf(bob), 3e18);
 
-    //     // 5. Setup redemption
-    //     rewardToken.mint(address(vault), 20e18);
-    //     vm.prank(admin);
-    //     vault.setRedemption(pointsId, rewardToken, 2e18, false);
+    // // 5. Setup redemption
+    // rewardToken.mint(address(vault), 20e18);
+    // vm.prank(admin);
+    // vault.setRedemption(pointsId, rewardToken, 2e18, false);
 
-    //     // 6. Sweep rewards to Rumpel vault (simulating rewards claimed by the protocol)
-    //     rewardToken.mint(address(safe), 14e18);
-    //     vm.prank(admin);
-    //     RumpelModule.Sweep[] memory sweeps = new RumpelModule.Sweep[](1);
-    //     sweeps[0] = RumpelModule.Sweep({safe: safe, token: ERC20(address(rewardToken)), amount: 14e18});
-    //     rumpelModule.sweep(sweeps);
-    //     assertEq(rewardToken.balanceOf(RUMPEL_VAULT), 14e18);
-    //     assertEq(rewardToken.balanceOf(address(safe)), 0);
+    // 6. Sweep rewards to Rumpel vault (simulating rewards claimed by the protocol)
+    // rewardToken.mint(address(safe), 14e18);
+    // vm.prank(admin);
+    // RumpelModule.Sweep[] memory sweeps = new RumpelModule.Sweep[](1);
+    // sweeps[0] = RumpelModule.Sweep({safe: safe, token: ERC20(address(rewardToken)), amount: 14e18});
+    // rumpelModule.sweep(sweeps);
+    // assertEq(rewardToken.balanceOf(RUMPEL_VAULT), 14e18);
+    // assertEq(rewardToken.balanceOf(address(safe)), 0);
 
-    //     // 7. Bob redeems his pTokens for rewards
-    //     vm.startPrank(bob);
-    //     vault.pTokens(pointsId).approve(address(vault), 3e18);
-    //     vault.redeemRewards(PointTokenVault.Claim(pointsId, 6e18, 6e18, new bytes32[](0)), bob);
-    //     vm.stopPrank();
+    // // 7. Bob redeems his pTokens for rewards
+    // vm.startPrank(bob);
+    // vault.pTokens(pointsId).approve(address(vault), 3e18);
+    // vault.redeemRewards(PointTokenVault.Claim(pointsId, 6e18, 6e18, new bytes32[](0)), bob);
+    // vm.stopPrank();
 
-    //     assertEq(rewardToken.balanceOf(bob), 6e18);
-    //     assertEq(vault.pTokens(pointsId).balanceOf(bob), 0);
+    // assertEq(rewardToken.balanceOf(bob), 6e18);
+    // assertEq(vault.pTokens(pointsId).balanceOf(bob), 0);
 
-    //     // 8. Safe redeems remaining pTokens for rewards
-    //     bytes memory redeemData = abi.encodeCall(
-    //         PointTokenVault.redeemRewards,
-    //         (PointTokenVault.Claim(pointsId, 14e18, 14e18, new bytes32[](0)), address(safe))
-    //     );
-    //     _execSafeTx(safe, address(vault), 0, redeemData);
-    //     // assertEq(rewardToken.balanceOf(address(safe)), 14e18);
-    //     // assertEq(vault.pTokens(pointsId).balanceOf(address(safe)), 0);
+    // // 8. Safe redeems remaining pTokens for rewards
+    // bytes memory redeemData = abi.encodeCall(
+    //     PointTokenVault.redeemRewards,
+    //     (PointTokenVault.Claim(pointsId, 14e18, 14e18, new bytes32[](0)), address(safe))
+    // );
+    // _execSafeTx(safe, address(vault), 0, redeemData);
+    // assertEq(rewardToken.balanceOf(address(safe)), 14e18);
+    // assertEq(vault.pTokens(pointsId).balanceOf(address(safe)), 0);
     // }
 
-    function _execSafeTx(ISafe safe, address to, uint256 value, bytes memory data) internal {
+    function _execSafeTx(ISafe safe, address to, uint256 value, bytes memory data) public {
         SafeTX memory safeTX = SafeTX({to: to, value: value, data: data, operation: Enum.Operation.Call});
 
         uint256 nonce = safe.nonce();

@@ -1,40 +1,41 @@
 # Rumpel Wallet
 
-Rumpel Wallet is a system built atop [Safe](https://docs.gnosis.io/safe/latest/) that allows users to tokenize points earned from personal, custom positions. Each wallet is a standard Safe, which users can manage via the normal Safe app, enhanced with a custom [Safe Module](https://docs.safe.global/advanced/smart-account-modules) and [Safe Guard](https://docs.safe.global/advanced/smart-account-guards).
+Rumpel Wallet is an extension of the Rumpel Point Tokenization protocol that enables more points to be tokenized from a wider range of point-earning activities. Familiarity with the [Point Tokenization Vault](https://github.com/sense-finance/point-tokenization-vault) is recommended before proceeding.
 
-This is an extension of the Rumpel Point Tokenization protocol, enabling a wider range of points, earned from a wider range of point-earning actions, to be tokenized. Familiarity with the [Point Tokenization Vault](https://github.com/sense-finance/point-tokenization-vault) is recommended before proceeding. The diagram below illustrates how this component fits within the larger system:
+Rumpel Wallet is built on top of [Safe](https://docs.gnosis.io/safe/latest/): each user wallet is simply a standard Safe with a special Rumpel [Module](https://docs.safe.global/advanced/smart-account-modules) and Rumpel [Guard](https://docs.safe.global/advanced/smart-account-guards) added on.
 
-<img src="./assets/point-tokenization-system.png" width="500" height="500">
-
-Tl;dr
+Flow tl;dr
 - Users create and manage unique positions using their Rumpel Wallets
-- Points accrue as pTokens via the Point Tokenization Vault
+- Points accrue as pTokens claimable via merkle proofs from the Point Tokenization Vault
 - Users can sell their pTokens at any time
-- After point-providing protocol releases the reward tokens, Rumpel claims the rewards for users and sweeps them into the vault
-- All pToken holders can redeem their pTokens for rewards using the vault
+- After the point-generating protocol releases the reward tokens, Rumpel claims the rewards on users' behalf and sweeps them into the Vault
+- All pToken holders can redeem their pTokens for rewards using the Vault as normal
 
-The redemption process will be the same as it has been for the Point Tokenization Vault, just with a new source of reward tokens.
+Essentially, the redemption process for pTokens will be the same as it has been for the Point Tokenization Vault, but with an additional source for reward tokens/pToken generation. 
 
+Another way to think about the comparison between the Vault and the Wallet is that the Point Tokenization Vault enables users to deposit tokenized positions that earn points, and because the points are accruing to the Vault, users are able to trade pTokens – rights to the eventual reward token distribution – freely. The Rumpel Wallet expands the size of Rumpel's network to individual user wallets, and because Rumpel is maintaining enough access to claim and sweep the eventual reward token distribution, users are able to mint pTokens just as if they had deposited a position in the Vault.
 
 ## Components
 
 ### Rumpel Module
 
-Enables admin actions on a user's behalf, specifically:
-- Claim reward tokens after point conversion
-- Transfer reward tokens to the Point Tokenization Vault for broad pToken redemption
+Enables the admin to take actions on a user's behalf. Specifically to:
+- Claim reward tokens after the external protocol releases them
+- Transfer the reward tokens to the Point Tokenization Vault for pToken redemption
 
-Includes a permanent, irrevocable blocklist for restricted actions (e.g., transferring user's USDC).
+It's expected that both of these actions will generally be done atomically, so that reward tokens don't sit in the user's wallet. However, we need to be flexible to different claiming mechanisms.
+
+The Rumpel Module also includes an irreversable blocklist that restricts which actions can be taken, e.g. USDC.transfer, to give guarantees around what can't be done on behalf of a user's Safe. 
 
 ### Rumpel Guard
 
-Restricts wallet actions to admin-allowed `<address>.<functionSig>` calls. 
+Restricts wallet actions to specific admin-allowed `<address>.<functionSelector>` calls. 
 
-Includes a permanent, irrevocable allowlist for unrestricted user actions (e.g., transferring USDC).
+Includes the ability to permanently allow a call, e.g. USDC.transfer, to give guarantees around which actions a user will always be able to take with their Safe.
 
 ### RumpelWalletFactory
 
-Creates and initializes new Safe wallets with the Rumpel Guard and Rumpel Module.
+Creates and initializes new Safe wallets with the Rumpel Module and Rumpel Guard.
 
 ## Local development
 
