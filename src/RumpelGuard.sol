@@ -30,7 +30,7 @@ contract RumpelGuard is Ownable, IGuard {
         address to,
         uint256,
         bytes memory data,
-        Enum.Operation,
+        Enum.Operation operation,
         uint256,
         uint256,
         uint256,
@@ -41,7 +41,7 @@ contract RumpelGuard is Ownable, IGuard {
     ) external view {
         bytes4 functionSelector = bytes4(data);
 
-        if (allowedCalls[to][functionSelector] == AllowListState.OFF) {
+        if (operation == Enum.Operation.DelegateCall || allowedCalls[to][functionSelector] == AllowListState.OFF) {
             revert CallNotAllowed(to, functionSelector);
         }
     }

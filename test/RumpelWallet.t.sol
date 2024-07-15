@@ -184,6 +184,48 @@ contract RumpelWalletTest is Test {
         assertEq(counter.count(), 1);
     }
 
+    function test_guardDisallowDelegateCall() public {
+        DelegateCallTestScript delegateCallTestScript = new DelegateCallTestScript();
+
+        address[] memory owners = new address[](1);
+        owners[0] = address(alice);
+
+        ISafe safe = ISafe(rumpelWalletFactory.createWallet(owners, 1));
+
+        // Enable call to the delegate call script
+        vm.prank(admin);
+        rumpelGuard.setCallAllowed(
+            address(delegateCallTestScript), DelegateCallTestScript.echo.selector, RumpelGuard.AllowListState.ON
+        );
+
+        // Build a delegate call transaction
+        SafeTX memory safeTX = SafeTX({
+            to: address(delegateCallTestScript),
+            value: 0,
+            data: abi.encodeCall(DelegateCallTestScript.echo, (123)),
+            operation: Enum.Operation.DelegateCall
+        });
+
+        uint256 nonce = safe.nonce();
+
+        bytes32 txHash = safe.getTransactionHash(
+            safeTX.to, safeTX.value, safeTX.data, safeTX.operation, 0, 0, 0, address(0), payable(address(0)), nonce
+        );
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(alicePk, txHash);
+        bytes memory signature = abi.encodePacked(r, s, v);
+
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                RumpelGuard.CallNotAllowed.selector,
+                address(delegateCallTestScript),
+                bytes4(abi.encodeCall(DelegateCallTestScript.echo, (123)))
+            )
+        );
+        safe.execTransaction(
+            safeTX.to, safeTX.value, safeTX.data, safeTX.operation, 0, 0, 0, address(0), payable(address(0)), signature
+        );
+    }
+
     function test_guardPermanentlyAllowedCall() public {
         address[] memory owners = new address[](1);
         owners[0] = address(alice);
@@ -460,6 +502,14 @@ contract MockExternalProtocol {
     function stake(ERC20 token, uint256 amount) external {
         token.transferFrom(msg.sender, address(this), amount);
         stakedBalance[msg.sender] += amount;
+    }
+}
+
+contract DelegateCallTestScript {
+    event Echo(uint256);
+
+    function echo(uint256 num) external {
+        emit Echo(num);
     }
 }
 
