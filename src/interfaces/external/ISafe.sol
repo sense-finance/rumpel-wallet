@@ -63,4 +63,8 @@ interface ISafe {
     function isModuleEnabled(address module) external view returns (bool);
 
     function nonce() external view returns (uint256);
+
+    function execute(address to, uint256 value, bytes memory data, Enum.Operation operation, uint256 txGas)
+        external
+        returns (bool success);
 }

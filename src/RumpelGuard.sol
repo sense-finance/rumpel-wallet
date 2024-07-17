@@ -59,7 +59,7 @@ contract RumpelGuard is Ownable, IGuard {
     /// @notice Enable or disable Safes from calling a function.
     /// @dev Scoped to <address>.<selector>, so all calls to added address <> selector pairs are allowed.
     /// @dev Function arguments aren't checked, so any arguments are allowed for the enabled functions.
-    /// @dev Calls can be enabled, disabled, or permanently enabled, that last of which guarntees the call can't be rugged.
+    /// @dev Calls can be enabled, disabled, or permanently enabled, that last of which guarantees the call can't be rugged.
     function setCallAllowed(address target, bytes4 functionSelector, AllowListState allowListState)
         external
         onlyOwner

@@ -9,13 +9,18 @@ import {InitializationScript} from "./InitializationScript.sol";
 
 /// @notice Factory to create Rumpel Wallets; Safes with the Rumpel Guard and Rumpel Module added on.
 contract RumpelWalletFactory is Ownable, Pausable {
-    uint256 public saltNonce;
+    mapping(address => uint256) public saltNonce;
 
     ISafeProxyFactory public proxyFactory;
     address public safeSingleton;
     address public rumpelModule;
     address public rumpelGuard;
     address public initializationScript;
+
+    struct CallOnDeploy {
+        address to;
+        bytes data;
+    }
 
     event SafeCreated(address indexed safe, address[] indexed owners, uint256 threshold);
     event ParamChanged(bytes32 what, address data);
@@ -37,7 +42,11 @@ contract RumpelWalletFactory is Ownable, Pausable {
     }
 
     /// @notice Create a Safe with the Rumpel Module and Rumpel Guard added.
-    function createWallet(address[] calldata owners, uint256 threshold) external whenNotPaused returns (address) {
+    function createWallet(address[] calldata owners, uint256 threshold, CallOnDeploy calldata callOnDeploy)
+        external
+        whenNotPaused
+        returns (address)
+    {
         address safe = proxyFactory.createProxyWithNonce(
             safeSingleton,
             abi.encodeWithSelector(
@@ -45,13 +54,19 @@ contract RumpelWalletFactory is Ownable, Pausable {
                 owners,
                 threshold,
                 initializationScript, // Contract with initialization logic
-                abi.encodeWithSelector(InitializationScript.initialize.selector, rumpelModule, rumpelGuard), // Initializing call to add module and guard
+                abi.encodeWithSelector(
+                    InitializationScript.initialize.selector,
+                    rumpelModule,
+                    rumpelGuard,
+                    callOnDeploy.to,
+                    callOnDeploy.data
+                ), // Initializing call to add module and guard
                 address(0), // fallbackHandler
                 address(0), // paymentToken
                 0, // payment
                 address(0) // paymentReceiver
             ),
-            saltNonce++
+            saltNonce[msg.sender]++ // For deterministic address generation
         );
 
         emit SafeCreated(safe, owners, threshold);

@@ -52,7 +52,7 @@ contract RumpelModule is Ownable {
         }
     }
 
-    /// @notice Prevent call from being executed via the module permanently. Useful as an assurance that e.g. and admin will never transfer a user's USDC.
+    /// @notice Prevent call from being executed via the module permanently. Useful as an assurance that e.g. an admin will never transfer a user's USDC.
     /// @dev Scoped to <address>.<selector>, so all calls to added address <> selector pairs are blocked.
     /// @dev To block calls to arbitrary Safes, to prevent an admin from updating config, the Zero address is used for the target.
     function addBlockedModuleCall(address target, bytes4 functionSelector) external onlyOwner {

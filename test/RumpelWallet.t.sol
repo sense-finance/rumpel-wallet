@@ -61,7 +61,7 @@ contract RumpelWalletTest is Test {
 
     // Factory ----
 
-    function test_factoryPauseUnpause() public {
+    function test_FactoryPauseUnpause() public {
         address[] memory owners = new address[](1);
         owners[0] = address(alice);
 
@@ -71,18 +71,20 @@ contract RumpelWalletTest is Test {
 
         // Attempt to create a wallet while paused
         vm.expectRevert(Pausable.EnforcedPause.selector);
-        rumpelWalletFactory.createWallet(owners, 1);
+        rumpelWalletFactory.createWallet(owners, 1, RumpelWalletFactory.CallOnDeploy({to: address(0), data: bytes("")}));
 
         // Unpause wallet creation
         vm.prank(admin);
         rumpelWalletFactory.unpauseWalletCreation();
 
         // Create a wallet after unpausing
-        address safe = rumpelWalletFactory.createWallet(owners, 1);
+        address safe = rumpelWalletFactory.createWallet(
+            owners, 1, RumpelWalletFactory.CallOnDeploy({to: address(0), data: bytes("")})
+        );
         assertTrue(safe != address(0));
     }
 
-    function test_factoryUpdateComponents() public {
+    function test_FactoryUpdateComponents() public {
         address newGuard = makeAddr("newGuard");
         address newModule = makeAddr("newModule");
         address newScript = makeAddr("newScript");
@@ -115,25 +117,93 @@ contract RumpelWalletTest is Test {
             owners[i] = address(uint160(uint256(keccak256(abi.encodePacked(i)))));
         }
 
-        ISafe safe = ISafe(rumpelWalletFactory.createWallet(owners, uint256(threshold)));
+        ISafe safe = ISafe(
+            rumpelWalletFactory.createWallet(
+                owners, uint256(threshold), RumpelWalletFactory.CallOnDeploy({to: address(0), data: bytes("")})
+            )
+        );
 
         assertEq(safe.getOwners(), owners);
     }
 
-    function test_createWalletRumpelModuleEnabled() public {
+    function test_CreateWalletRumpelModuleEnabled() public {
         address[] memory owners = new address[](1);
         owners[0] = address(alice);
 
-        ISafe safe = ISafe(rumpelWalletFactory.createWallet(owners, 1));
+        ISafe safe = ISafe(
+            rumpelWalletFactory.createWallet(
+                owners, 1, RumpelWalletFactory.CallOnDeploy({to: address(0), data: bytes("")})
+            )
+        );
 
         assertEq(safe.isModuleEnabled(address(rumpelModule)), true);
     }
 
-    function test_createWalletRumpelGuardSet() public {
+    function test_CreateWalletDeterministicAddress() public {
         address[] memory owners = new address[](1);
         owners[0] = address(alice);
 
-        ISafe safe = ISafe(rumpelWalletFactory.createWallet(owners, 1));
+        // Prepare the initializer data
+        bytes memory initializer = abi.encodeWithSelector(
+            ISafe.setup.selector,
+            owners,
+            1,
+            rumpelWalletFactory.initializationScript(),
+            abi.encodeWithSelector(
+                InitializationScript.initialize.selector,
+                rumpelWalletFactory.rumpelModule(),
+                rumpelWalletFactory.rumpelGuard(),
+                address(0),
+                bytes("")
+            ),
+            address(0),
+            address(0),
+            0,
+            address(0)
+        );
+
+        // Calculate the salt
+        uint256 saltNonce = 0; // First wallet for this sender
+        bytes32 salt = keccak256(abi.encodePacked(keccak256(initializer), saltNonce));
+
+        // Precompute the expected address
+        bytes memory deploymentData = abi.encodePacked(
+            rumpelWalletFactory.proxyFactory().proxyCreationCode(),
+            uint256(uint160(rumpelWalletFactory.safeSingleton()))
+        );
+        bytes32 hash = keccak256(
+            abi.encodePacked(bytes1(0xff), address(rumpelWalletFactory.proxyFactory()), salt, keccak256(deploymentData))
+        );
+        address expectedAddress = address(uint160(uint256(hash)));
+
+        // Create the wallet
+        address actualAddress = rumpelWalletFactory.createWallet(
+            owners, 1, RumpelWalletFactory.CallOnDeploy({to: address(0), data: bytes("")})
+        );
+
+        // Check if the actual address matches the expected address
+        assertEq(actualAddress, expectedAddress, "Actual address does not match expected address");
+
+        // Verify that the contract is actually deployed at this address
+        uint256 codeSize;
+        assembly {
+            codeSize := extcodesize(actualAddress)
+        }
+        assertTrue(codeSize > 0, "No contract deployed at the expected address");
+
+        // Verify that it's a Safe by calling a Safe-specific function
+        assertEq(ISafe(actualAddress).getThreshold(), 1, "Deployed contract is not a Safe or not initialized correctly");
+    }
+
+    function test_CreateWalletRumpelGuardSet() public {
+        address[] memory owners = new address[](1);
+        owners[0] = address(alice);
+
+        ISafe safe = ISafe(
+            rumpelWalletFactory.createWallet(
+                owners, 1, RumpelWalletFactory.CallOnDeploy({to: address(0), data: bytes("")})
+            )
+        );
 
         assertEq(
             address(uint160(uint256(vm.load(address(safe), keccak256("guard_manager.guard.address"))))),
@@ -141,9 +211,43 @@ contract RumpelWalletTest is Test {
         );
     }
 
+    function test_CreateWalletCallOnDeploy() public {
+        address[] memory owners = new address[](1);
+        owners[0] = address(alice);
+
+        // Call reverts if the call isn't allowed by the guard
+        vm.expectRevert();
+        rumpelWalletFactory.createWallet(
+            owners,
+            1,
+            RumpelWalletFactory.CallOnDeploy({to: address(counter), data: abi.encodeCall(Counter.addToCount, (4337))})
+        );
+
+        assertEq(counter.count(), 0);
+
+        // Call reverts if the first call itself fails
+        vm.prank(admin);
+        rumpelGuard.setCallAllowed(address(counter), Counter.fail.selector, RumpelGuard.AllowListState.ON);
+        vm.expectRevert();
+        rumpelWalletFactory.createWallet(
+            owners, 1, RumpelWalletFactory.CallOnDeploy({to: address(counter), data: abi.encodeCall(Counter.fail, ())})
+        );
+
+        vm.prank(admin);
+        rumpelGuard.setCallAllowed(address(counter), Counter.addToCount.selector, RumpelGuard.AllowListState.ON);
+
+        rumpelWalletFactory.createWallet(
+            owners,
+            1,
+            RumpelWalletFactory.CallOnDeploy({to: address(counter), data: abi.encodeCall(Counter.addToCount, (4337))})
+        );
+
+        assertEq(counter.count(), 4337);
+    }
+
     // Guard ----
 
-    function test_guardAuth(address lad) public {
+    function test_GuardAuth(address lad) public {
         vm.assume(lad != admin);
 
         vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, lad));
@@ -161,11 +265,15 @@ contract RumpelWalletTest is Test {
         assertEq(uint256(rumpelGuard.allowedCalls(target, functionSelector)), uint256(RumpelGuard.AllowListState.OFF));
     }
 
-    function test_rumpelWalletIsGuarded() public {
+    function test_RumpelWalletIsGuarded() public {
         address[] memory owners = new address[](1);
         owners[0] = address(alice);
 
-        ISafe safe = ISafe(rumpelWalletFactory.createWallet(owners, 1));
+        ISafe safe = ISafe(
+            rumpelWalletFactory.createWallet(
+                owners, 1, RumpelWalletFactory.CallOnDeploy({to: address(0), data: bytes("")})
+            )
+        );
 
         // Will revert if the address.func has not been allowed
         vm.expectRevert(
@@ -184,13 +292,17 @@ contract RumpelWalletTest is Test {
         assertEq(counter.count(), 1);
     }
 
-    function test_guardDisallowDelegateCall() public {
+    function test_GuardDisallowDelegateCall() public {
         DelegateCallTestScript delegateCallTestScript = new DelegateCallTestScript();
 
         address[] memory owners = new address[](1);
         owners[0] = address(alice);
 
-        ISafe safe = ISafe(rumpelWalletFactory.createWallet(owners, 1));
+        ISafe safe = ISafe(
+            rumpelWalletFactory.createWallet(
+                owners, 1, RumpelWalletFactory.CallOnDeploy({to: address(0), data: bytes("")})
+            )
+        );
 
         // Enable call to the delegate call script
         vm.prank(admin);
@@ -226,11 +338,15 @@ contract RumpelWalletTest is Test {
         );
     }
 
-    function test_guardPermanentlyAllowedCall() public {
+    function test_GuardPermanentlyAllowedCall() public {
         address[] memory owners = new address[](1);
         owners[0] = address(alice);
 
-        ISafe safe = ISafe(rumpelWalletFactory.createWallet(owners, 1));
+        ISafe safe = ISafe(
+            rumpelWalletFactory.createWallet(
+                owners, 1, RumpelWalletFactory.CallOnDeploy({to: address(0), data: bytes("")})
+            )
+        );
 
         // Set the call as permanently allowed
         vm.prank(admin);
@@ -256,13 +372,17 @@ contract RumpelWalletTest is Test {
 
     // Module ----
 
-    function test_moduleAuth(address lad) public {
+    function test_ModuleAuth(address lad) public {
         vm.assume(lad != admin);
 
         address[] memory owners = new address[](1);
         owners[0] = address(makeAddr("random 111")); // random owner
 
-        ISafe safe = ISafe(rumpelWalletFactory.createWallet(owners, 1));
+        ISafe safe = ISafe(
+            rumpelWalletFactory.createWallet(
+                owners, 1, RumpelWalletFactory.CallOnDeploy({to: address(0), data: bytes("")})
+            )
+        );
 
         vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, lad));
         vm.prank(lad);
@@ -277,11 +397,15 @@ contract RumpelWalletTest is Test {
         rumpelModule.exec(calls);
     }
 
-    function test_rumpelModuleCanExecute() public {
+    function test_RumpelModuleCanExecute() public {
         address[] memory owners = new address[](1);
         owners[0] = address(makeAddr("random 111")); // random owner
 
-        ISafe safe = ISafe(rumpelWalletFactory.createWallet(owners, 1));
+        ISafe safe = ISafe(
+            rumpelWalletFactory.createWallet(
+                owners, 1, RumpelWalletFactory.CallOnDeploy({to: address(0), data: bytes("")})
+            )
+        );
 
         mockToken.mint(address(this), 1.1e18);
         mockToken.transfer(address(safe), 1.1e18);
@@ -303,11 +427,15 @@ contract RumpelWalletTest is Test {
         assertEq(mockToken.balanceOf(address(RUMPEL_VAULT)), 1.1e18);
     }
 
-    function test_moduleExecGuardedCall() public {
+    function test_ModuleExecGuardedCall() public {
         address[] memory owners = new address[](1);
         owners[0] = address(makeAddr("random 111"));
 
-        ISafe safe = ISafe(rumpelWalletFactory.createWallet(owners, 1));
+        ISafe safe = ISafe(
+            rumpelWalletFactory.createWallet(
+                owners, 1, RumpelWalletFactory.CallOnDeploy({to: address(0), data: bytes("")})
+            )
+        );
 
         mockToken.mint(address(safe), 1e18);
 
@@ -333,11 +461,15 @@ contract RumpelWalletTest is Test {
         assertEq(mockToken.balanceOf(RUMPEL_VAULT), 0);
     }
 
-    function test_moduleExecGuardedSelfCall() public {
+    function test_ModuleExecGuardedSelfCall() public {
         address[] memory owners = new address[](1);
         owners[0] = address(makeAddr("random 111"));
 
-        ISafe safe = ISafe(rumpelWalletFactory.createWallet(owners, 1));
+        ISafe safe = ISafe(
+            rumpelWalletFactory.createWallet(
+                owners, 1, RumpelWalletFactory.CallOnDeploy({to: address(0), data: bytes("")})
+            )
+        );
 
         RumpelModule newRumpelModule = new RumpelModule();
 
@@ -518,5 +650,13 @@ contract Counter {
 
     function increment() public {
         count += 1;
+    }
+
+    function addToCount(uint256 num) external {
+        count += num;
+    }
+
+    function fail() external {
+        revert("fail");
     }
 }
