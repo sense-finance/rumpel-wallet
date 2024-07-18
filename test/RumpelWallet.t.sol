@@ -151,7 +151,7 @@ contract RumpelWalletTest is Test {
                 rumpelWalletFactory.rumpelGuard(),
                 callHooks
             ),
-            address(0),
+            rumpelWalletFactory.compatibilityFallback(),
             address(0),
             0,
             address(0)

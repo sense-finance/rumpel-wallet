@@ -46,8 +46,12 @@ contract RumpelGuard is Ownable, IGuard {
         bytes4 functionSelector = bytes4(data);
 
         // Only allow delegatecalls to the signMessageLib.
-        if (to == signMessageLib && operation == Enum.Operation.DelegateCall) {
-            return;
+        if (operation == Enum.Operation.DelegateCall) {
+            if (to == signMessageLib) {
+                return;
+            } else {
+                revert CallNotAllowed(to, functionSelector);
+            }
         }
 
         if (allowedCalls[to][functionSelector] == AllowListState.OFF) {
