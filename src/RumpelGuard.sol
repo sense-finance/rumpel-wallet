@@ -11,6 +11,8 @@ import {IGuard} from "./interfaces/external/IGuard.sol";
 contract RumpelGuard is Ownable, IGuard {
     mapping(address => mapping(bytes4 => AllowListState)) public allowedCalls; // target => functionSelector => allowListState
 
+    address public immutable signMessageLib;
+
     enum AllowListState {
         OFF,
         ON,
@@ -22,7 +24,9 @@ contract RumpelGuard is Ownable, IGuard {
     error CallNotAllowed(address target, bytes4 functionSelector);
     error PermanentlyOn();
 
-    constructor() Ownable(msg.sender) {}
+    constructor(address _signMessageLib) Ownable(msg.sender) {
+        signMessageLib = _signMessageLib;
+    }
 
     /// @notice Called by the Safe contract before a transaction is executed.
     /// @dev Safe user execution hook that blocks all calls by default, including delegatecalls, unless explicitly added to the allowlist.
@@ -41,7 +45,12 @@ contract RumpelGuard is Ownable, IGuard {
     ) external view {
         bytes4 functionSelector = bytes4(data);
 
-        if (operation == Enum.Operation.DelegateCall || allowedCalls[to][functionSelector] == AllowListState.OFF) {
+        // Only allow delegatecalls to the signMessageLib.
+        if (to == signMessageLib && operation == Enum.Operation.DelegateCall) {
+            return;
+        }
+
+        if (allowedCalls[to][functionSelector] == AllowListState.OFF) {
             revert CallNotAllowed(to, functionSelector);
         }
     }

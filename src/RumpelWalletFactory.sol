@@ -12,6 +12,7 @@ contract RumpelWalletFactory is Ownable, Pausable {
     mapping(address => uint256) public saltNonce;
 
     ISafeProxyFactory public proxyFactory;
+    address public compatibilityFallback;
     address public safeSingleton;
     address public rumpelModule;
     address public rumpelGuard;
@@ -24,12 +25,14 @@ contract RumpelWalletFactory is Ownable, Pausable {
 
     constructor(
         ISafeProxyFactory _proxyFactory,
+        address _compatibilityFallback,
         address _safeSingleton,
         address _rumpelModule,
         address _rumpelGuard,
         address _initializationScript
     ) Ownable(msg.sender) {
         proxyFactory = _proxyFactory;
+        compatibilityFallback = _compatibilityFallback;
         safeSingleton = _safeSingleton;
         rumpelModule = _rumpelModule;
         rumpelGuard = _rumpelGuard;
@@ -50,7 +53,7 @@ contract RumpelWalletFactory is Ownable, Pausable {
                 threshold,
                 initializationScript, // Contract with initialization logic
                 abi.encodeWithSelector(InitializationScript.initialize.selector, rumpelModule, rumpelGuard, callHooks), // Add module and guard + initial calls
-                address(0), // fallbackHandler
+                compatibilityFallback, // fallbackHandler
                 address(0), // paymentToken
                 0, // payment
                 address(0) // paymentReceiver

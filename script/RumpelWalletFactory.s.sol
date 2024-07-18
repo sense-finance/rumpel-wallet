@@ -15,19 +15,23 @@ contract RumpelWalletFactoryScripts is Script {
     address public MAINNET_RUMPEL_VAULT = 0x1EeEBa76f211C4Dce994b9c5A74BDF25DB649Fa1;
     address public MAINNET_SAFE_SINGLETON = 0xd9Db270c1B5E3Bd161E8c8503c55cEABeE709552;
     ISafeProxyFactory public MAINNET_SAFE_PROXY_FACTORY = ISafeProxyFactory(0xa6B71E26C5e0845f74c812102Ca7114b6a896AB2);
+    address public MAINNET_COMPATIBILITY_FALLBACK = 0xf48f2B2d2a534e402487b3ee7C18c33Aec0Fe5e4;
+
+    address public MAINNET_SIGN_MESSAGE_LIB = 0xA65387F16B013cf2Af4605Ad8aA5ec25a2cbA3a2;
 
     function setUp() public {}
 
     function run(address admin) public returns (RumpelModule, RumpelGuard, RumpelWalletFactory) {
         RumpelModule rumpelModule = new RumpelModule();
 
-        RumpelGuard rumpelGuard = new RumpelGuard();
+        RumpelGuard rumpelGuard = new RumpelGuard(MAINNET_SIGN_MESSAGE_LIB);
 
         // Script that will be delegatecalled to enable modules
         InitializationScript initializationScript = new InitializationScript();
 
         RumpelWalletFactory rumpelWalletFactory = new RumpelWalletFactory(
             MAINNET_SAFE_PROXY_FACTORY,
+            MAINNET_COMPATIBILITY_FALLBACK,
             MAINNET_SAFE_SINGLETON,
             address(rumpelModule),
             address(rumpelGuard),

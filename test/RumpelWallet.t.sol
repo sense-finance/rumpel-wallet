@@ -16,6 +16,7 @@ import {RumpelModule} from "../src/RumpelModule.sol";
 
 import {ISafe, Enum} from "../src/interfaces/external/ISafe.sol";
 import {ISafeProxyFactory} from "../src/interfaces/external/ISafeProxyFactory.sol";
+import {ISignMessageLib} from "../src/interfaces/external/ISignMessageLib.sol";
 import {RumpelWalletFactoryScripts} from "../script/RumpelWalletFactory.s.sol";
 
 contract RumpelWalletTest is Test {
@@ -229,6 +230,44 @@ contract RumpelWalletTest is Test {
         assertEq(counter.count(), 4337);
     }
 
+    function test_SafeSignMessage() public {
+        // Setup
+        address[] memory owners = new address[](1);
+        owners[0] = alice;
+        InitializationScript.CallHook[] memory callHooks = new InitializationScript.CallHook[](0);
+        ISafe safe = ISafe(rumpelWalletFactory.createWallet(owners, 1, callHooks));
+
+        // Create the message
+        bytes memory message = "Hello Safe";
+
+        // Sign the message using the Safe
+        _execSafeTx(
+            safe,
+            address(rumpelGuard.signMessageLib()),
+            0,
+            abi.encodeCall(ISignMessageLib.signMessage, (abi.encode(keccak256(message)))),
+            Enum.Operation.DelegateCall
+        );
+
+        // Verify the signature
+        bytes memory emptySignature = "";
+        // bytes4(keccak256("isValidSignature(bytes32,bytes)")
+        bytes4 EIP1271_MAGIC_VALUE = 0x1626ba7e;
+        assertEq(safe.isValidSignature(keccak256(message), emptySignature), EIP1271_MAGIC_VALUE);
+
+        // Demonstrate that an incorrect message hash fails
+        vm.expectRevert("Hash not approved");
+        bytes memory incorrectMessage = "Hello Safe bad";
+        safe.isValidSignature(incorrectMessage, emptySignature);
+    }
+
+    // Helper function to get the correct message hash
+    function getMessageHash(ISafe safe, bytes memory message) internal view returns (bytes32) {
+        bytes32 SAFE_MSG_TYPEHASH = keccak256("SafeMessage(bytes message)");
+        bytes32 safeMessageHash = keccak256(abi.encode(SAFE_MSG_TYPEHASH, keccak256(message)));
+        return keccak256(abi.encodePacked(bytes1(0x19), bytes1(0x01), safe.domainSeparator(), safeMessageHash));
+    }
+
     // Guard ----
 
     function test_GuardAuth(address lad) public {
@@ -262,13 +301,13 @@ contract RumpelWalletTest is Test {
                 RumpelGuard.CallNotAllowed.selector, address(counter), bytes4(abi.encodeCall(Counter.increment, ()))
             )
         );
-        this._execSafeTx(safe, address(counter), 0, abi.encodeCall(Counter.increment, ()));
+        this._execSafeTx(safe, address(counter), 0, abi.encodeCall(Counter.increment, ()), Enum.Operation.Call);
 
         vm.prank(admin);
         rumpelGuard.setCallAllowed(address(counter), Counter.increment.selector, RumpelGuard.AllowListState.ON);
 
         // Will succeed if the address.func has been allowed
-        this._execSafeTx(safe, address(counter), 0, abi.encodeCall(Counter.increment, ()));
+        this._execSafeTx(safe, address(counter), 0, abi.encodeCall(Counter.increment, ()), Enum.Operation.Call);
 
         assertEq(counter.count(), 1);
     }
@@ -330,7 +369,7 @@ contract RumpelWalletTest is Test {
         );
 
         // Sign and execute the transaction
-        this._execSafeTx(safe, address(counter), 0, abi.encodeCall(Counter.increment, ()));
+        this._execSafeTx(safe, address(counter), 0, abi.encodeCall(Counter.increment, ()), Enum.Operation.Call);
 
         assertEq(counter.count(), 1);
 
@@ -340,7 +379,7 @@ contract RumpelWalletTest is Test {
         rumpelGuard.setCallAllowed(address(counter), Counter.increment.selector, RumpelGuard.AllowListState.OFF);
 
         // Execute the transaction again (should still work)
-        this._execSafeTx(safe, address(counter), 0, abi.encodeCall(Counter.increment, ()));
+        this._execSafeTx(safe, address(counter), 0, abi.encodeCall(Counter.increment, ()), Enum.Operation.Call);
 
         assertEq(counter.count(), 2);
     }
@@ -561,8 +600,8 @@ contract RumpelWalletTest is Test {
     // assertEq(vault.pTokens(pointsId).balanceOf(address(safe)), 0);
     // }
 
-    function _execSafeTx(ISafe safe, address to, uint256 value, bytes memory data) public {
-        SafeTX memory safeTX = SafeTX({to: to, value: value, data: data, operation: Enum.Operation.Call});
+    function _execSafeTx(ISafe safe, address to, uint256 value, bytes memory data, Enum.Operation operation) public {
+        SafeTX memory safeTX = SafeTX({to: to, value: value, data: data, operation: operation});
 
         uint256 nonce = safe.nonce();
 
