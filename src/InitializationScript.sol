@@ -11,15 +11,23 @@ contract InitializationScript {
 
     event InitialCall(address to, bytes data);
 
+    struct CallHook {
+        address to;
+        bytes data;
+    }
+
     /// @notice This function is called via delegatecall by newly created Safes.
-    function initialize(address module, address guard, address to, bytes memory data) external {
+    function initialize(address module, address guard, CallHook[] memory callHooks) external {
         ISafe safe = ISafe(address(this));
         safe.enableModule(module);
         safe.setGuard(guard);
 
-        // First call
-        if (to != address(0)) {
-            // TODO: single, should this be multi
+        // Arbitrary initial calls.
+        for (uint256 i = 0; i < callHooks.length; i++) {
+            address to = callHooks[i].to;
+            bytes memory data = callHooks[i].data;
+
+            // Check each tx with the guard.
             RumpelGuard(guard).checkTransaction(
                 to, 0, data, Enum.Operation.Call, 0, 0, 0, address(0), payable(address(0)), bytes(""), address(0)
             );

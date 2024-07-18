@@ -17,11 +17,6 @@ contract RumpelWalletFactory is Ownable, Pausable {
     address public rumpelGuard;
     address public initializationScript;
 
-    struct CallOnDeploy {
-        address to;
-        bytes data;
-    }
-
     event SafeCreated(address indexed safe, address[] indexed owners, uint256 threshold);
     event ParamChanged(bytes32 what, address data);
 
@@ -42,11 +37,11 @@ contract RumpelWalletFactory is Ownable, Pausable {
     }
 
     /// @notice Create a Safe with the Rumpel Module and Rumpel Guard added.
-    function createWallet(address[] calldata owners, uint256 threshold, CallOnDeploy calldata callOnDeploy)
-        external
-        whenNotPaused
-        returns (address)
-    {
+    function createWallet(
+        address[] calldata owners,
+        uint256 threshold,
+        InitializationScript.CallHook[] calldata callHooks
+    ) external whenNotPaused returns (address) {
         address safe = proxyFactory.createProxyWithNonce(
             safeSingleton,
             abi.encodeWithSelector(
@@ -54,13 +49,7 @@ contract RumpelWalletFactory is Ownable, Pausable {
                 owners,
                 threshold,
                 initializationScript, // Contract with initialization logic
-                abi.encodeWithSelector(
-                    InitializationScript.initialize.selector,
-                    rumpelModule,
-                    rumpelGuard,
-                    callOnDeploy.to,
-                    callOnDeploy.data
-                ), // Initializing call to add module and guard
+                abi.encodeWithSelector(InitializationScript.initialize.selector, rumpelModule, rumpelGuard, callHooks), // Add module and guard + initial calls
                 address(0), // fallbackHandler
                 address(0), // paymentToken
                 0, // payment
