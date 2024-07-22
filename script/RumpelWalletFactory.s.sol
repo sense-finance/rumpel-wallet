@@ -22,7 +22,7 @@ contract RumpelWalletFactoryScripts is Script {
     function setUp() public {}
 
     function run(address admin) public returns (RumpelModule, RumpelGuard, RumpelWalletFactory) {
-        RumpelModule rumpelModule = new RumpelModule();
+        RumpelModule rumpelModule = new RumpelModule(MAINNET_SIGN_MESSAGE_LIB);
 
         RumpelGuard rumpelGuard = new RumpelGuard(MAINNET_SIGN_MESSAGE_LIB);
 

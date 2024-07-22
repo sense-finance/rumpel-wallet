@@ -402,7 +402,8 @@ contract RumpelWalletTest is Test {
             safe: safe,
             to: address(mockToken),
             data: abi.encodeCall(ERC20.transfer, (RUMPEL_VAULT, 1.1e18)),
-            value: 0
+            value: 0,
+            operation: Enum.Operation.Call
         });
 
         rumpelModule.exec(calls);
@@ -427,12 +428,48 @@ contract RumpelWalletTest is Test {
             safe: safe,
             to: address(mockToken),
             data: abi.encodeCall(ERC20.transfer, (RUMPEL_VAULT, 1.1e18)),
-            value: 0
+            value: 0,
+            operation: Enum.Operation.Call
         });
         rumpelModule.exec(calls);
 
         assertEq(mockToken.balanceOf(address(safe)), 0);
         assertEq(mockToken.balanceOf(address(RUMPEL_VAULT)), 1.1e18);
+    }
+
+    function test_RumpelModuleCanSignMessage() public {
+        // Setup
+        address[] memory owners = new address[](1);
+        owners[0] = alice;
+        InitializationScript.InitCall[] memory initCalls = new InitializationScript.InitCall[](0);
+        ISafe safe = ISafe(rumpelWalletFactory.createWallet(owners, 1, initCalls));
+
+        // Create the message
+        bytes memory message = "Hello Safe";
+
+        // Sign the message via the Rumpel Module
+        vm.startPrank(admin);
+        RumpelModule.Call[] memory calls = new RumpelModule.Call[](1);
+        calls[0] = RumpelModule.Call({
+            safe: safe,
+            to: address(rumpelModule.signMessageLib()),
+            data: abi.encodeCall(ISignMessageLib.signMessage, (abi.encode(keccak256(message)))),
+            value: 0,
+            operation: Enum.Operation.DelegateCall
+        });
+        rumpelModule.exec(calls);
+        vm.stopPrank();
+
+        // Verify the signature
+        bytes memory emptySignature = "";
+        // bytes4(keccak256("isValidSignature(bytes32,bytes)")
+        bytes4 EIP1271_MAGIC_VALUE = 0x1626ba7e;
+        assertEq(safe.isValidSignature(keccak256(message), emptySignature), EIP1271_MAGIC_VALUE);
+
+        // Demonstrate that an incorrect message hash fails
+        vm.expectRevert("Hash not approved");
+        bytes memory incorrectMessage = "Hello Safe bad";
+        safe.isValidSignature(incorrectMessage, emptySignature);
     }
 
     function test_ModuleExecGuardedCall() public {
@@ -458,7 +495,8 @@ contract RumpelWalletTest is Test {
             safe: safe,
             to: address(mockToken),
             data: abi.encodeCall(ERC20.transfer, (RUMPEL_VAULT, 1e18)),
-            value: 0
+            value: 0,
+            operation: Enum.Operation.Call
         });
         rumpelModule.exec(calls);
 
@@ -473,7 +511,7 @@ contract RumpelWalletTest is Test {
         InitializationScript.InitCall[] memory initCalls = new InitializationScript.InitCall[](0);
         ISafe safe = ISafe(rumpelWalletFactory.createWallet(owners, 1, initCalls));
 
-        RumpelModule newRumpelModule = new RumpelModule();
+        RumpelModule newRumpelModule = new RumpelModule(rumpelModule.signMessageLib());
 
         // Attempt to execute "enableModule" on the safe itself, a function disabled by the deployment script
         vm.expectRevert(
@@ -485,7 +523,8 @@ contract RumpelWalletTest is Test {
             safe: safe,
             to: address(safe),
             data: abi.encodeCall(ISafe.enableModule, (address(newRumpelModule))),
-            value: 0
+            value: 0,
+            operation: Enum.Operation.Call
         });
         rumpelModule.exec(calls);
     }
