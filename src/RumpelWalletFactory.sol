@@ -43,7 +43,7 @@ contract RumpelWalletFactory is Ownable, Pausable {
     function createWallet(
         address[] calldata owners,
         uint256 threshold,
-        InitializationScript.CallHook[] calldata callHooks
+        InitializationScript.InitCall[] calldata initCalls
     ) external whenNotPaused returns (address) {
         address safe = proxyFactory.createProxyWithNonce(
             safeSingleton,
@@ -52,7 +52,7 @@ contract RumpelWalletFactory is Ownable, Pausable {
                 owners,
                 threshold,
                 initializationScript, // Contract with initialization logic
-                abi.encodeWithSelector(InitializationScript.initialize.selector, rumpelModule, rumpelGuard, callHooks), // Add module and guard + initial calls
+                abi.encodeWithSelector(InitializationScript.initialize.selector, rumpelModule, rumpelGuard, initCalls), // Add module and guard + initial calls
                 compatibilityFallback, // fallbackHandler
                 address(0), // paymentToken
                 0, // payment

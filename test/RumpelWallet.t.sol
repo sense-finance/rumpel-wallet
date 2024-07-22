@@ -71,16 +71,16 @@ contract RumpelWalletTest is Test {
         rumpelWalletFactory.pauseWalletCreation();
 
         // Attempt to create a wallet while paused
-        InitializationScript.CallHook[] memory callHooks = new InitializationScript.CallHook[](0);
+        InitializationScript.InitCall[] memory initCalls = new InitializationScript.InitCall[](0);
         vm.expectRevert(Pausable.EnforcedPause.selector);
-        rumpelWalletFactory.createWallet(owners, 1, callHooks);
+        rumpelWalletFactory.createWallet(owners, 1, initCalls);
 
         // Unpause wallet creation
         vm.prank(admin);
         rumpelWalletFactory.unpauseWalletCreation();
 
         // Create a wallet after unpausing
-        address safe = rumpelWalletFactory.createWallet(owners, 1, callHooks);
+        address safe = rumpelWalletFactory.createWallet(owners, 1, initCalls);
         assertTrue(safe != address(0));
     }
 
@@ -117,8 +117,8 @@ contract RumpelWalletTest is Test {
             owners[i] = address(uint160(uint256(keccak256(abi.encodePacked(i)))));
         }
 
-        InitializationScript.CallHook[] memory callHooks = new InitializationScript.CallHook[](0);
-        ISafe safe = ISafe(rumpelWalletFactory.createWallet(owners, uint256(threshold), callHooks));
+        InitializationScript.InitCall[] memory initCalls = new InitializationScript.InitCall[](0);
+        ISafe safe = ISafe(rumpelWalletFactory.createWallet(owners, uint256(threshold), initCalls));
 
         assertEq(safe.getOwners(), owners);
     }
@@ -127,9 +127,9 @@ contract RumpelWalletTest is Test {
         address[] memory owners = new address[](1);
         owners[0] = address(alice);
 
-        InitializationScript.CallHook[] memory callHooks = new InitializationScript.CallHook[](0);
+        InitializationScript.InitCall[] memory initCalls = new InitializationScript.InitCall[](0);
 
-        ISafe safe = ISafe(rumpelWalletFactory.createWallet(owners, 1, callHooks));
+        ISafe safe = ISafe(rumpelWalletFactory.createWallet(owners, 1, initCalls));
 
         assertEq(safe.isModuleEnabled(address(rumpelModule)), true);
     }
@@ -139,7 +139,7 @@ contract RumpelWalletTest is Test {
         owners[0] = address(alice);
 
         // Prepare the initializer data
-        InitializationScript.CallHook[] memory callHooks = new InitializationScript.CallHook[](0);
+        InitializationScript.InitCall[] memory initCalls = new InitializationScript.InitCall[](0);
         bytes memory initializer = abi.encodeWithSelector(
             ISafe.setup.selector,
             owners,
@@ -149,7 +149,7 @@ contract RumpelWalletTest is Test {
                 InitializationScript.initialize.selector,
                 rumpelWalletFactory.rumpelModule(),
                 rumpelWalletFactory.rumpelGuard(),
-                callHooks
+                initCalls
             ),
             rumpelWalletFactory.compatibilityFallback(),
             address(0),
@@ -172,7 +172,7 @@ contract RumpelWalletTest is Test {
         address expectedAddress = address(uint160(uint256(hash)));
 
         // Create the wallet
-        address actualAddress = rumpelWalletFactory.createWallet(owners, 1, callHooks);
+        address actualAddress = rumpelWalletFactory.createWallet(owners, 1, initCalls);
 
         // Check if the actual address matches the expected address
         assertEq(actualAddress, expectedAddress, "Actual address does not match expected address");
@@ -192,8 +192,8 @@ contract RumpelWalletTest is Test {
         address[] memory owners = new address[](1);
         owners[0] = address(alice);
 
-        InitializationScript.CallHook[] memory callHooks = new InitializationScript.CallHook[](0);
-        ISafe safe = ISafe(rumpelWalletFactory.createWallet(owners, 1, callHooks));
+        InitializationScript.InitCall[] memory initCalls = new InitializationScript.InitCall[](0);
+        ISafe safe = ISafe(rumpelWalletFactory.createWallet(owners, 1, initCalls));
 
         assertEq(
             address(uint160(uint256(vm.load(address(safe), keccak256("guard_manager.guard.address"))))),
@@ -206,26 +206,26 @@ contract RumpelWalletTest is Test {
         owners[0] = address(alice);
 
         // Call reverts if the call isn't allowed by the guard
-        InitializationScript.CallHook[] memory callHooks = new InitializationScript.CallHook[](1);
-        callHooks[0] =
-            InitializationScript.CallHook({to: address(counter), data: abi.encodeCall(Counter.addToCount, (4337))});
+        InitializationScript.InitCall[] memory initCalls = new InitializationScript.InitCall[](1);
+        initCalls[0] =
+            InitializationScript.InitCall({to: address(counter), data: abi.encodeCall(Counter.addToCount, (4337))});
         vm.expectRevert();
-        rumpelWalletFactory.createWallet(owners, 1, callHooks);
+        rumpelWalletFactory.createWallet(owners, 1, initCalls);
 
         assertEq(counter.count(), 0);
 
         // Call reverts if the first call itself fails
-        callHooks[0] = InitializationScript.CallHook({to: address(counter), data: abi.encodeCall(Counter.fail, ())});
+        initCalls[0] = InitializationScript.InitCall({to: address(counter), data: abi.encodeCall(Counter.fail, ())});
         vm.prank(admin);
         rumpelGuard.setCallAllowed(address(counter), Counter.fail.selector, RumpelGuard.AllowListState.ON);
         vm.expectRevert();
-        rumpelWalletFactory.createWallet(owners, 1, callHooks);
+        rumpelWalletFactory.createWallet(owners, 1, initCalls);
 
         vm.prank(admin);
         rumpelGuard.setCallAllowed(address(counter), Counter.addToCount.selector, RumpelGuard.AllowListState.ON);
-        callHooks[0] =
-            InitializationScript.CallHook({to: address(counter), data: abi.encodeCall(Counter.addToCount, (4337))});
-        rumpelWalletFactory.createWallet(owners, 1, callHooks);
+        initCalls[0] =
+            InitializationScript.InitCall({to: address(counter), data: abi.encodeCall(Counter.addToCount, (4337))});
+        rumpelWalletFactory.createWallet(owners, 1, initCalls);
 
         assertEq(counter.count(), 4337);
     }
@@ -234,8 +234,8 @@ contract RumpelWalletTest is Test {
         // Setup
         address[] memory owners = new address[](1);
         owners[0] = alice;
-        InitializationScript.CallHook[] memory callHooks = new InitializationScript.CallHook[](0);
-        ISafe safe = ISafe(rumpelWalletFactory.createWallet(owners, 1, callHooks));
+        InitializationScript.InitCall[] memory initCalls = new InitializationScript.InitCall[](0);
+        ISafe safe = ISafe(rumpelWalletFactory.createWallet(owners, 1, initCalls));
 
         // Create the message
         bytes memory message = "Hello Safe";
@@ -292,8 +292,8 @@ contract RumpelWalletTest is Test {
         address[] memory owners = new address[](1);
         owners[0] = address(alice);
 
-        InitializationScript.CallHook[] memory callHooks = new InitializationScript.CallHook[](0);
-        ISafe safe = ISafe(rumpelWalletFactory.createWallet(owners, 1, callHooks));
+        InitializationScript.InitCall[] memory initCalls = new InitializationScript.InitCall[](0);
+        ISafe safe = ISafe(rumpelWalletFactory.createWallet(owners, 1, initCalls));
 
         // Will revert if the address.func has not been allowed
         vm.expectRevert(
@@ -318,8 +318,8 @@ contract RumpelWalletTest is Test {
         address[] memory owners = new address[](1);
         owners[0] = address(alice);
 
-        InitializationScript.CallHook[] memory callHooks = new InitializationScript.CallHook[](0);
-        ISafe safe = ISafe(rumpelWalletFactory.createWallet(owners, 1, callHooks));
+        InitializationScript.InitCall[] memory initCalls = new InitializationScript.InitCall[](0);
+        ISafe safe = ISafe(rumpelWalletFactory.createWallet(owners, 1, initCalls));
 
         // Enable call to the delegate call script
         vm.prank(admin);
@@ -359,8 +359,8 @@ contract RumpelWalletTest is Test {
         address[] memory owners = new address[](1);
         owners[0] = address(alice);
 
-        InitializationScript.CallHook[] memory callHooks = new InitializationScript.CallHook[](0);
-        ISafe safe = ISafe(rumpelWalletFactory.createWallet(owners, 1, callHooks));
+        InitializationScript.InitCall[] memory initCalls = new InitializationScript.InitCall[](0);
+        ISafe safe = ISafe(rumpelWalletFactory.createWallet(owners, 1, initCalls));
 
         // Set the call as permanently allowed
         vm.prank(admin);
@@ -392,8 +392,8 @@ contract RumpelWalletTest is Test {
         address[] memory owners = new address[](1);
         owners[0] = address(makeAddr("random 111")); // random owner
 
-        InitializationScript.CallHook[] memory callHooks = new InitializationScript.CallHook[](0);
-        ISafe safe = ISafe(rumpelWalletFactory.createWallet(owners, 1, callHooks));
+        InitializationScript.InitCall[] memory initCalls = new InitializationScript.InitCall[](0);
+        ISafe safe = ISafe(rumpelWalletFactory.createWallet(owners, 1, initCalls));
 
         vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, lad));
         vm.prank(lad);
@@ -412,8 +412,8 @@ contract RumpelWalletTest is Test {
         address[] memory owners = new address[](1);
         owners[0] = address(makeAddr("random 111")); // random owner
 
-        InitializationScript.CallHook[] memory callHooks = new InitializationScript.CallHook[](0);
-        ISafe safe = ISafe(rumpelWalletFactory.createWallet(owners, 1, callHooks));
+        InitializationScript.InitCall[] memory initCalls = new InitializationScript.InitCall[](0);
+        ISafe safe = ISafe(rumpelWalletFactory.createWallet(owners, 1, initCalls));
 
         mockToken.mint(address(this), 1.1e18);
         mockToken.transfer(address(safe), 1.1e18);
@@ -439,8 +439,8 @@ contract RumpelWalletTest is Test {
         address[] memory owners = new address[](1);
         owners[0] = address(makeAddr("random 111"));
 
-        InitializationScript.CallHook[] memory callHooks = new InitializationScript.CallHook[](0);
-        ISafe safe = ISafe(rumpelWalletFactory.createWallet(owners, 1, callHooks));
+        InitializationScript.InitCall[] memory initCalls = new InitializationScript.InitCall[](0);
+        ISafe safe = ISafe(rumpelWalletFactory.createWallet(owners, 1, initCalls));
 
         mockToken.mint(address(safe), 1e18);
 
@@ -470,8 +470,8 @@ contract RumpelWalletTest is Test {
         address[] memory owners = new address[](1);
         owners[0] = address(makeAddr("random 111"));
 
-        InitializationScript.CallHook[] memory callHooks = new InitializationScript.CallHook[](0);
-        ISafe safe = ISafe(rumpelWalletFactory.createWallet(owners, 1, callHooks));
+        InitializationScript.InitCall[] memory initCalls = new InitializationScript.InitCall[](0);
+        ISafe safe = ISafe(rumpelWalletFactory.createWallet(owners, 1, initCalls));
 
         RumpelModule newRumpelModule = new RumpelModule();
 
