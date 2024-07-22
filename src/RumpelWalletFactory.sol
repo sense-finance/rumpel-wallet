@@ -9,9 +9,10 @@ import {InitializationScript} from "./InitializationScript.sol";
 
 /// @notice Factory to create Rumpel Wallets; Safes with the Rumpel Guard and Rumpel Module added on.
 contract RumpelWalletFactory is Ownable, Pausable {
-    uint256 public saltNonce;
+    mapping(address => uint256) public saltNonce;
 
     ISafeProxyFactory public proxyFactory;
+    address public compatibilityFallback;
     address public safeSingleton;
     address public rumpelModule;
     address public rumpelGuard;
@@ -24,12 +25,14 @@ contract RumpelWalletFactory is Ownable, Pausable {
 
     constructor(
         ISafeProxyFactory _proxyFactory,
+        address _compatibilityFallback,
         address _safeSingleton,
         address _rumpelModule,
         address _rumpelGuard,
         address _initializationScript
     ) Ownable(msg.sender) {
         proxyFactory = _proxyFactory;
+        compatibilityFallback = _compatibilityFallback;
         safeSingleton = _safeSingleton;
         rumpelModule = _rumpelModule;
         rumpelGuard = _rumpelGuard;
@@ -37,7 +40,11 @@ contract RumpelWalletFactory is Ownable, Pausable {
     }
 
     /// @notice Create a Safe with the Rumpel Module and Rumpel Guard added.
-    function createWallet(address[] calldata owners, uint256 threshold) external whenNotPaused returns (address) {
+    function createWallet(
+        address[] calldata owners,
+        uint256 threshold,
+        InitializationScript.InitCall[] calldata initCalls
+    ) external whenNotPaused returns (address) {
         address safe = proxyFactory.createProxyWithNonce(
             safeSingleton,
             abi.encodeWithSelector(
@@ -45,13 +52,13 @@ contract RumpelWalletFactory is Ownable, Pausable {
                 owners,
                 threshold,
                 initializationScript, // Contract with initialization logic
-                abi.encodeWithSelector(InitializationScript.initialize.selector, rumpelModule, rumpelGuard), // Initializing call to add module and guard
-                address(0), // fallbackHandler
+                abi.encodeWithSelector(InitializationScript.initialize.selector, rumpelModule, rumpelGuard, initCalls), // Add module and guard + initial calls
+                compatibilityFallback, // fallbackHandler
                 address(0), // paymentToken
                 0, // payment
                 address(0) // paymentReceiver
             ),
-            saltNonce++
+            saltNonce[msg.sender]++ // For deterministic address generation
         );
 
         emit SafeCreated(safe, owners, threshold);

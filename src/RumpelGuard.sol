@@ -11,6 +11,8 @@ import {IGuard} from "./interfaces/external/IGuard.sol";
 contract RumpelGuard is Ownable, IGuard {
     mapping(address => mapping(bytes4 => AllowListState)) public allowedCalls; // target => functionSelector => allowListState
 
+    address public immutable signMessageLib;
+
     enum AllowListState {
         OFF,
         ON,
@@ -22,7 +24,9 @@ contract RumpelGuard is Ownable, IGuard {
     error CallNotAllowed(address target, bytes4 functionSelector);
     error PermanentlyOn();
 
-    constructor() Ownable(msg.sender) {}
+    constructor(address _signMessageLib) Ownable(msg.sender) {
+        signMessageLib = _signMessageLib;
+    }
 
     /// @notice Called by the Safe contract before a transaction is executed.
     /// @dev Safe user execution hook that blocks all calls by default, including delegatecalls, unless explicitly added to the allowlist.
@@ -30,7 +34,7 @@ contract RumpelGuard is Ownable, IGuard {
         address to,
         uint256,
         bytes memory data,
-        Enum.Operation,
+        Enum.Operation operation,
         uint256,
         uint256,
         uint256,
@@ -40,6 +44,15 @@ contract RumpelGuard is Ownable, IGuard {
         address
     ) external view {
         bytes4 functionSelector = bytes4(data);
+
+        // Only allow delegatecalls to the signMessageLib.
+        if (operation == Enum.Operation.DelegateCall) {
+            if (to == signMessageLib) {
+                return;
+            } else {
+                revert CallNotAllowed(to, functionSelector);
+            }
+        }
 
         if (allowedCalls[to][functionSelector] == AllowListState.OFF) {
             revert CallNotAllowed(to, functionSelector);
@@ -59,7 +72,7 @@ contract RumpelGuard is Ownable, IGuard {
     /// @notice Enable or disable Safes from calling a function.
     /// @dev Scoped to <address>.<selector>, so all calls to added address <> selector pairs are allowed.
     /// @dev Function arguments aren't checked, so any arguments are allowed for the enabled functions.
-    /// @dev Calls can be enabled, disabled, or permanently enabled, that last of which guarntees the call can't be rugged.
+    /// @dev Calls can be enabled, disabled, or permanently enabled, that last of which guarantees the call can't be rugged.
     function setCallAllowed(address target, bytes4 functionSelector, AllowListState allowListState)
         external
         onlyOwner

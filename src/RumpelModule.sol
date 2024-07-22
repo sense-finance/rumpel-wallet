@@ -9,12 +9,14 @@ import {ISafe} from "./interfaces/external/ISafe.sol";
 /// @notice Rumpel Safe Module allowing an admin to execute calls on behalf of the Safe.
 contract RumpelModule is Ownable {
     mapping(address => mapping(bytes4 => bool)) public blockedModuleCalls; // target => functionSelector => blocked
+    address public immutable signMessageLib;
 
     struct Call {
         ISafe safe;
         address to;
         uint256 value;
         bytes data;
+        Enum.Operation operation;
     }
 
     event ExecutionFromModule(ISafe indexed safe, address indexed target, uint256 value, bytes data);
@@ -23,7 +25,9 @@ contract RumpelModule is Ownable {
     error ExecFailed(ISafe safe, address target, bytes data);
     error CallBlocked(address target, bytes4 functionSelector);
 
-    constructor() Ownable(msg.sender) {}
+    constructor(address _signMessageLib) Ownable(msg.sender) {
+        signMessageLib = _signMessageLib;
+    }
 
     /// @notice Execute a series of calls through Safe contracts.
     /// @param calls An array of Call structs containing the details of each call to be executed.
@@ -38,7 +42,14 @@ contract RumpelModule is Ownable {
                 revert CallBlocked(call.to, bytes4(call.data));
             }
 
-            bool success = call.safe.execTransactionFromModule(call.to, call.value, call.data, Enum.Operation.Call); // No delegatecalls
+            // Only allow delegatecalls to the signMessageLib.
+            if (call.operation == Enum.Operation.DelegateCall) {
+                if (call.to != signMessageLib) {
+                    revert CallBlocked(call.to, bytes4(call.data));
+                }
+            }
+
+            bool success = call.safe.execTransactionFromModule(call.to, call.value, call.data, call.operation);
 
             if (!success) {
                 revert ExecFailed(call.safe, call.to, call.data);
@@ -52,7 +63,7 @@ contract RumpelModule is Ownable {
         }
     }
 
-    /// @notice Prevent call from being executed via the module permanently. Useful as an assurance that e.g. and admin will never transfer a user's USDC.
+    /// @notice Prevent call from being executed via the module permanently. Useful as an assurance that e.g. an admin will never transfer a user's USDC.
     /// @dev Scoped to <address>.<selector>, so all calls to added address <> selector pairs are blocked.
     /// @dev To block calls to arbitrary Safes, to prevent an admin from updating config, the Zero address is used for the target.
     function addBlockedModuleCall(address target, bytes4 functionSelector) external onlyOwner {

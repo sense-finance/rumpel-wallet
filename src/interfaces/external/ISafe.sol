@@ -63,4 +63,18 @@ interface ISafe {
     function isModuleEnabled(address module) external view returns (bool);
 
     function nonce() external view returns (uint256);
+
+    function execute(address to, uint256 value, bytes memory data, Enum.Operation operation, uint256 txGas)
+        external
+        returns (bool success);
+
+    function domainSeparator() external view returns (bytes32);
+
+    function signedMessages(bytes32 messageHash) external returns (uint256);
+
+    // Fallback handler functions
+
+    function isValidSignature(bytes32 _dataHash, bytes calldata _signature) external view returns (bytes4);
+
+    function isValidSignature(bytes calldata _data, bytes calldata _signature) external view returns (bytes4);
 }
