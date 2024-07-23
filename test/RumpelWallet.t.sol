@@ -230,6 +230,37 @@ contract RumpelWalletTest is Test {
         assertEq(counter.count(), 4337);
     }
 
+    function test_CreateWalletCallTrustOnDeploy() public {
+        address[] memory owners = new address[](1);
+        owners[0] = address(alice);
+
+        // Deploy point token vault
+        PointTokenVault pointTokenVaultImplementation = new PointTokenVault();
+        PointTokenVault vault = PointTokenVault(
+            payable(
+                address(
+                    new ERC1967Proxy(
+                        address(pointTokenVaultImplementation),
+                        abi.encodeCall(PointTokenVault.initialize, (admin, address(this)))
+                    )
+                )
+            )
+        );
+
+        vm.prank(admin);
+        rumpelGuard.setCallAllowed(address(vault), PointTokenVault.trustClaimer.selector, RumpelGuard.AllowListState.ON);
+
+        InitializationScript.InitCall[] memory initCalls = new InitializationScript.InitCall[](1);
+        initCalls[0] = InitializationScript.InitCall({
+            to: address(vault),
+            data: abi.encodeCall(PointTokenVault.trustClaimer, (alice, true))
+        });
+
+        ISafe safe = ISafe(rumpelWalletFactory.createWallet(owners, 1, initCalls));
+
+        assertEq(vault.trustedClaimers(address(safe), alice), true);
+    }
+
     function test_SafeSignMessage() public {
         // Setup
         address[] memory owners = new address[](1);
@@ -548,16 +579,16 @@ contract RumpelWalletTest is Test {
     //     MockERC20 rewardToken = new MockERC20("Reward Token", "RWT", 18);
 
     //     // Deploy the PointTokenVault
-    //     PointTokenVault pointTokenVaultImplementation = new PointTokenVault();
-    //     PointTokenVault vault = PointTokenVault(
-    //         payable(
-    //             address(
-    //                 new ERC1967Proxy(
-    //                     address(pointTokenVaultImplementation), abi.encodeCall(PointTokenVault.initialize, (admin))
-    //                 )
+    // PointTokenVault pointTokenVaultImplementation = new PointTokenVault();
+    // PointTokenVault vault = PointTokenVault(
+    //     payable(
+    //         address(
+    //             new ERC1967Proxy(
+    //                 address(pointTokenVaultImplementation), abi.encodeCall(PointTokenVault.initialize, (admin))
     //             )
     //         )
-    //     );
+    //     )
+    // );
     //     vm.startPrank(admin);
     //     vault.grantRole(vault.MERKLE_UPDATER_ROLE(), admin);
     //     vm.stopPrank();

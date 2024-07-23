@@ -2,6 +2,7 @@
 pragma solidity ^0.8.19;
 
 import {Script, console} from "forge-std/Script.sol";
+import {PointTokenVault} from "point-tokenization-vault/PointTokenVault.sol";
 
 import {RumpelWalletFactory} from "../src/RumpelWalletFactory.sol";
 import {RumpelModule} from "../src/RumpelModule.sol";
@@ -40,6 +41,11 @@ contract RumpelWalletFactoryScripts is Script {
 
         // Prevent us from just swapping out the Rumpel Module for one without a blocklist.
         rumpelModule.addBlockedModuleCall(address(0), ISafe.enableModule.selector);
+
+        // Allow safes to delegate pToken claiming
+        rumpelGuard.setCallAllowed(
+            MAINNET_RUMPEL_VAULT, PointTokenVault.trustClaimer.selector, RumpelGuard.AllowListState.ON
+        );
 
         rumpelGuard.transferOwnership(admin);
         rumpelModule.transferOwnership(admin);
