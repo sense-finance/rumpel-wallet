@@ -22,6 +22,14 @@ contract RumpelWalletFactoryScripts is Script {
 
     function setUp() public {}
 
+    function run() public {
+        uint256 deployerPrivateKey = vm.envUint("DEPLOYER_PRIVATE_KEY");
+
+        vm.startBroadcast(deployerPrivateKey);
+        run(msg.sender);
+        vm.stopBroadcast();
+    }
+
     function run(address admin) public returns (RumpelModule, RumpelGuard, RumpelWalletFactory) {
         RumpelModule rumpelModule = new RumpelModule(MAINNET_SIGN_MESSAGE_LIB);
 
@@ -42,7 +50,7 @@ contract RumpelWalletFactoryScripts is Script {
         // Prevent us from just swapping out the Rumpel Module for one without a blocklist.
         rumpelModule.addBlockedModuleCall(address(0), ISafe.enableModule.selector);
 
-        // Allow safes to delegate pToken claiming
+        // Allow Safes to delegate pToken claiming
         rumpelGuard.setCallAllowed(
             MAINNET_RUMPEL_VAULT, PointTokenVault.trustClaimer.selector, RumpelGuard.AllowListState.ON
         );

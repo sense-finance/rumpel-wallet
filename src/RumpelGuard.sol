@@ -43,6 +43,12 @@ contract RumpelGuard is Ownable, IGuard {
         bytes memory,
         address
     ) external view {
+        // Disallow calls with function selectors that will be padded with 0s.
+        // Allow calls to data with length 0, so that the call can be used for reentrancy.
+        if (data.length > 0 && data.length < 4) {
+            revert CallNotAllowed(to, bytes4(data));
+        }
+
         bytes4 functionSelector = bytes4(data);
 
         // Only allow delegatecalls to the signMessageLib.

@@ -386,6 +386,77 @@ contract RumpelWalletTest is Test {
         );
     }
 
+    function test_RumpelWalletDisallowSmallData() public {
+        address[] memory owners = new address[](1);
+        owners[0] = address(alice);
+
+        InitializationScript.InitCall[] memory initCalls = new InitializationScript.InitCall[](0);
+        ISafe safe = ISafe(rumpelWalletFactory.createWallet(owners, 1, initCalls));
+
+        // 3 bytes. Will be padded out with two 0s when cast to bytes4
+        bytes memory smallData = new bytes(3);
+        smallData[0] = bytes1(uint8(1));
+        smallData[1] = bytes1(uint8(2));
+        smallData[2] = bytes1(uint8(3));
+
+        vm.prank(admin);
+        rumpelGuard.setCallAllowed(address(counter), bytes4(smallData), RumpelGuard.AllowListState.ON);
+
+        // Will revert even though the data has been allowed, because the data is too small
+        vm.expectRevert(
+            abi.encodeWithSelector(RumpelGuard.CallNotAllowed.selector, address(counter), bytes4(smallData))
+        );
+        this._execSafeTx(safe, address(counter), 0, smallData, Enum.Operation.Call);
+    }
+
+    function test_RumpelWalletAllowETHTransfers() public {
+        address[] memory owners = new address[](1);
+        owners[0] = address(alice);
+
+        InitializationScript.InitCall[] memory initCalls = new InitializationScript.InitCall[](0);
+        ISafe safe = ISafe(rumpelWalletFactory.createWallet(owners, 1, initCalls));
+
+        bytes memory zeroData = new bytes(0);
+
+        // Enable ETH transfers
+        vm.prank(admin);
+        rumpelGuard.setCallAllowed(address(counter), bytes4(zeroData), RumpelGuard.AllowListState.ON);
+
+        // Mint 1 ETH to the safe
+        vm.deal(address(safe), 1 ether);
+
+        assertEq(address(safe).balance, 1 ether);
+        assertEq(address(counter).balance, 0);
+
+        this._execSafeTx(safe, address(counter), 0.1 ether, zeroData, Enum.Operation.Call);
+
+        assertEq(address(safe).balance, 0.9 ether);
+        assertEq(address(counter).balance, 0.1 ether);
+    }
+
+    function test_RumpelWalletAllowZeroData() public {
+        address[] memory owners = new address[](1);
+        owners[0] = address(alice);
+
+        InitializationScript.InitCall[] memory initCalls = new InitializationScript.InitCall[](0);
+        ISafe safe = ISafe(rumpelWalletFactory.createWallet(owners, 1, initCalls));
+
+        // 3 bytes. Will be padded out with two 0s when cast to bytes4
+        bytes memory smallData = new bytes(3);
+        smallData[0] = bytes1(uint8(1));
+        smallData[1] = bytes1(uint8(2));
+        smallData[2] = bytes1(uint8(3));
+
+        vm.prank(admin);
+        rumpelGuard.setCallAllowed(address(counter), bytes4(smallData), RumpelGuard.AllowListState.ON);
+
+        // Will revert even though the data has been allowed, because the data is too small
+        vm.expectRevert(
+            abi.encodeWithSelector(RumpelGuard.CallNotAllowed.selector, address(counter), bytes4(smallData))
+        );
+        this._execSafeTx(safe, address(counter), 0, smallData, Enum.Operation.Call);
+    }
+
     function test_GuardPermanentlyAllowedCall() public {
         address[] memory owners = new address[](1);
         owners[0] = address(alice);
@@ -731,4 +802,6 @@ contract Counter {
     function fail() external {
         revert("fail");
     }
+
+    fallback() external payable {}
 }
