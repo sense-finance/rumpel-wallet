@@ -49,6 +49,10 @@ contract RumpelWalletFactoryScripts is Script {
 
         // Prevent us from just swapping out the Rumpel Module for one without a blocklist.
         rumpelModule.addBlockedModuleCall(address(0), ISafe.enableModule.selector);
+        // Prevent us from disabling the module.
+        rumpelModule.addBlockedModuleCall(address(0), ISafe.disableModule.selector);
+        // Prevent us from setting the guard.
+        rumpelModule.addBlockedModuleCall(address(0), ISafe.setGuard.selector);
 
         // Allow Safes to delegate pToken claiming
         rumpelGuard.setCallAllowed(
