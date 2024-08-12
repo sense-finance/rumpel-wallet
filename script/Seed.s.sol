@@ -73,6 +73,11 @@ interface INonfungiblePositionManager {
         external
         payable
         returns (uint256 amount0, uint256 amount1);
+
+    function createAndInitializePoolIfNecessary(address token0, address token1, uint24 fee, uint160 sqrtPriceX96)
+        external
+        payable
+        returns (address pool);
 }
 
 contract DummyErc20 is ERC20 {
@@ -210,19 +215,27 @@ contract Seed is Script {
         console.log("\nPools:");
         for (uint256 i = 0; i < pTokens.length; i++) {
             string memory name = pTokens[i].name();
-            pools[i] = uniV3Factory.createPool(address(pTokens[i]), address(weth), 10000);
+            // pools[i] = uniV3Factory.createPool(address(pTokens[i]), address(weth), 10000);
 
-            // price is the exchange from token 0 to token 1
-            // Token 1 / Token 0
-            // amount of token 1 traded for a single token 0
-            uint256 price;
-            if (address(pTokens[i]) < address(weth)) {
-                price = initialPrices[i];
-            } else {
-                price = 1e18 * 1e18 / initialPrices[i];
-            }
-            IUniswapV3Pool(pools[i]).initialize(calculateSqrtPriceX96(price, 18, 18));
-            console.log(name, "pool:", pools[i], price);
+            // // price is the exchange from token 0 to token 1
+            // // Token 1 / Token 0
+            // // amount of token 1 traded for a single token 0
+            // // uint256 price;
+            // // if (address(pTokens[i]) < address(weth)) {
+            // //     price = initialPrices[i];
+            // // } else {
+            // //     price = 1e18 * 1e18 / initialPrices[i];
+            // // }
+            // IUniswapV3Pool(pools[i]).initialize(19235392466017147155797619338978);
+
+            address token0 = address(pTokens[i]) < address(weth) ? address(pTokens[i]) : address(weth);
+            address token1 = address(pTokens[i]) > address(weth) ? address(pTokens[i]) : address(weth);
+
+            pools[i] = positionManager.createAndInitializePoolIfNecessary(
+                token0, token1, 10000, 19235392466017147155797619338978
+            );
+
+            console.log(name, "pool:", pools[i], 19235392466017147155797619338978);
         }
 
         vm.stopBroadcast();
@@ -231,51 +244,74 @@ contract Seed is Script {
     }
 
     function seedPools(DummyErc20[] memory pTokens, address[] memory pools) public {
-        vm.startBroadcast(users[users.length - 1].pk);
+        console.log("seed pools");
+        vm.startBroadcast(users[0].pk);
 
-        weth.approve(address(positionManager), 10e18);
+        console.log(weth.balanceOf(users[0].addr));
+        console.log(pTokens[0].symbol());
+        console.log(pTokens[0].balanceOf(users[0].addr));
+        console.log(users[0].addr);
 
-        for (uint256 i = 0; i < 1; i++) {
-            address token0 = address(pTokens[i]) < address(weth) ? address(pTokens[i]) : address(weth);
-            address token1 = address(pTokens[i]) > address(weth) ? address(pTokens[i]) : address(weth);
+        weth.approve(address(positionManager), 1000e18);
 
-            (, int24 tick,,,, uint8 feeProtocol,) = IUniswapV3Pool(pools[i]).slot0();
+        uint256 i = 0;
+        address token0 = address(pTokens[i]) < address(weth) ? address(pTokens[i]) : address(weth);
+        address token1 = address(pTokens[i]) > address(weth) ? address(pTokens[i]) : address(weth);
 
-            int24 tickLower;
-            int24 tickUpper;
-            uint256 amount0Desired;
-            uint256 amount1Desired;
-            if (token0 == address(weth)) {
-                amount0Desired = 10e18;
-                amount1Desired = 0;
-                tickLower = tick - 200 * 10;
-                tickUpper = tick;
-            } else {
-                amount0Desired = 0;
-                amount1Desired = 10e18;
-                tickLower = tick;
-                tickUpper = tick + 200 * 10;
-            }
+        (uint160 sqrtPriceX96, int24 tick,,,, uint8 feeProtocol,) = IUniswapV3Pool(pools[i]).slot0();
 
-            INonfungiblePositionManager.MintParams memory mintParams = INonfungiblePositionManager.MintParams({
-                token0: token0,
-                token1: token1,
-                fee: 10000,
-                tickLower: tickLower,
-                tickUpper: tickUpper,
-                amount0Desired: amount0Desired,
-                amount1Desired: amount1Desired,
-                amount0Min: 0,
-                amount1Min: 0,
-                recipient: users[users.length - 1].addr,
-                deadline: type(uint256).max
-            });
-
-            positionManager.mint(mintParams);
-            console.log(weth.balanceOf(users[users.length - 1].addr));
-            console.log(pTokens[i].balanceOf(users[users.length - 1].addr));
+        int24 tickLower;
+        int24 tickUpper;
+        uint256 amount0Desired;
+        uint256 amount1Desired;
+        if (token0 == address(weth)) {
+            console.log("here");
+            amount0Desired = 10e18;
+            amount1Desired = 0;
+            tickLower = (tick / 200 + 1) * 200;
+            tickUpper = (tick / 200 + 1) * 200 + 200 * 10;
+        } else {
+            console.log("there");
+            amount0Desired = 0;
+            amount1Desired = 10e18;
+            tickLower = (tick / 200) * 200 - 200 * 10;
+            tickUpper = (tick / 200) * 200;
         }
 
+        INonfungiblePositionManager.MintParams memory mintParams = INonfungiblePositionManager.MintParams({
+            token0: token0,
+            token1: token1,
+            fee: 10000,
+            tickLower: tickLower,
+            tickUpper: tickUpper,
+            amount0Desired: amount0Desired,
+            amount1Desired: amount1Desired,
+            amount0Min: 0,
+            amount1Min: 0,
+            recipient: users[0].addr,
+            deadline: 1823444259
+        });
+
+        console.log("start");
+        console.logInt(tick);
+        console.log(sqrtPriceX96);
+        console.log(weth.balanceOf(users[0].addr));
+        console.log(pTokens[i].balanceOf(users[0].addr));
+        console.log('"token0":', token0);
+        console.log('"token1":', token1);
+        console.log('"fee":', 10000);
+        console.log('"tickLower":');
+        console.logInt(tickLower);
+        console.log('"tickUpper":');
+        console.logInt(tickUpper);
+        console.log('"amount0Desired":', amount0Desired);
+        console.log('"amount1Desired":', amount1Desired);
+        console.log('"amount0Min":', amount0Desired);
+        console.log('"amount1Min":', amount1Desired);
+        console.log('"recipient":', users[0].addr);
+        console.log('"deadline":', 1823444259);
+
+        positionManager.mint(mintParams);
         vm.stopBroadcast();
     }
 
