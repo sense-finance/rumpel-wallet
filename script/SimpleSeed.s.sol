@@ -114,7 +114,7 @@ contract SimpleSeed is Script {
         address wallet;
     }
 
-    User admin;
+    User admin = User(vm.envAddress("ADMIN_ADDR"), vm.envUint("ADMIN_PK"), address(0));
     User[] users;
     uint256 numberOfUsers = 10;
 
@@ -139,8 +139,9 @@ contract SimpleSeed is Script {
         createUnderlyingTokens();
         createPTokens();
         createUserWallets();
-        // updateGuardToAllowTransfers();
+        updateGuardToAllowTransfers();
         createPools();
+        claimAndDistributePTokens(10_000_000e18);
 
         // seed
 
@@ -174,10 +175,6 @@ contract SimpleSeed is Script {
     function createUsers() internal {
         address userAddr;
         uint256 userPk;
-
-        // create admin
-        (userAddr, userPk) = deriveRememberKey(mnemonic, 0);
-        admin = User(userAddr, userPk, address(0));
 
         // create rest of users
         for (uint256 i = 1; i < numberOfUsers + 1; i++) {
@@ -251,6 +248,43 @@ contract SimpleSeed is Script {
                 )
             );
         }
+        vm.stopBroadcast();
+    }
+
+    function claimAndDistributePTokens(uint256 amount) internal {
+        vm.startBroadcast(admin.pk);
+
+        for (uint256 i = 0; i < tokenIds.length; i++) {
+            bytes32 tokenId = tokenIds[i];
+            string memory name = pTokens[tokenId].name();
+            string memory symbol = pTokens[tokenId].symbol();
+            bytes32 pointId = LibString.packTwo(name, symbol);
+
+            bytes32 leaf1 = keccak256(abi.encodePacked(admin.addr, pointId, amount));
+            bytes32 leaf2 = keccak256(abi.encodePacked(users[0].addr, pointId, amount));
+
+            bytes32 root;
+            if (leaf1 < leaf2) {
+                root = keccak256(abi.encodePacked(leaf1, leaf2));
+            } else {
+                root = keccak256(abi.encodePacked(leaf2, leaf1));
+            }
+
+            bytes32[] memory proof = new bytes32[](1);
+            proof[0] = leaf2;
+
+            pointTokenVault.updateRoot(root);
+            pointTokenVault.claimPTokens(
+                PointTokenVault.Claim({pointsId: pointId, totalClaimable: amount, amountToClaim: amount, proof: proof}),
+                admin.addr,
+                admin.addr
+            );
+
+            for (uint256 j = 0; j < users.length; j++) {
+                pTokens[tokenId].transfer(users[j].addr, (amount / 2) / users.length);
+            }
+        }
+
         vm.stopBroadcast();
     }
 
