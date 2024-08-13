@@ -97,16 +97,13 @@ contract SimpleSeed is Script {
     INonfungiblePositionManager positionManager =
         INonfungiblePositionManager(0x1238536071E1c677A632429e3655c799b22cDA52);
 
-    address adminAddr;
-    uint256 adminPk;
-
     struct User {
         address addr;
         uint256 pk;
     }
 
+    User admin;
     User[] users;
-
     uint256 numberOfUsers = 10;
 
     DummyErc20 weth;
@@ -119,8 +116,6 @@ contract SimpleSeed is Script {
     string mnemonic = vm.envString("MNEMONIC");
 
     function run() public {
-        (adminAddr, adminPk) = deriveRememberKey(mnemonic, 0);
-
         createUsers();
         createWeth();
         createUnderlyingTokens();
@@ -133,15 +128,23 @@ contract SimpleSeed is Script {
     }
 
     function createUsers() internal {
+        address userAddr;
+        uint256 userPk;
+
+        // create admin
+        (userAddr, userPk) = deriveRememberKey(mnemonic, 0);
+        admin = User(userAddr, userPk);
+
+        // create rest of users
         for (uint256 i = 1; i < numberOfUsers + 1; i++) {
-            (address userAddr, uint256 userPk) = deriveRememberKey(mnemonic, 1);
+            (userAddr, userPk) = deriveRememberKey(mnemonic, 1);
             users.push(User(userAddr, userPk));
         }
     }
 
     function createWeth() internal {
-        vm.startBroadcast(adminPk);
-        weth = new DummyErc20(adminAddr, "wrapped eth", "WETH");
+        vm.startBroadcast(admin.pk);
+        weth = new DummyErc20(admin.addr, "wrapped eth", "WETH");
 
         for (uint256 i = 0; i < users.length; i++) {
             weth.mint(users[i].addr, 1000e18);
@@ -151,19 +154,19 @@ contract SimpleSeed is Script {
     }
 
     function createUnderlyingTokens() internal {
-        vm.startBroadcast(adminPk);
-        underlyingTokens.push(new DummyErc20(adminAddr, "Underlying A", "UNDER_A"));
-        underlyingTokens.push(new DummyErc20(adminAddr, "Underlying B", "UNDER_B"));
-        underlyingTokens.push(new DummyErc20(adminAddr, "Underlying C", "UNDER_C"));
-        underlyingTokens.push(new DummyErc20(adminAddr, "Underlying D", "UNDER_D"));
-        underlyingTokens.push(new DummyErc20(adminAddr, "Underlying E", "UNDER_E"));
-        underlyingTokens.push(new DummyErc20(adminAddr, "Underlying F", "UNDER_F"));
-        underlyingTokens.push(new DummyErc20(adminAddr, "Underlying G", "UNDER_G"));
+        vm.startBroadcast(admin.pk);
+        underlyingTokens.push(new DummyErc20(admin.addr, "Underlying A", "UNDER_A"));
+        underlyingTokens.push(new DummyErc20(admin.addr, "Underlying B", "UNDER_B"));
+        underlyingTokens.push(new DummyErc20(admin.addr, "Underlying C", "UNDER_C"));
+        underlyingTokens.push(new DummyErc20(admin.addr, "Underlying D", "UNDER_D"));
+        underlyingTokens.push(new DummyErc20(admin.addr, "Underlying E", "UNDER_E"));
+        underlyingTokens.push(new DummyErc20(admin.addr, "Underlying F", "UNDER_F"));
+        underlyingTokens.push(new DummyErc20(admin.addr, "Underlying G", "UNDER_G"));
         vm.stopBroadcast();
     }
 
     function createPTokens() internal {
-        vm.startBroadcast(adminPk);
+        vm.startBroadcast(admin.pk);
         pTokens.push(DummyErc20(pointTokenVault.deployPToken(LibString.packTwo("A Point", "pA"))));
         pTokens.push(DummyErc20(pointTokenVault.deployPToken(LibString.packTwo("B Point", "pB"))));
         pTokens.push(DummyErc20(pointTokenVault.deployPToken(LibString.packTwo("C Point", "pC"))));
@@ -171,7 +174,7 @@ contract SimpleSeed is Script {
     }
 
     function createPools() internal {
-        vm.startBroadcast(adminPk);
+        vm.startBroadcast(admin.pk);
         address token0;
         address token1;
         for (uint256 i = 0; i < pTokens.length; i++) {
