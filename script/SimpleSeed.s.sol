@@ -99,8 +99,15 @@ contract SimpleSeed is Script {
 
     address adminAddr;
     uint256 adminPk;
-    address userAddr;
-    uint256 userPk;
+
+    struct User {
+        address addr;
+        uint256 pk;
+    }
+
+    User[] users;
+
+    uint256 numberOfUsers = 10;
 
     DummyErc20 weth;
     DummyErc20[] underlyingTokens;
@@ -113,22 +120,33 @@ contract SimpleSeed is Script {
 
     function run() public {
         (adminAddr, adminPk) = deriveRememberKey(mnemonic, 0);
-        (userAddr, userPk) = deriveRememberKey(mnemonic, 1);
 
+        createUsers();
         createWeth();
         createUnderlyingTokens();
         createPTokens();
         createPools();
 
-        mintLiquidity(userAddr, userPk, pTokens[0]);
-        mintLiquidity(userAddr, userPk, pTokens[1]);
-        mintLiquidity(userAddr, userPk, pTokens[2]);
+        mintLiquidity(users[0], pTokens[0]);
+        mintLiquidity(users[0], pTokens[1]);
+        mintLiquidity(users[0], pTokens[2]);
+    }
+
+    function createUsers() internal {
+        for (uint256 i = 1; i < numberOfUsers + 1; i++) {
+            (address userAddr, uint256 userPk) = deriveRememberKey(mnemonic, 1);
+            users.push(User(userAddr, userPk));
+        }
     }
 
     function createWeth() internal {
         vm.startBroadcast(adminPk);
         weth = new DummyErc20(adminAddr, "wrapped eth", "WETH");
-        weth.mint(userAddr, 1000e18);
+
+        for (uint256 i = 0; i < users.length; i++) {
+            weth.mint(users[i].addr, 1000e18);
+        }
+
         vm.stopBroadcast();
     }
 
@@ -167,8 +185,8 @@ contract SimpleSeed is Script {
         vm.stopBroadcast();
     }
 
-    function mintLiquidity(address user, uint256 userPk, DummyErc20 pToken) internal {
-        vm.startBroadcast(userPk);
+    function mintLiquidity(User memory user, DummyErc20 pToken) internal {
+        vm.startBroadcast(user.pk);
         weth.approve(address(positionManager), 10e18);
 
         (, int24 tick,,,,,) = IUniswapV3Pool(pools[pToken]).slot0();
@@ -203,7 +221,7 @@ contract SimpleSeed is Script {
             amount1Desired: amount1Desired,
             amount0Min: 0,
             amount1Min: 0,
-            recipient: user,
+            recipient: user.addr,
             deadline: 1823444259
         });
         positionManager.mint(mintParams);
@@ -213,6 +231,7 @@ contract SimpleSeed is Script {
     // internal helpers
     function _getOrderedTokens(address firstParam, address secondParam)
         internal
+        pure
         returns (address token0, address token1)
     {
         token0 = firstParam < secondParam ? firstParam : secondParam;
