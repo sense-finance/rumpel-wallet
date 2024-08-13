@@ -105,7 +105,7 @@ contract SimpleSeed is Script {
     DummyErc20 weth;
     DummyErc20[] underlyingTokens;
     DummyErc20[] pTokens;
-    IUniswapV3Pool[] pools;
+    mapping(DummyErc20 pToken => IUniswapV3Pool pool) pools;
 
     uint256[] initialPrices = [5e16, 1e17, 2e18];
 
@@ -132,49 +132,37 @@ contract SimpleSeed is Script {
         pTokens.push(DummyErc20(pointTokenVault.deployPToken(LibString.packTwo("B Point", "pB"))));
         pTokens.push(DummyErc20(pointTokenVault.deployPToken(LibString.packTwo("C Point", "pC"))));
 
+        vm.stopBroadcast();
         address token0;
         address token1;
 
-        (token0, token1) = _getOrderedTokens(address(weth), address(pTokens[0]));
-        pools.push(
-            IUniswapV3Pool(
-                positionManager.createAndInitializePoolIfNecessary(
-                    token0, token1, 10000, _calculateSqrtPriceX96(initialPrices[0], 18, 18)
-                )
-            )
-        );
+        createPools();
 
-        (token0, token1) = _getOrderedTokens(address(weth), address(pTokens[1]));
-        pools.push(
-            IUniswapV3Pool(
-                positionManager.createAndInitializePoolIfNecessary(
-                    token0, token1, 10000, _calculateSqrtPriceX96(initialPrices[1], 18, 18)
-                )
-            )
-        );
-
-        (token0, token1) = _getOrderedTokens(address(weth), address(pTokens[2]));
-        pools.push(
-            IUniswapV3Pool(
-                positionManager.createAndInitializePoolIfNecessary(
-                    token0, token1, 10000, _calculateSqrtPriceX96(initialPrices[2], 18, 18)
-                )
-            )
-        );
-        vm.stopBroadcast();
-
-        mintLiquidity(userAddr, userPk, weth, pTokens[0], pools[0]);
-        mintLiquidity(userAddr, userPk, weth, pTokens[1], pools[1]);
-        mintLiquidity(userAddr, userPk, weth, pTokens[2], pools[2]);
+        mintLiquidity(userAddr, userPk, pTokens[0]);
+        mintLiquidity(userAddr, userPk, pTokens[1]);
+        mintLiquidity(userAddr, userPk, pTokens[2]);
     }
 
-    function mintLiquidity(address user, uint256 userPk, DummyErc20 weth, DummyErc20 pToken, IUniswapV3Pool pool)
-        internal
-    {
+    function createPools() public {
+        vm.startBroadcast(adminPk);
+        address token0;
+        address token1;
+        for (uint256 i = 0; i < pTokens.length; i++) {
+            (token0, token1) = _getOrderedTokens(address(weth), address(pTokens[i]));
+            pools[pTokens[i]] = IUniswapV3Pool(
+                positionManager.createAndInitializePoolIfNecessary(
+                    token0, token1, 10000, _calculateSqrtPriceX96(initialPrices[i], 18, 18)
+                )
+            );
+        }
+        vm.stopBroadcast();
+    }
+
+    function mintLiquidity(address user, uint256 userPk, DummyErc20 pToken) internal {
         vm.startBroadcast(userPk);
         weth.approve(address(positionManager), 10e18);
 
-        (, int24 tick,,,,,) = IUniswapV3Pool(pool).slot0();
+        (, int24 tick,,,,,) = IUniswapV3Pool(pools[pToken]).slot0();
 
         int24 tickLower;
         int24 tickUpper;
@@ -206,7 +194,7 @@ contract SimpleSeed is Script {
             amount1Desired: amount1Desired,
             amount0Min: 0,
             amount1Min: 0,
-            recipient: userAddr,
+            recipient: user,
             deadline: 1823444259
         });
         positionManager.mint(mintParams);
