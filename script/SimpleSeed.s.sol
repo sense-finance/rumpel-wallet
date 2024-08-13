@@ -1,5 +1,7 @@
 import {Script, console} from "forge-std/Script.sol";
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import {RumpelWalletFactory} from "../src/RumpelWalletFactory.sol";
+import {PointTokenVault, LibString} from "point-tokenization-vault/PointTokenVault.sol";
 
 interface IUniswapV3Pool {
     function initialize(uint160 sqrtPriceX96) external;
@@ -88,71 +90,110 @@ contract DummyErc20 is ERC20 {
 }
 
 contract SimpleSeed is Script {
+    RumpelWalletFactory walletFactory = RumpelWalletFactory(0x4d67eC37cbBf6AAEbf27d8816D0424D255E77Dc4);
+    PointTokenVault pointTokenVault = PointTokenVault(payable(0xaB91B4666a0A8F3D35BeefF0492A9a0b2821FC5e));
+
     IUniswapV3Factory uniV3Factory = IUniswapV3Factory(0x0227628f3F023bb0B980b67D528571c95c6DaC1c);
     INonfungiblePositionManager positionManager =
         INonfungiblePositionManager(0x1238536071E1c677A632429e3655c799b22cDA52);
-
-    // pool
-    // 0x597a1b0515bbeee6796b89a6f403c3fd41bb626c
 
     address adminAddr;
     uint256 adminPk;
     address userAddr;
     uint256 userPk;
 
-    function run() public {
-        string memory mnemonic = vm.envString("MNEMONIC");
+    DummyErc20 weth;
+    DummyErc20[] underlyingTokens;
+    DummyErc20[] pTokens;
+    IUniswapV3Pool[] pools;
 
+    uint256[] initialPrices = [5e16, 1e17, 2e18];
+
+    string mnemonic = vm.envString("MNEMONIC");
+
+    function run() public {
         (adminAddr, adminPk) = deriveRememberKey(mnemonic, 0);
         (userAddr, userPk) = deriveRememberKey(mnemonic, 1);
 
-        console.log(adminAddr);
-        console.log(userAddr);
-
         vm.startBroadcast(adminPk);
-        DummyErc20 pointToken = new DummyErc20(adminAddr, "pToken", "PT");
-        DummyErc20 weth = new DummyErc20(adminAddr, "wrapped eth", "WETH");
 
-        // pointToken.mint(userAddr, 1000e18);
+        weth = new DummyErc20(adminAddr, "wrapped eth", "WETH");
         weth.mint(userAddr, 1000e18);
+
+        underlyingTokens.push(new DummyErc20(adminAddr, "Underlying A", "UNDER_A"));
+        underlyingTokens.push(new DummyErc20(adminAddr, "Underlying B", "UNDER_B"));
+        underlyingTokens.push(new DummyErc20(adminAddr, "Underlying C", "UNDER_C"));
+        underlyingTokens.push(new DummyErc20(adminAddr, "Underlying D", "UNDER_D"));
+        underlyingTokens.push(new DummyErc20(adminAddr, "Underlying E", "UNDER_E"));
+        underlyingTokens.push(new DummyErc20(adminAddr, "Underlying F", "UNDER_F"));
+        underlyingTokens.push(new DummyErc20(adminAddr, "Underlying G", "UNDER_G"));
+
+        pTokens.push(DummyErc20(pointTokenVault.deployPToken(LibString.packTwo("A Point", "pA"))));
+        pTokens.push(DummyErc20(pointTokenVault.deployPToken(LibString.packTwo("B Point", "pB"))));
+        pTokens.push(DummyErc20(pointTokenVault.deployPToken(LibString.packTwo("C Point", "pC"))));
+
+        address token0;
+        address token1;
+
+        (token0, token1) = _getOrderedTokens(address(weth), address(pTokens[0]));
+        pools.push(
+            IUniswapV3Pool(
+                positionManager.createAndInitializePoolIfNecessary(
+                    token0, token1, 10000, _calculateSqrtPriceX96(initialPrices[0], 18, 18)
+                )
+            )
+        );
+
+        (token0, token1) = _getOrderedTokens(address(weth), address(pTokens[1]));
+        pools.push(
+            IUniswapV3Pool(
+                positionManager.createAndInitializePoolIfNecessary(
+                    token0, token1, 10000, _calculateSqrtPriceX96(initialPrices[1], 18, 18)
+                )
+            )
+        );
+
+        (token0, token1) = _getOrderedTokens(address(weth), address(pTokens[2]));
+        pools.push(
+            IUniswapV3Pool(
+                positionManager.createAndInitializePoolIfNecessary(
+                    token0, token1, 10000, _calculateSqrtPriceX96(initialPrices[2], 18, 18)
+                )
+            )
+        );
         vm.stopBroadcast();
 
+        mintLiquidity(userAddr, userPk, weth, pTokens[0], pools[0]);
+        mintLiquidity(userAddr, userPk, weth, pTokens[1], pools[1]);
+        mintLiquidity(userAddr, userPk, weth, pTokens[2], pools[2]);
+    }
+
+    function mintLiquidity(address user, uint256 userPk, DummyErc20 weth, DummyErc20 pToken, IUniswapV3Pool pool)
+        internal
+    {
         vm.startBroadcast(userPk);
-        // pointToken.approve(address(positionManager), 10e18);
         weth.approve(address(positionManager), 10e18);
 
-        if (weth < pointToken) {
-            console.log("token0 is weth");
-        }
-
-        address token0 = address(pointToken) < address(weth) ? address(pointToken) : address(weth);
-        address token1 = address(pointToken) > address(weth) ? address(pointToken) : address(weth);
-
-        address pool =
-            positionManager.createAndInitializePoolIfNecessary(token0, token1, 10000, 19235392466017147155797619338978);
-
-        (uint160 sqrtPriceX96, int24 tick,,,, uint8 feeProtocol,) = IUniswapV3Pool(pool).slot0();
-
-        console.logInt(tick);
-        console.log(sqrtPriceX96);
+        (, int24 tick,,,,,) = IUniswapV3Pool(pool).slot0();
 
         int24 tickLower;
         int24 tickUpper;
         uint256 amount0Desired;
         uint256 amount1Desired;
 
+        address token0 = address(pToken) < address(weth) ? address(pToken) : address(weth);
+        address token1 = address(pToken) > address(weth) ? address(pToken) : address(weth);
+
         if (token0 == address(weth)) {
-            console.log("here");
             amount0Desired = 10e18;
             amount1Desired = 0;
             tickLower = (tick / 200 + 1) * 200;
             tickUpper = (tick / 200 + 1) * 200 + 200 * 10;
         } else {
-            console.log("there");
             amount0Desired = 0;
             amount1Desired = 10e18;
-            tickLower = (tick / 200) * 200 - 200 * 10;
-            tickUpper = (tick / 200) * 200;
+            tickLower = (tick / 200 - 1) * 200 - 200 * 10;
+            tickUpper = (tick / 200 - 1) * 200;
         }
 
         INonfungiblePositionManager.MintParams memory mintParams = INonfungiblePositionManager.MintParams({
@@ -169,100 +210,20 @@ contract SimpleSeed is Script {
             deadline: 1823444259
         });
         positionManager.mint(mintParams);
-
-        console.log("start");
-        console.logInt(tick);
-        console.log(sqrtPriceX96);
-        console.log(weth.balanceOf(userAddr));
-        console.log(pointToken.balanceOf(userAddr));
-        console.log('"token0":', token0);
-        console.log('"token1":', token1);
-        console.log('"fee":', 10000);
-        console.log('"tickLower":');
-        console.logInt(tickLower);
-        console.log('"tickUpper":');
-        console.logInt(tickUpper);
-        console.log('"amount0Desired":', amount0Desired);
-        console.log('"amount1Desired":', amount1Desired);
-        console.log('"amount0Min":', amount0Desired);
-        console.log('"amount1Min":', amount1Desired);
-        console.log('"recipient":', userAddr);
-        console.log('"deadline":', 1823444259);
-
         vm.stopBroadcast();
     }
-    // address pool = uniV3Factory.createPool(address(pointToken), address(weth), 10000);
-
-    // uint256 price;
-    // if (address(pointToken) < address(weth)) {
-    //     price = 5e16;
-    // } else {
-    //     price = 1e18 * 1e18 / 5e16;
-    // }
-    // IUniswapV3Pool(pool).initialize(calculateSqrtPriceX96(price, 18, 18));
-    // console.log("pool:", pool);
-    // vm.stopBroadcast();
-
-    // vm.startBroadcast(userPk);
-    // pointToken.approve(address(positionManager), 10e18);
-    // weth.approve(address(positionManager), 10e18);
-    // address token0 = address(pointToken) < address(weth) ? address(pointToken) : address(weth);
-    // address token1 = address(pointToken) > address(weth) ? address(pointToken) : address(weth);
-
-    // (uint160 sqrtPriceX96, int24 tick,,,, uint8 feeProtocol,) = IUniswapV3Pool(pool).slot0();
-
-    // console.log(sqrtPriceX96);
-
-    // int24 tickLower;
-    // int24 tickUpper;
-    // uint256 amount0Desired;
-    // uint256 amount1Desired;
-    // if (token0 == address(weth)) {
-    //     console.log("here");
-    //     amount0Desired = 10e18;
-    //     amount1Desired = 0;
-    //     tickLower = tick - 200 * 10;
-    //     tickUpper = tick;
-    // } else {
-    //     console.log("there");
-    //     amount0Desired = 0;
-    //     amount1Desired = 10e18;
-    //     tickLower = tick;
-    //     tickUpper = tick + 200 * 10;
-    // }
-
-    // INonfungiblePositionManager.MintParams memory mintParams = INonfungiblePositionManager.MintParams({
-    //     token0: token0,
-    //     token1: token1,
-    //     fee: 10000,
-    //     tickLower: tickLower,
-    //     tickUpper: tickUpper,
-    //     amount0Desired: amount0Desired,
-    //     amount1Desired: amount1Desired,
-    //     amount0Min: amount0Desired,
-    //     amount1Min: amount1Desired,
-    //     recipient: userAddr,
-    //     deadline: 1823444259
-    // });
-
-    // console.log('"token0":', token0);
-    // console.log('"token1":', token1);
-    // console.log('"fee":', 10000);
-    // console.log('"tickLower":');
-    // console.logInt(tickLower);
-    // console.log('"tickUpper":');
-    // console.logInt(tickUpper);
-    // console.log('"amount0Desired":', amount0Desired);
-    // console.log('"amount1Desired":', amount1Desired);
-    // console.log('"amount0Min":', amount0Desired);
-    // console.log('"amount1Min":', amount1Desired);
-    // console.log('"recipient":', userAddr);
-    // console.log('"deadline":', 1823444259);
-
-    // vm.stopBroadcast();
 
     // internal helpers
-    function calculateSqrtPriceX96(uint256 price, uint8 decimals0, uint8 decimals1) internal pure returns (uint160) {
+    function _getOrderedTokens(address firstParam, address secondParam)
+        internal
+        returns (address token0, address token1)
+    {
+        token0 = firstParam < secondParam ? firstParam : secondParam;
+        token1 = firstParam > secondParam ? firstParam : secondParam;
+        return (token0, token1);
+    }
+
+    function _calculateSqrtPriceX96(uint256 price, uint8 decimals0, uint8 decimals1) internal pure returns (uint160) {
         require(price > 0, "Price must be greater than zero");
 
         // Adjust the price for decimal differences
@@ -273,7 +234,7 @@ contract SimpleSeed is Script {
         }
 
         // Calculate the square root of the price
-        uint256 sqrtPrice = sqrt(price * (1e18));
+        uint256 sqrtPrice = _sqrt(price * (1e18));
 
         // Scale by 2^96
         uint256 sqrtPriceX96 = sqrtPrice * (2 ** 96) / (1e18);
@@ -282,7 +243,7 @@ contract SimpleSeed is Script {
         return uint160(sqrtPriceX96);
     }
 
-    function sqrt(uint256 x) internal pure returns (uint256) {
+    function _sqrt(uint256 x) internal pure returns (uint256) {
         if (x == 0) return 0;
         uint256 z = (x + 1) / 2;
         uint256 y = x;
