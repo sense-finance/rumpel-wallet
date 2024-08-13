@@ -115,27 +115,9 @@ contract SimpleSeed is Script {
         (adminAddr, adminPk) = deriveRememberKey(mnemonic, 0);
         (userAddr, userPk) = deriveRememberKey(mnemonic, 1);
 
-        vm.startBroadcast(adminPk);
-
-        weth = new DummyErc20(adminAddr, "wrapped eth", "WETH");
-        weth.mint(userAddr, 1000e18);
-
-        underlyingTokens.push(new DummyErc20(adminAddr, "Underlying A", "UNDER_A"));
-        underlyingTokens.push(new DummyErc20(adminAddr, "Underlying B", "UNDER_B"));
-        underlyingTokens.push(new DummyErc20(adminAddr, "Underlying C", "UNDER_C"));
-        underlyingTokens.push(new DummyErc20(adminAddr, "Underlying D", "UNDER_D"));
-        underlyingTokens.push(new DummyErc20(adminAddr, "Underlying E", "UNDER_E"));
-        underlyingTokens.push(new DummyErc20(adminAddr, "Underlying F", "UNDER_F"));
-        underlyingTokens.push(new DummyErc20(adminAddr, "Underlying G", "UNDER_G"));
-
-        pTokens.push(DummyErc20(pointTokenVault.deployPToken(LibString.packTwo("A Point", "pA"))));
-        pTokens.push(DummyErc20(pointTokenVault.deployPToken(LibString.packTwo("B Point", "pB"))));
-        pTokens.push(DummyErc20(pointTokenVault.deployPToken(LibString.packTwo("C Point", "pC"))));
-
-        vm.stopBroadcast();
-        address token0;
-        address token1;
-
+        createWeth();
+        createUnderlyingTokens();
+        createPTokens();
         createPools();
 
         mintLiquidity(userAddr, userPk, pTokens[0]);
@@ -143,7 +125,34 @@ contract SimpleSeed is Script {
         mintLiquidity(userAddr, userPk, pTokens[2]);
     }
 
-    function createPools() public {
+    function createWeth() internal {
+        vm.startBroadcast(adminPk);
+        weth = new DummyErc20(adminAddr, "wrapped eth", "WETH");
+        weth.mint(userAddr, 1000e18);
+        vm.stopBroadcast();
+    }
+
+    function createUnderlyingTokens() internal {
+        vm.startBroadcast(adminPk);
+        underlyingTokens.push(new DummyErc20(adminAddr, "Underlying A", "UNDER_A"));
+        underlyingTokens.push(new DummyErc20(adminAddr, "Underlying B", "UNDER_B"));
+        underlyingTokens.push(new DummyErc20(adminAddr, "Underlying C", "UNDER_C"));
+        underlyingTokens.push(new DummyErc20(adminAddr, "Underlying D", "UNDER_D"));
+        underlyingTokens.push(new DummyErc20(adminAddr, "Underlying E", "UNDER_E"));
+        underlyingTokens.push(new DummyErc20(adminAddr, "Underlying F", "UNDER_F"));
+        underlyingTokens.push(new DummyErc20(adminAddr, "Underlying G", "UNDER_G"));
+        vm.stopBroadcast();
+    }
+
+    function createPTokens() internal {
+        vm.startBroadcast(adminPk);
+        pTokens.push(DummyErc20(pointTokenVault.deployPToken(LibString.packTwo("A Point", "pA"))));
+        pTokens.push(DummyErc20(pointTokenVault.deployPToken(LibString.packTwo("B Point", "pB"))));
+        pTokens.push(DummyErc20(pointTokenVault.deployPToken(LibString.packTwo("C Point", "pC"))));
+        vm.stopBroadcast();
+    }
+
+    function createPools() internal {
         vm.startBroadcast(adminPk);
         address token0;
         address token1;
