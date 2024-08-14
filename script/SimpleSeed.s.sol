@@ -110,6 +110,28 @@ contract DummyErc20 is ERC20 {
     }
 }
 
+contract DummyMorpho {
+    mapping(address user => mapping(address token => uint256 amount)) _balances;
+
+    event SupplyCollateral(bytes32 indexed id, address indexed caller, address indexed onBehalf, uint256 assets);
+    event WithdrawCollateral(
+        bytes32 indexed id, address caller, address indexed onBehalf, address indexed receiver, uint256 assets
+    );
+
+    function supplyCollateral(bytes32 id, address token, uint256 amount) public {
+        _balances[msg.sender][token] += amount;
+        ERC20(token).transferFrom(msg.sender, address(this), amount);
+        emit SupplyCollateral(id, msg.sender, msg.sender, amount);
+    }
+
+    function withdrawCollateral(bytes32 id, address token, uint256 amount) public {
+        require(amount <= _balances[msg.sender][token], "Not enough balance");
+        _balances[msg.sender][token] -= amount;
+        ERC20(token).transfer(msg.sender, amount);
+        emit WithdrawCollateral(id, msg.sender, msg.sender, msg.sender, amount);
+    }
+}
+
 contract SimpleSeed is Script {
     RumpelWalletFactory walletFactory = RumpelWalletFactory(0x4d67eC37cbBf6AAEbf27d8816D0424D255E77Dc4);
     RumpelGuard guard = RumpelGuard(0x05959a76DF690Dc3423A7c71C90Bb810E4932754);
@@ -118,6 +140,8 @@ contract SimpleSeed is Script {
     IUniswapV3Factory uniV3Factory = IUniswapV3Factory(0x0227628f3F023bb0B980b67D528571c95c6DaC1c);
     INonfungiblePositionManager positionManager =
         INonfungiblePositionManager(0x1238536071E1c677A632429e3655c799b22cDA52);
+
+    DummyMorpho morpho = DummyMorpho(0xb1298dfBb900Cf0925E8Eb231031829B96F79896);
 
     struct SafeTX {
         address to;
@@ -139,7 +163,8 @@ contract SimpleSeed is Script {
     bytes32 A = "TOKEN_A";
     bytes32 B = "TOKEN_B";
     bytes32 C = "TOKEN_C";
-    bytes32[] tokenIds = [A, B, C];
+    bytes32 D = "TOKEN_D";
+    bytes32[] tokenIds = [A, B, C, D];
 
     DummyErc20 weth;
     mapping(bytes32 id => DummyErc20 underlyingToken) uTokens;
@@ -150,10 +175,14 @@ contract SimpleSeed is Script {
     string mnemonic = vm.envString("MNEMONIC");
 
     function run() public {
+        console.log("admin:", admin.addr);
         // setup
+
         initialPrices[A] = 5e16;
-        initialPrices[B] = 1e17;
-        initialPrices[C] = 2e18;
+        initialPrices[B] = 50000e18;
+        initialPrices[C] = 100e18;
+        initialPrices[D] = 3000e18;
+
         createUsers();
         createWeth();
         createUnderlyingTokens();
@@ -165,38 +194,40 @@ contract SimpleSeed is Script {
 
         // seed
 
-        // Period 0
-        deposit(users[0], A, 400e18);
-        mintWethSideLiquidity(users[1], A, 10e18);
+        // // Period 0
+        // deposit(users[0], A, 400e18);
+        // mintWethSideLiquidity(users[1], A, 10e18);
 
-        // Period 1
-        deposit(users[2], B, 25e18);
-        mintWethSideLiquidity(users[4], A, 25e18);
-        uint256 lpToBurn = mintWethSideLiquidity(users[6], C, 15e18);
+        // // Period 1
+        // deposit(users[2], B, 25e18);
+        // mintWethSideLiquidity(users[4], A, 25e18);
+        // uint256 lpToBurn = mintWethSideLiquidity(users[6], C, 15e18);
+        // morphoSupplyCollateral(users[9], D, 1000e18);
 
-        // Period 2
-        // withdraw(users[0], A, 300e18);
-        deposit(users[3], C, 30e18);
-        mintWethSideLiquidity(users[5], B, 50e18);
-        mintPTokenSideLiquidity(users[7], C, 10e18);
+        // // Period 2
+        // // withdraw(users[0], A, 300e18);
+        // deposit(users[3], C, 30e18);
+        // mintWethSideLiquidity(users[5], B, 50e18);
+        // mintPTokenSideLiquidity(users[7], C, 10e18);
 
-        // Period 3
-        deposit(users[2], A, 50e18);
-        mintPTokenSideLiquidity(users[4], A, 75e18);
-        burnWethSideLiquidity(lpToBurn, users[6]);
-        mintDualSideLiquidity(users[8], C, 30e18);
+        // // Period 3
+        // deposit(users[2], A, 50e18);
+        // mintPTokenSideLiquidity(users[4], A, 75e18);
+        // burnWethSideLiquidity(lpToBurn, users[6]);
+        // mintDualSideLiquidity(users[8], C, 30e18);
 
-        // Period 4
-        withdraw(users[3], C, 30e18);
+        // // Period 4
+        // withdraw(users[3], C, 30e18);
+        // morphoWithdrawCollateral(users[9], D, 1000e18);
 
-        // Period 5
-        deposit(users[0], A, 350e18);
-        mintWethSideLiquidity(users[5], C, 10e18);
+        // // Period 5
+        // deposit(users[0], A, 350e18);
+        // mintWethSideLiquidity(users[5], C, 10e18);
 
-        // Period 6
-        withdraw(users[2], A, 50e18);
-        deposit(users[3], C, 30e18);
-        mintWethSideLiquidity(users[6], C, 15e18);
+        // // Period 6
+        // withdraw(users[2], A, 50e18);
+        // deposit(users[3], C, 30e18);
+        // mintWethSideLiquidity(users[6], C, 15e18);
     }
 
     function createUsers() internal {
@@ -204,15 +235,17 @@ contract SimpleSeed is Script {
         uint256 userPk;
 
         // create rest of users
-        for (uint256 i = 1; i < numberOfUsers + 1; i++) {
-            (userAddr, userPk) = deriveRememberKey(mnemonic, 1);
+        for (uint32 i = 0; i < numberOfUsers + 1; i++) {
+            (userAddr, userPk) = deriveRememberKey(mnemonic, i);
             users.push(User(userAddr, userPk, address(0)));
+            console.log("user", i, userAddr);
         }
     }
 
     function createWeth() internal {
         vm.startBroadcast(admin.pk);
         weth = new DummyErc20(admin.addr, "wrapped eth", "WETH");
+        console.log("weth", address(weth));
 
         for (uint256 i = 0; i < users.length; i++) {
             weth.mint(users[i].addr, 1000e18);
@@ -223,9 +256,16 @@ contract SimpleSeed is Script {
 
     function createUnderlyingTokens() internal {
         vm.startBroadcast(admin.pk);
+
         uTokens[A] = new DummyErc20(admin.addr, "Underlying A", "UNDER_A");
         uTokens[B] = new DummyErc20(admin.addr, "Underlying B", "UNDER_B");
         uTokens[C] = new DummyErc20(admin.addr, "Underlying C", "UNDER_C");
+        uTokens[D] = new DummyErc20(admin.addr, "Underlying D", "UNDER_D");
+
+        console.log("Underlying A", address(uTokens[A]));
+        console.log("Underlying B", address(uTokens[B]));
+        console.log("Underlying C", address(uTokens[C]));
+        console.log("Underlying D", address(uTokens[D]));
 
         for (uint256 i = 0; i < users.length; i++) {
             for (uint256 j = 0; j < tokenIds.length; j++) {
@@ -237,9 +277,17 @@ contract SimpleSeed is Script {
 
     function createPTokens() internal {
         vm.startBroadcast(admin.pk);
+
         pTokens[A] = DummyErc20(pointTokenVault.deployPToken(LibString.packTwo("A Point", "pA")));
         pTokens[B] = DummyErc20(pointTokenVault.deployPToken(LibString.packTwo("B Point", "pB")));
         pTokens[C] = DummyErc20(pointTokenVault.deployPToken(LibString.packTwo("C Point", "pC")));
+        pTokens[D] = DummyErc20(pointTokenVault.deployPToken(LibString.packTwo("D Point", "pD")));
+
+        console.log("A Point", address(pTokens[A]));
+        console.log("B Point", address(pTokens[B]));
+        console.log("C Point", address(pTokens[C]));
+        console.log("D Point", address(pTokens[D]));
+
         vm.stopBroadcast();
     }
 
@@ -251,6 +299,7 @@ contract SimpleSeed is Script {
             owners[0] = users[i].addr;
             vm.startBroadcast(users[i].pk);
             users[i].wallet = walletFactory.createWallet(owners, 1, initCalls);
+            console.log("user wallet", users[i].addr, users[i].wallet);
             vm.stopBroadcast();
         }
     }
@@ -274,7 +323,9 @@ contract SimpleSeed is Script {
                     token0, token1, 10000, _calculateSqrtPriceX96(initialPrices[tokenIds[i]], 18, 18)
                 )
             );
+            console.log("pool", pTokens[tokenIds[i]].symbol(), address(pools[pTokens[tokenIds[i]]]));
         }
+
         vm.stopBroadcast();
     }
 
@@ -433,7 +484,6 @@ contract SimpleSeed is Script {
         address token1 = address(pToken) > address(weth) ? address(pToken) : address(weth);
 
         if (token0 == address(weth)) {
-            console.log("token0 = weth");
             amount0Desired = wethAmount;
             amount1Desired = wethAmount * initialPrices[tokenId] / 1e18;
             tickLower = (tick / 200 + 1) * 200 - 200 * 11;
@@ -482,6 +532,19 @@ contract SimpleSeed is Script {
             })
         );
 
+        vm.stopBroadcast();
+    }
+
+    function morphoSupplyCollateral(User memory user, bytes32 tokenId, uint256 amount) public {
+        vm.startBroadcast(user.pk);
+        uTokens[tokenId].approve(address(morpho), amount);
+        morpho.supplyCollateral(tokenId, address(uTokens[tokenId]), amount);
+        vm.stopBroadcast();
+    }
+
+    function morphoWithdrawCollateral(User memory user, bytes32 tokenId, uint256 amount) public {
+        vm.startBroadcast(user.pk);
+        morpho.withdrawCollateral(tokenId, address(uTokens[tokenId]), amount);
         vm.stopBroadcast();
     }
 
