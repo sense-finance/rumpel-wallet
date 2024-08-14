@@ -77,6 +77,24 @@ interface INonfungiblePositionManager {
         external
         payable
         returns (address pool);
+
+    function positions(uint256 tokenId)
+        external
+        view
+        returns (
+            uint96 nonce,
+            address operator,
+            address token0,
+            address token1,
+            uint24 fee,
+            int24 tickLower,
+            int24 tickUpper,
+            uint128 liquidity,
+            uint256 feeGrowthInside0LastX128,
+            uint256 feeGrowthInside1LastX128,
+            uint128 tokensOwed0,
+            uint128 tokensOwed1
+        );
 }
 
 contract DummyErc20 is ERC20 {
@@ -127,13 +145,15 @@ contract SimpleSeed is Script {
     mapping(bytes32 id => DummyErc20 underlyingToken) uTokens;
     mapping(bytes32 id => DummyErc20 pToken) pTokens;
     mapping(DummyErc20 pToken => IUniswapV3Pool pool) pools;
-
-    uint256[] initialPrices = [5e16, 1e17, 2e18];
+    mapping(bytes32 id => uint256 initialPrice) initialPrices;
 
     string mnemonic = vm.envString("MNEMONIC");
 
     function run() public {
         // setup
+        initialPrices[A] = 5e16;
+        initialPrices[B] = 1e17;
+        initialPrices[C] = 2e18;
         createUsers();
         createWeth();
         createUnderlyingTokens();
@@ -152,24 +172,31 @@ contract SimpleSeed is Script {
         // Period 1
         deposit(users[2], B, 25e18);
         mintWethSideLiquidity(users[4], A, 25e18);
-        mintWethSideLiquidity(users[6], C, 15e18);
+        uint256 lpToBurn = mintWethSideLiquidity(users[6], C, 15e18);
 
         // Period 2
         // withdraw(users[0], A, 300e18);
         deposit(users[3], C, 30e18);
         mintWethSideLiquidity(users[5], B, 50e18);
-        // mintPTokenSideLiquidity(users[7], C, 10e18);
+        mintPTokenSideLiquidity(users[7], C, 10e18);
 
         // Period 3
-        // deposit(users[2], A, 50e18);
-        // mintPTokenSideLiquidity(users[4], A, 75e18);
-        // burnWethSideLiquidity(users[6], C, 15e18);
-        // doubleSideLiquidity(users[8], C, 30e18)
+        deposit(users[2], A, 50e18);
+        mintPTokenSideLiquidity(users[4], A, 75e18);
+        burnWethSideLiquidity(lpToBurn, users[6]);
+        mintDualSideLiquidity(users[8], C, 30e18);
 
         // Period 4
-        // mintLiquidity(users[0], pTokens[0]);
-        // mintLiquidity(users[0], pTokens[1]);
-        // mintLiquidity(users[0], pTokens[2]);
+        withdraw(users[3], C, 30e18);
+
+        // Period 5
+        deposit(users[0], A, 350e18);
+        mintWethSideLiquidity(users[5], C, 10e18);
+
+        // Period 6
+        withdraw(users[2], A, 50e18);
+        deposit(users[3], C, 30e18);
+        mintWethSideLiquidity(users[6], C, 15e18);
     }
 
     function createUsers() internal {
@@ -244,7 +271,7 @@ contract SimpleSeed is Script {
             (token0, token1) = _getOrderedTokens(address(weth), address(pTokens[tokenIds[i]]));
             pools[pTokens[tokenIds[i]]] = IUniswapV3Pool(
                 positionManager.createAndInitializePoolIfNecessary(
-                    token0, token1, 10000, _calculateSqrtPriceX96(initialPrices[i], 18, 18)
+                    token0, token1, 10000, _calculateSqrtPriceX96(initialPrices[tokenIds[i]], 18, 18)
                 )
             );
         }
@@ -346,7 +373,7 @@ contract SimpleSeed is Script {
         vm.stopBroadcast();
     }
 
-    function mintWethSideLiquidity(User memory user, bytes32 tokenId, uint256 amount) internal {
+    function mintWethSideLiquidity(User memory user, bytes32 tokenId, uint256 amount) internal returns (uint256) {
         vm.startBroadcast(user.pk);
         weth.approve(address(positionManager), amount);
 
@@ -386,7 +413,75 @@ contract SimpleSeed is Script {
             recipient: user.addr,
             deadline: 1823444259
         });
+        (uint256 lpTokenId,,,) = positionManager.mint(mintParams);
+        vm.stopBroadcast();
+        return lpTokenId;
+    }
+
+    function mintDualSideLiquidity(User memory user, bytes32 tokenId, uint256 wethAmount) internal {
+        vm.startBroadcast(user.pk);
+
+        DummyErc20 pToken = pTokens[tokenId];
+        (, int24 tick,,,,,) = IUniswapV3Pool(pools[pToken]).slot0();
+
+        int24 tickLower;
+        int24 tickUpper;
+        uint256 amount0Desired;
+        uint256 amount1Desired;
+
+        address token0 = address(pToken) < address(weth) ? address(pToken) : address(weth);
+        address token1 = address(pToken) > address(weth) ? address(pToken) : address(weth);
+
+        if (token0 == address(weth)) {
+            console.log("token0 = weth");
+            amount0Desired = wethAmount;
+            amount1Desired = wethAmount * initialPrices[tokenId] / 1e18;
+            tickLower = (tick / 200 + 1) * 200 - 200 * 11;
+            tickUpper = (tick / 200 + 1) * 200 + 200 * 10;
+            weth.approve(address(positionManager), amount0Desired + amount0Desired * 1e17 / 1e18);
+            pToken.approve(address(positionManager), amount1Desired + amount1Desired * 1e17 / 1e18);
+        } else {
+            amount0Desired = wethAmount * 1e18 / initialPrices[tokenId];
+            amount1Desired = wethAmount;
+            tickLower = (tick / 200 + 1) * 200 - 200 * 11;
+            tickUpper = (tick / 200 + 1) * 200 + 200 * 10;
+
+            weth.approve(address(positionManager), amount1Desired + amount1Desired * 1e17 / 1e18);
+            pToken.approve(address(positionManager), amount0Desired + amount0Desired * 1e17 / 1e18);
+        }
+
+        INonfungiblePositionManager.MintParams memory mintParams = INonfungiblePositionManager.MintParams({
+            token0: token0,
+            token1: token1,
+            fee: 10000,
+            tickLower: tickLower,
+            tickUpper: tickUpper,
+            amount0Desired: amount0Desired,
+            amount1Desired: amount1Desired,
+            amount0Min: 0,
+            amount1Min: 0,
+            recipient: user.addr,
+            deadline: 1823444259
+        });
         positionManager.mint(mintParams);
+
+        vm.stopBroadcast();
+    }
+
+    function burnWethSideLiquidity(uint256 lpTokenId, User memory user) internal {
+        (,,,,,,, uint128 liquidity,,,,) = positionManager.positions(lpTokenId);
+
+        vm.startBroadcast(user.pk);
+        positionManager.decreaseLiquidity(
+            INonfungiblePositionManager.DecreaseLiquidityParams({
+                tokenId: lpTokenId,
+                liquidity: liquidity,
+                amount0Min: 0,
+                amount1Min: 0,
+                deadline: 1823444259
+            })
+        );
+
         vm.stopBroadcast();
     }
 
