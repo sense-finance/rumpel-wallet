@@ -52,6 +52,8 @@ interface ISafe {
 
     function enableModule(address module) external;
 
+    function disableModule(address prevModule, address module) external;
+
     function setGuard(address guard) external;
 
     function getGuard() external view returns (address);

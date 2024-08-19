@@ -157,19 +157,8 @@ contract RumpelWalletTest is Test {
             address(0)
         );
 
-        // Calculate the salt
         uint256 saltNonce = 0; // First wallet for this sender
-        bytes32 salt = keccak256(abi.encodePacked(keccak256(initializer), saltNonce));
-
-        // Precompute the expected address
-        bytes memory deploymentData = abi.encodePacked(
-            rumpelWalletFactory.proxyFactory().proxyCreationCode(),
-            uint256(uint160(rumpelWalletFactory.safeSingleton()))
-        );
-        bytes32 hash = keccak256(
-            abi.encodePacked(bytes1(0xff), address(rumpelWalletFactory.proxyFactory()), salt, keccak256(deploymentData))
-        );
-        address expectedAddress = address(uint160(uint256(hash)));
+        address expectedAddress = rumpelWalletFactory.precomputeAddress(initializer, saltNonce);
 
         // Create the wallet
         address actualAddress = rumpelWalletFactory.createWallet(owners, 1, initCalls);

@@ -66,6 +66,18 @@ contract RumpelWalletFactory is Ownable, Pausable {
         return safe;
     }
 
+    function precomputeAddress(bytes memory _initializer, uint256 _saltNonce) external view returns (address) {
+        bytes32 salt = keccak256(abi.encodePacked(keccak256(_initializer), _saltNonce));
+
+        bytes memory deploymentData =
+            abi.encodePacked(proxyFactory.proxyCreationCode(), uint256(uint160(safeSingleton)));
+
+        bytes32 deploymentHash =
+            keccak256(abi.encodePacked(bytes1(0xff), address(proxyFactory), salt, keccak256(deploymentData)));
+
+        return address(uint160(uint256(deploymentHash)));
+    }
+
     // Admin ----
 
     /// @notice Set admin params, only callable by the owner.
