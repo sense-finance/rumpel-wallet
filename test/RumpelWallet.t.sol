@@ -557,6 +557,9 @@ contract RumpelWalletTest is Test {
         bytes4 EIP1271_MAGIC_VALUE = 0x1626ba7e;
         assertEq(safe.isValidSignature(keccak256(message), emptySignature), EIP1271_MAGIC_VALUE);
 
+        // Still verifies the signature, even if a non-empty signature is provided
+        assertEq(safe.isValidSignature(keccak256(message), "0x1234"), EIP1271_MAGIC_VALUE);
+
         // Demonstrate that an incorrect message hash fails
         vm.expectRevert("Hash not approved");
         bytes memory incorrectMessage = "Hello Safe bad";
