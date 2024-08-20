@@ -176,7 +176,6 @@ contract SimpleSeed is Script {
 
     function run() public {
         console.log("admin:", admin.addr);
-        // setup
 
         initialPrices[A] = 5e16;
         initialPrices[B] = 50000e18;
@@ -184,6 +183,7 @@ contract SimpleSeed is Script {
         initialPrices[D] = 3000e18;
 
         createUsers();
+        fundUsers();
         createWeth();
         createUnderlyingTokens();
         createPTokens();
@@ -192,42 +192,71 @@ contract SimpleSeed is Script {
         createPools();
         claimAndDistributePTokens(10_000_000e18);
 
+        // weth = DummyErc20(0x72c18AB51A865E5d24ED69f026a7a962EF7D3899);
+
+        // uTokens[A] = DummyErc20(0x797837Fc728fa98A2e85aA0Df9759B3BaDba11A7);
+        // uTokens[B] = DummyErc20(0x7354a309F37601c81DD610b5E9eEdCEba256c088);
+        // uTokens[C] = DummyErc20(0x6803Dde7737eF1f96faF1C6ACEeD2F6030CB7E1A);
+        // uTokens[D] = DummyErc20(0x565e8D35B56174e35C0fc06435Dc9F43BbF86781);
+
+        // pTokens[A] = DummyErc20(0x4CFb882B75CE0d78ba20e49Dc00aA5Eeb0433699);
+        // pTokens[B] = DummyErc20(0xE9e97F2e6dd1a420dfA6c0974Da2e537df60c2bA);
+        // pTokens[C] = DummyErc20(0x95E1DC07EDBF9a59F72e41Fd533f1A5B4f3AbB72);
+        // pTokens[D] = DummyErc20(0x8F31499D0C314E9a5345fcd52768c3c30C11e64F);
+
+        // pools[pTokens[A]] = IUniswapV3Pool(0xa0820E79483622C65e1eF6c8fa15f8362917448e);
+        // pools[pTokens[B]] = IUniswapV3Pool(0x3CD3EF402819e4Ec5D43b94C39CfDFA2C7E9Ad4C);
+        // pools[pTokens[C]] = IUniswapV3Pool(0xB4FC88d0a0BA8D5EeACB45Fe07B99D039Be6cA4B);
+        // pools[pTokens[D]] = IUniswapV3Pool(0xd67635cc24cDF27B1f81cf7D3975ff4F942b942F);
+
+        // users[0].wallet = 0x4D4f8317c296F7d91d51B811ca5343CB166360e5;
+        // users[1].wallet = 0x59BD3C33127D2D2766f5CcFe7AeA9fEa544EE102;
+        // users[2].wallet = 0x4232EA2F481E06A39Edf378952a57dc93D7A1401;
+        // users[3].wallet = 0x4DEf3F63A2DCFD3078D32F195632c340C9689c57;
+        // users[4].wallet = 0xd25E37f3bA6b065d151370f440a37861da89b1D0;
+        // users[5].wallet = 0x9e53D1af9FF446165D24A2295b6C5D356f6d6Ee8;
+        // users[6].wallet = 0xe75ae49085531946a552985AE797eCA72CeDc38f;
+        // users[7].wallet = 0x5c695A313185E127CCFD06C99f57e927f58BD00D;
+        // users[8].wallet = 0x71052156cbC38d37D3BBFF34499d546e2Ad565Cb;
+        // users[9].wallet = 0x75033C3697b4862bA00946F0e8F35068761cE55a;
+        // users[10].wallet = 0xEb0C585F8343D350c17f42e6881D938722c96b21;
+
         // seed
+        // Period 0
+        deposit(users[0], A, 400e18);
+        mintWethSideLiquidity(users[1], A, 10e18);
 
-        // // Period 0
-        // deposit(users[0], A, 400e18);
-        // mintWethSideLiquidity(users[1], A, 10e18);
+        // Period 1
+        deposit(users[2], B, 25e18);
+        mintWethSideLiquidity(users[4], A, 25e18);
+        uint256 lpToBurn = mintWethSideLiquidity(users[6], C, 15e18);
+        morphoSupplyCollateral(users[9], D, 1000e18);
 
-        // // Period 1
-        // deposit(users[2], B, 25e18);
-        // mintWethSideLiquidity(users[4], A, 25e18);
-        // uint256 lpToBurn = mintWethSideLiquidity(users[6], C, 15e18);
-        // morphoSupplyCollateral(users[9], D, 1000e18);
+        // Period 2
+        withdraw(users[0], A, 300e18);
+        deposit(users[3], C, 30e18);
+        mintWethSideLiquidity(users[5], B, 50e18);
+        mintPTokenSideLiquidity(users[7], C, 10e18);
 
-        // // Period 2
-        // // withdraw(users[0], A, 300e18);
-        // deposit(users[3], C, 30e18);
-        // mintWethSideLiquidity(users[5], B, 50e18);
-        // mintPTokenSideLiquidity(users[7], C, 10e18);
+        // Period 3
+        // uint256 lpToBurn = 20666;
+        deposit(users[2], A, 50e18);
+        mintPTokenSideLiquidity(users[4], A, 75e18);
+        burnWethSideLiquidity(lpToBurn, users[6]);
+        mintDualSideLiquidity(users[8], C, 30e18);
 
-        // // Period 3
-        // deposit(users[2], A, 50e18);
-        // mintPTokenSideLiquidity(users[4], A, 75e18);
-        // burnWethSideLiquidity(lpToBurn, users[6]);
-        // mintDualSideLiquidity(users[8], C, 30e18);
+        // Period 4
+        withdraw(users[3], C, 30e18);
+        morphoWithdrawCollateral(users[9], D, 1000e18);
 
-        // // Period 4
-        // withdraw(users[3], C, 30e18);
-        // morphoWithdrawCollateral(users[9], D, 1000e18);
+        // Period 5
+        deposit(users[0], A, 350e18);
+        mintWethSideLiquidity(users[5], C, 10e18);
 
-        // // Period 5
-        // deposit(users[0], A, 350e18);
-        // mintWethSideLiquidity(users[5], C, 10e18);
-
-        // // Period 6
-        // withdraw(users[2], A, 50e18);
-        // deposit(users[3], C, 30e18);
-        // mintWethSideLiquidity(users[6], C, 15e18);
+        // Period 6
+        withdraw(users[2], A, 50e18);
+        deposit(users[3], C, 30e18);
+        mintWethSideLiquidity(users[6], C, 15e18);
     }
 
     function createUsers() internal {
@@ -240,6 +269,17 @@ contract SimpleSeed is Script {
             users.push(User(userAddr, userPk, address(0)));
             console.log("user", i, userAddr);
         }
+    }
+
+    function fundUsers() internal {
+        vm.startBroadcast(users[0].pk);
+        for (uint256 i = 1; i < users.length; i++) {
+            address payable recipient = payable(users[i].addr);
+            uint256 amount = 0.025 ether;
+            (bool sent,) = recipient.call{value: amount}("");
+            require(sent, "Failed to send Ether");
+        }
+        vm.stopBroadcast();
     }
 
     function createWeth() internal {
