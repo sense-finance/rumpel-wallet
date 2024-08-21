@@ -8,7 +8,7 @@ import "safe-smart-account/contracts/interfaces/ISignatureValidator.sol";
 /**
  * @dev IMPORTANT ----
  * This contract is an exact copy of the CompatibilityFallbackHandler from the safe-smart-account repo at Tag v1.4.1,
- * except with the checkSignatures path for legacy EIP-1271 signature validation removed.
+ * except with the checkSignatures path for EIP-1271 signature validation removed.
  * This is to prevent the attack mentioned here: https://github.com/sense-finance/point-tokenization-vault/issues/28
  * @dev IMPORTANT ----
  */
@@ -33,6 +33,7 @@ contract CompatibilityFallbackHandler is TokenCallbackHandler, ISignatureValidat
      * @param _signature Signature byte array associated with _data.
      * @return The EIP-1271 magic value.
      */
+    // Non-standard signature that matches expected Safe v1.4.1 ABI
     function isValidSignature(bytes memory _data, bytes memory _signature) public view override returns (bytes4) {
         // Caller should be a Safe
         Safe safe = Safe(payable(msg.sender));
@@ -85,10 +86,20 @@ contract CompatibilityFallbackHandler is TokenCallbackHandler, ISignatureValidat
      * @param _signature Signature byte array associated with _dataHash
      * @return Updated EIP1271 magic value if signature is valid, otherwise 0x0
      */
-    function isValidSignature(bytes32 _dataHash, bytes calldata _signature) external view returns (bytes4) {
-        ISignatureValidator validator = ISignatureValidator(msg.sender);
-        bytes4 value = validator.isValidSignature(abi.encode(_dataHash), _signature);
-        return (value == EIP1271_MAGIC_VALUE) ? UPDATED_MAGIC_VALUE : bytes4(0);
+    function isValidSignature(bytes32 _dataHash, bytes memory _signature) public view returns (bytes4) {
+        // Caller should be a Safe
+        Safe safe = Safe(payable(msg.sender));
+        bytes memory messageData = encodeMessageDataForSafe(safe, abi.encode(_dataHash));
+        bytes32 messageHash = keccak256(messageData);
+
+        /// @dev THIS IS THE CHANGE ----
+
+        // Always check storage for signed messages; never checkSignatures
+        require(safe.signedMessages(messageHash) != 0, "Hash not approved");
+
+        /// @dev THIS IS THE CHANGE ----
+
+        return UPDATED_MAGIC_VALUE;
     }
 
     /**
