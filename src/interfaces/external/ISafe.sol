@@ -74,6 +74,8 @@ interface ISafe {
 
     function signedMessages(bytes32 messageHash) external returns (uint256);
 
+    function addOwnerWithThreshold(address owner, uint256 _threshold) external;
+
     // Fallback handler functions
 
     function isValidSignature(bytes32 _dataHash, bytes calldata _signature) external view returns (bytes4);

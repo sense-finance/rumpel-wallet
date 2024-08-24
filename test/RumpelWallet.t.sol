@@ -409,7 +409,7 @@ contract RumpelWalletTest is Test {
 
         // Enable ETH transfers
         vm.prank(admin);
-        rumpelGuard.setCallAllowed(address(counter), bytes4(zeroData), RumpelGuard.AllowListState.ON);
+        rumpelGuard.setCallAllowed(address(0), bytes4(0), RumpelGuard.AllowListState.ON);
 
         // Mint 1 ETH to the safe
         vm.deal(address(safe), 1 ether);
@@ -417,10 +417,39 @@ contract RumpelWalletTest is Test {
         assertEq(address(safe).balance, 1 ether);
         assertEq(address(counter).balance, 0);
 
+        // Transfer to contract
         this._execSafeTx(safe, address(counter), 0.1 ether, zeroData, Enum.Operation.Call);
 
         assertEq(address(safe).balance, 0.9 ether);
         assertEq(address(counter).balance, 0.1 ether);
+
+        // Transfer to address
+        this._execSafeTx(safe, address(alice), 0.1 ether, zeroData, Enum.Operation.Call);
+
+        assertEq(address(safe).balance, 0.8 ether);
+        assertEq(address(alice).balance, 0.1 ether);
+    }
+
+    function test_RumpelWalletConfigUpdateAuth() public {
+        address[] memory owners = new address[](1);
+        owners[0] = address(alice);
+
+        InitializationScript.InitCall[] memory initCalls = new InitializationScript.InitCall[](0);
+        ISafe safe = ISafe(rumpelWalletFactory.createWallet(owners, 1, initCalls));
+
+        bytes memory addOwnerData = abi.encodeCall(ISafe.addOwnerWithThreshold, (makeAddr("bob"), 1));
+
+        // Try to add an owner to the safe wallet
+        vm.expectRevert(
+            abi.encodeWithSelector(RumpelGuard.CallNotAllowed.selector, address(safe), bytes4(addOwnerData))
+        );
+        this._execSafeTx(safe, address(safe), 0, addOwnerData, Enum.Operation.Call);
+
+        vm.prank(admin);
+        rumpelGuard.setCallAllowed(address(0), bytes4(addOwnerData), RumpelGuard.AllowListState.ON);
+        this._execSafeTx(safe, address(safe), 0, addOwnerData, Enum.Operation.Call);
+
+        assertEq(safe.getOwners().length, 2);
     }
 
     function test_RumpelWalletAllowZeroData() public {
