@@ -52,6 +52,8 @@ interface ISafe {
 
     function enableModule(address module) external;
 
+    function disableModule(address prevModule, address module) external;
+
     function setGuard(address guard) external;
 
     function getGuard() external view returns (address);
@@ -71,6 +73,8 @@ interface ISafe {
     function domainSeparator() external view returns (bytes32);
 
     function signedMessages(bytes32 messageHash) external returns (uint256);
+
+    function addOwnerWithThreshold(address owner, uint256 _threshold) external;
 
     // Fallback handler functions
 

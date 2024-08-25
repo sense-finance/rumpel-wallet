@@ -10,3 +10,6 @@
 [submodule "lib/point-tokenization-vault"]
 	path = lib/point-tokenization-vault
 	url = https://github.com/sense-finance/point-tokenization-vault
+[submodule "safe-smart-account"]
+	path = safe-smart-account
+	url = https://github.com/safe-global/safe-smart-account/

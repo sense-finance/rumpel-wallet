@@ -157,19 +157,8 @@ contract RumpelWalletTest is Test {
             address(0)
         );
 
-        // Calculate the salt
         uint256 saltNonce = 0; // First wallet for this sender
-        bytes32 salt = keccak256(abi.encodePacked(keccak256(initializer), saltNonce));
-
-        // Precompute the expected address
-        bytes memory deploymentData = abi.encodePacked(
-            rumpelWalletFactory.proxyFactory().proxyCreationCode(),
-            uint256(uint160(rumpelWalletFactory.safeSingleton()))
-        );
-        bytes32 hash = keccak256(
-            abi.encodePacked(bytes1(0xff), address(rumpelWalletFactory.proxyFactory()), salt, keccak256(deploymentData))
-        );
-        address expectedAddress = address(uint160(uint256(hash)));
+        address expectedAddress = rumpelWalletFactory.precomputeAddress(initializer, saltNonce);
 
         // Create the wallet
         address actualAddress = rumpelWalletFactory.createWallet(owners, 1, initCalls);
@@ -228,6 +217,37 @@ contract RumpelWalletTest is Test {
         rumpelWalletFactory.createWallet(owners, 1, initCalls);
 
         assertEq(counter.count(), 4337);
+    }
+
+    function test_CreateWalletCallTrustOnDeploy() public {
+        address[] memory owners = new address[](1);
+        owners[0] = address(alice);
+
+        // Deploy point token vault
+        PointTokenVault pointTokenVaultImplementation = new PointTokenVault();
+        PointTokenVault vault = PointTokenVault(
+            payable(
+                address(
+                    new ERC1967Proxy(
+                        address(pointTokenVaultImplementation),
+                        abi.encodeCall(PointTokenVault.initialize, (admin, address(this)))
+                    )
+                )
+            )
+        );
+
+        vm.prank(admin);
+        rumpelGuard.setCallAllowed(address(vault), PointTokenVault.trustClaimer.selector, RumpelGuard.AllowListState.ON);
+
+        InitializationScript.InitCall[] memory initCalls = new InitializationScript.InitCall[](1);
+        initCalls[0] = InitializationScript.InitCall({
+            to: address(vault),
+            data: abi.encodeCall(PointTokenVault.trustClaimer, (alice, true))
+        });
+
+        ISafe safe = ISafe(rumpelWalletFactory.createWallet(owners, 1, initCalls));
+
+        assertEq(vault.trustedClaimers(address(safe), alice), true);
     }
 
     function test_SafeSignMessage() public {
@@ -355,6 +375,106 @@ contract RumpelWalletTest is Test {
         );
     }
 
+    function test_RumpelWalletDisallowSmallData() public {
+        address[] memory owners = new address[](1);
+        owners[0] = address(alice);
+
+        InitializationScript.InitCall[] memory initCalls = new InitializationScript.InitCall[](0);
+        ISafe safe = ISafe(rumpelWalletFactory.createWallet(owners, 1, initCalls));
+
+        // 3 bytes. Will be padded out with two 0s when cast to bytes4
+        bytes memory smallData = new bytes(3);
+        smallData[0] = bytes1(uint8(1));
+        smallData[1] = bytes1(uint8(2));
+        smallData[2] = bytes1(uint8(3));
+
+        vm.prank(admin);
+        rumpelGuard.setCallAllowed(address(counter), bytes4(smallData), RumpelGuard.AllowListState.ON);
+
+        // Will revert even though the data has been allowed, because the data is too small
+        vm.expectRevert(
+            abi.encodeWithSelector(RumpelGuard.CallNotAllowed.selector, address(counter), bytes4(smallData))
+        );
+        this._execSafeTx(safe, address(counter), 0, smallData, Enum.Operation.Call);
+    }
+
+    function test_RumpelWalletAllowETHTransfers() public {
+        address[] memory owners = new address[](1);
+        owners[0] = address(alice);
+
+        InitializationScript.InitCall[] memory initCalls = new InitializationScript.InitCall[](0);
+        ISafe safe = ISafe(rumpelWalletFactory.createWallet(owners, 1, initCalls));
+
+        bytes memory zeroData = new bytes(0);
+
+        // Enable ETH transfers
+        vm.prank(admin);
+        rumpelGuard.setCallAllowed(address(0), bytes4(0), RumpelGuard.AllowListState.ON);
+
+        // Mint 1 ETH to the safe
+        vm.deal(address(safe), 1 ether);
+
+        assertEq(address(safe).balance, 1 ether);
+        assertEq(address(counter).balance, 0);
+
+        // Transfer to contract
+        this._execSafeTx(safe, address(counter), 0.1 ether, zeroData, Enum.Operation.Call);
+
+        assertEq(address(safe).balance, 0.9 ether);
+        assertEq(address(counter).balance, 0.1 ether);
+
+        // Transfer to address
+        this._execSafeTx(safe, address(alice), 0.1 ether, zeroData, Enum.Operation.Call);
+
+        assertEq(address(safe).balance, 0.8 ether);
+        assertEq(address(alice).balance, 0.1 ether);
+    }
+
+    function test_RumpelWalletConfigUpdateAuth() public {
+        address[] memory owners = new address[](1);
+        owners[0] = address(alice);
+
+        InitializationScript.InitCall[] memory initCalls = new InitializationScript.InitCall[](0);
+        ISafe safe = ISafe(rumpelWalletFactory.createWallet(owners, 1, initCalls));
+
+        bytes memory addOwnerData = abi.encodeCall(ISafe.addOwnerWithThreshold, (makeAddr("bob"), 1));
+
+        // Try to add an owner to the safe wallet
+        vm.expectRevert(
+            abi.encodeWithSelector(RumpelGuard.CallNotAllowed.selector, address(safe), bytes4(addOwnerData))
+        );
+        this._execSafeTx(safe, address(safe), 0, addOwnerData, Enum.Operation.Call);
+
+        vm.prank(admin);
+        rumpelGuard.setCallAllowed(address(0), bytes4(addOwnerData), RumpelGuard.AllowListState.ON);
+        this._execSafeTx(safe, address(safe), 0, addOwnerData, Enum.Operation.Call);
+
+        assertEq(safe.getOwners().length, 2);
+    }
+
+    function test_RumpelWalletAllowZeroData() public {
+        address[] memory owners = new address[](1);
+        owners[0] = address(alice);
+
+        InitializationScript.InitCall[] memory initCalls = new InitializationScript.InitCall[](0);
+        ISafe safe = ISafe(rumpelWalletFactory.createWallet(owners, 1, initCalls));
+
+        // 3 bytes. Will be padded out with two 0s when cast to bytes4
+        bytes memory smallData = new bytes(3);
+        smallData[0] = bytes1(uint8(1));
+        smallData[1] = bytes1(uint8(2));
+        smallData[2] = bytes1(uint8(3));
+
+        vm.prank(admin);
+        rumpelGuard.setCallAllowed(address(counter), bytes4(smallData), RumpelGuard.AllowListState.ON);
+
+        // Will revert even though the data has been allowed, because the data is too small
+        vm.expectRevert(
+            abi.encodeWithSelector(RumpelGuard.CallNotAllowed.selector, address(counter), bytes4(smallData))
+        );
+        this._execSafeTx(safe, address(counter), 0, smallData, Enum.Operation.Call);
+    }
+
     function test_GuardPermanentlyAllowedCall() public {
         address[] memory owners = new address[](1);
         owners[0] = address(alice);
@@ -466,6 +586,9 @@ contract RumpelWalletTest is Test {
         bytes4 EIP1271_MAGIC_VALUE = 0x1626ba7e;
         assertEq(safe.isValidSignature(keccak256(message), emptySignature), EIP1271_MAGIC_VALUE);
 
+        // Still verifies the signature, even if a non-empty signature is provided
+        assertEq(safe.isValidSignature(keccak256(message), "0x1234"), EIP1271_MAGIC_VALUE);
+
         // Demonstrate that an incorrect message hash fails
         vm.expectRevert("Hash not approved");
         bytes memory incorrectMessage = "Hello Safe bad";
@@ -548,16 +671,16 @@ contract RumpelWalletTest is Test {
     //     MockERC20 rewardToken = new MockERC20("Reward Token", "RWT", 18);
 
     //     // Deploy the PointTokenVault
-    //     PointTokenVault pointTokenVaultImplementation = new PointTokenVault();
-    //     PointTokenVault vault = PointTokenVault(
-    //         payable(
-    //             address(
-    //                 new ERC1967Proxy(
-    //                     address(pointTokenVaultImplementation), abi.encodeCall(PointTokenVault.initialize, (admin))
-    //                 )
+    // PointTokenVault pointTokenVaultImplementation = new PointTokenVault();
+    // PointTokenVault vault = PointTokenVault(
+    //     payable(
+    //         address(
+    //             new ERC1967Proxy(
+    //                 address(pointTokenVaultImplementation), abi.encodeCall(PointTokenVault.initialize, (admin))
     //             )
     //         )
-    //     );
+    //     )
+    // );
     //     vm.startPrank(admin);
     //     vault.grantRole(vault.MERKLE_UPDATER_ROLE(), admin);
     //     vm.stopPrank();
@@ -700,4 +823,6 @@ contract Counter {
     function fail() external {
         revert("fail");
     }
+
+    fallback() external payable {}
 }
