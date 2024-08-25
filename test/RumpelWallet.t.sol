@@ -276,7 +276,7 @@ contract RumpelWalletTest is Test {
         assertEq(safe.isValidSignature(keccak256(message), emptySignature), EIP1271_MAGIC_VALUE);
 
         // Demonstrate that an incorrect message hash fails
-        vm.expectRevert("Hash not approved");
+        vm.expectRevert("Invalid signature");
         bytes memory incorrectMessage = "Hello Safe bad";
         safe.isValidSignature(incorrectMessage, emptySignature);
     }
@@ -590,7 +590,7 @@ contract RumpelWalletTest is Test {
         assertEq(safe.isValidSignature(keccak256(message), "0x1234"), EIP1271_MAGIC_VALUE);
 
         // Demonstrate that an incorrect message hash fails
-        vm.expectRevert("Hash not approved");
+        vm.expectRevert("Invalid signature");
         bytes memory incorrectMessage = "Hello Safe bad";
         safe.isValidSignature(incorrectMessage, emptySignature);
     }

@@ -5,10 +5,27 @@ import "safe-smart-account/contracts/handler/TokenCallbackHandler.sol";
 import "safe-smart-account/contracts/Safe.sol";
 import "safe-smart-account/contracts/interfaces/ISignatureValidator.sol";
 
+interface IValidationBeacon {
+    function isValidSignature(bytes calldata messageData, bytes32 messageHash, bytes calldata signature, Safe safe)
+        external
+        view
+        returns (bool);
+}
+
+contract ValidationBeacon is IValidationBeacon {
+    function isValidSignature(bytes calldata messageData, bytes32 messageHash, bytes calldata signature, Safe safe)
+        external
+        view
+        returns (bool)
+    {
+        return safe.signedMessages(messageHash) != 0;
+    }
+}
+
 /**
  * @dev IMPORTANT ----
  * This contract is an exact copy of the CompatibilityFallbackHandler from the safe-smart-account repo at Tag v1.4.1,
- * except with the checkSignatures path for EIP-1271 signature validation removed.
+ * except with the checkSignatures path for EIP-1271 signature validation removed and replaced with a call to the validation beacon.
  * This is to prevent the attack mentioned here: https://github.com/sense-finance/point-tokenization-vault/issues/28
  * @dev IMPORTANT ----
  */
@@ -26,6 +43,18 @@ contract CompatibilityFallbackHandler is TokenCallbackHandler, ISignatureValidat
     address internal constant SENTINEL_MODULES = address(0x1);
     bytes4 internal constant UPDATED_MAGIC_VALUE = 0x1626ba7e;
 
+    /// @dev THIS IS THE CHANGE ----
+
+    address public owner;
+    IValidationBeacon public validationBeacon;
+
+    constructor(address _owner, IValidationBeacon _validationBeacon) {
+        owner = _owner;
+        validationBeacon = _validationBeacon;
+    }
+
+    /// @dev THIS IS THE CHANGE ----
+
     /**
      * @notice Legacy EIP-1271 signature validation method.
      * @dev Implementation of ISignatureValidator (see `interfaces/ISignatureValidator.sol`)
@@ -42,8 +71,7 @@ contract CompatibilityFallbackHandler is TokenCallbackHandler, ISignatureValidat
 
         /// @dev THIS IS THE CHANGE ----
 
-        // Always check storage for signed messages; never checkSignatures
-        require(safe.signedMessages(messageHash) != 0, "Hash not approved");
+        require(validationBeacon.isValidSignature(messageData, messageHash, _signature, safe), "Invalid signature");
 
         /// @dev THIS IS THE CHANGE ----
 
@@ -94,8 +122,7 @@ contract CompatibilityFallbackHandler is TokenCallbackHandler, ISignatureValidat
 
         /// @dev THIS IS THE CHANGE ----
 
-        // Always check storage for signed messages; never checkSignatures
-        require(safe.signedMessages(messageHash) != 0, "Hash not approved");
+        require(validationBeacon.isValidSignature(messageData, messageHash, _signature, safe), "Invalid signature");
 
         /// @dev THIS IS THE CHANGE ----
 
@@ -190,4 +217,13 @@ contract CompatibilityFallbackHandler is TokenCallbackHandler, ISignatureValidat
             if iszero(mload(0x00)) { revert(add(response, 0x20), mload(response)) }
         }
     }
+
+    /// @dev THIS IS THE CHANGE ----
+
+    function setValidationBeacon(IValidationBeacon _validationBeacon) external {
+        require(msg.sender == owner, "only owner");
+        validationBeacon = _validationBeacon;
+    }
+
+    /// @dev THIS IS THE CHANGE ----
 }
