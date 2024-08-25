@@ -8,7 +8,7 @@ import {RumpelWalletFactory} from "../src/RumpelWalletFactory.sol";
 import {RumpelModule} from "../src/RumpelModule.sol";
 import {InitializationScript} from "../src/InitializationScript.sol";
 import {RumpelGuard} from "../src/RumpelGuard.sol";
-import {CompatibilityFallbackHandler} from "../src/external/CompatibilityFallbackHandler.sol";
+import {CompatibilityFallbackHandler, ValidationBeacon} from "../src/external/CompatibilityFallbackHandler.sol";
 import {ISafeProxyFactory} from "../src/interfaces/external/ISafeProxyFactory.sol";
 import {ISafe} from "../src/interfaces/external/ISafe.sol";
 
@@ -35,7 +35,9 @@ contract RumpelWalletFactoryScripts is Script {
 
         RumpelGuard rumpelGuard = new RumpelGuard(MAINNET_SIGN_MESSAGE_LIB);
 
-        CompatibilityFallbackHandler compatibilityFallbackHandler = new CompatibilityFallbackHandler();
+        ValidationBeacon validationBeacon = new ValidationBeacon();
+        CompatibilityFallbackHandler compatibilityFallbackHandler =
+            new CompatibilityFallbackHandler(msg.sender, validationBeacon);
 
         // Script that will be delegatecalled to enable modules
         InitializationScript initializationScript = new InitializationScript();

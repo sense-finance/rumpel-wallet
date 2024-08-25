@@ -5,7 +5,6 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 import {Enum} from "./interfaces/external/ISafe.sol";
 import {IGuard} from "./interfaces/external/IGuard.sol";
-import {console} from "forge-std/console.sol";
 
 /// @notice Rumpel Safe Guard with a blocklist for the Rumpel Wallet.
 /// @dev Compatible with Safe v1.3.0-libs.0, the last Safe Ethereum mainnet release, so it can't use module execution hooks.
