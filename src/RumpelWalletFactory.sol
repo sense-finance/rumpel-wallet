@@ -45,6 +45,8 @@ contract RumpelWalletFactory is Ownable, Pausable {
         uint256 threshold,
         InitializationScript.InitCall[] calldata initCalls
     ) external whenNotPaused returns (address) {
+        bytes32 salt = keccak256(abi.encodePacked(msg.sender, saltNonce[msg.sender]++));
+
         address safe = proxyFactory.createProxyWithNonce(
             safeSingleton,
             abi.encodeWithSelector(
@@ -58,7 +60,7 @@ contract RumpelWalletFactory is Ownable, Pausable {
                 0, // payment
                 address(0) // paymentReceiver
             ),
-            saltNonce[msg.sender]++ // For deterministic address generation
+            uint256(salt) // Use the new salt
         );
 
         emit SafeCreated(safe, owners, threshold);
@@ -66,8 +68,14 @@ contract RumpelWalletFactory is Ownable, Pausable {
         return safe;
     }
 
-    function precomputeAddress(bytes memory _initializer, uint256 _saltNonce) external view returns (address) {
-        bytes32 salt = keccak256(abi.encodePacked(keccak256(_initializer), _saltNonce));
+    function precomputeAddress(bytes memory _initializer, address _sender, uint256 _saltNonce)
+        external
+        view
+        returns (address)
+    {
+        bytes32 salt = keccak256(
+            abi.encodePacked(keccak256(_initializer), uint256(keccak256(abi.encodePacked(_sender, _saltNonce))))
+        );
 
         bytes memory deploymentData =
             abi.encodePacked(proxyFactory.proxyCreationCode(), uint256(uint160(safeSingleton)));

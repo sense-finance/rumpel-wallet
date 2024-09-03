@@ -157,11 +157,13 @@ contract RumpelWalletTest is Test {
             address(0)
         );
 
+        vm.startPrank(alice);
         uint256 saltNonce = 0; // First wallet for this sender
-        address expectedAddress = rumpelWalletFactory.precomputeAddress(initializer, saltNonce);
+        address expectedAddress = rumpelWalletFactory.precomputeAddress(initializer, alice, saltNonce);
 
         // Create the wallet
         address actualAddress = rumpelWalletFactory.createWallet(owners, 1, initCalls);
+        vm.stopPrank();
 
         // Check if the actual address matches the expected address
         assertEq(actualAddress, expectedAddress, "Actual address does not match expected address");
