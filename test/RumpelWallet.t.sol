@@ -90,6 +90,7 @@ contract RumpelWalletTest is Test {
         address newScript = makeAddr("newScript");
         address newSingleton = makeAddr("newSingleton");
         address newProxyFactory = makeAddr("newProxyFactory");
+        address newCompatibilityFallback = makeAddr("newCompatibilityFallback");
 
         vm.startPrank(admin);
         rumpelWalletFactory.setParam("RUMPEL_GUARD", newGuard);
@@ -97,6 +98,7 @@ contract RumpelWalletTest is Test {
         rumpelWalletFactory.setParam("INITIALIZATION_SCRIPT", newScript);
         rumpelWalletFactory.setParam("SAFE_SINGLETON", newSingleton);
         rumpelWalletFactory.setParam("PROXY_FACTORY", newProxyFactory);
+        rumpelWalletFactory.setParam("COMPATIBILITY_FALLBACK", newCompatibilityFallback);
         vm.stopPrank();
 
         assertEq(rumpelWalletFactory.rumpelGuard(), newGuard);
@@ -104,6 +106,7 @@ contract RumpelWalletTest is Test {
         assertEq(rumpelWalletFactory.initializationScript(), newScript);
         assertEq(rumpelWalletFactory.safeSingleton(), newSingleton);
         assertEq(address(rumpelWalletFactory.proxyFactory()), newProxyFactory);
+        assertEq(rumpelWalletFactory.compatibilityFallback(), newCompatibilityFallback);
     }
 
     function testFuzz_createWalletOwners(uint256 ownersLength, uint256 threshold) public {
