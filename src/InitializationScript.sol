@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.19;
+pragma solidity =0.8.24;
 
 import {ISafe} from "./interfaces/external/ISafe.sol";
 import {Enum} from "./interfaces/external/ISafe.sol";
