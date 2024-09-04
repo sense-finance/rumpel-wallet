@@ -88,6 +88,7 @@ contract RumpelWalletFactory is Ownable, Pausable {
         else if (what == "RUMPEL_MODULE") rumpelModule = data;
         else if (what == "RUMPEL_GUARD") rumpelGuard = data;
         else if (what == "INITIALIZATION_SCRIPT") initializationScript = data;
+        else if (what == "COMPATIBILITY_FALLBACK") compatibilityFallback = data;
         else revert UnrecognizedParam(what);
         emit ParamChanged(what, data);
     }
