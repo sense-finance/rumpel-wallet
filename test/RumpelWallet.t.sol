@@ -522,7 +522,6 @@ contract RumpelWalletTest is Test {
             safe: safe,
             to: address(mockToken),
             data: abi.encodeCall(ERC20.transfer, (RUMPEL_VAULT, 1.1e18)),
-            value: 0,
             operation: Enum.Operation.Call
         });
 
@@ -548,7 +547,6 @@ contract RumpelWalletTest is Test {
             safe: safe,
             to: address(mockToken),
             data: abi.encodeCall(ERC20.transfer, (RUMPEL_VAULT, 1.1e18)),
-            value: 0,
             operation: Enum.Operation.Call
         });
         rumpelModule.exec(calls);
@@ -574,7 +572,6 @@ contract RumpelWalletTest is Test {
             safe: safe,
             to: address(rumpelModule.signMessageLib()),
             data: abi.encodeCall(ISignMessageLib.signMessage, (abi.encode(keccak256(message)))),
-            value: 0,
             operation: Enum.Operation.DelegateCall
         });
         rumpelModule.exec(calls);
@@ -618,7 +615,6 @@ contract RumpelWalletTest is Test {
             safe: safe,
             to: address(mockToken),
             data: abi.encodeCall(ERC20.transfer, (RUMPEL_VAULT, 1e18)),
-            value: 0,
             operation: Enum.Operation.Call
         });
         rumpelModule.exec(calls);
@@ -646,7 +642,6 @@ contract RumpelWalletTest is Test {
             safe: safe,
             to: address(safe),
             data: abi.encodeCall(ISafe.enableModule, (address(newRumpelModule))),
-            value: 0,
             operation: Enum.Operation.Call
         });
         rumpelModule.exec(calls);
