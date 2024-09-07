@@ -16,9 +16,7 @@ import {RumpelGuardConfig} from "./RumpelGuardConfig.sol";
 contract RumpelWalletFactoryScripts is Script {
     address public MAINNET_ADMIN = 0x9D89745fD63Af482ce93a9AdB8B0BbDbb98D3e06;
 
-    // TODO
-    address public MAINNET_RUMPEL_VAULT = 0x1EeEBa76f211C4Dce994b9c5A74BDF25DB649Fa1; // TODO: update with new address after vault deployment
-    // TODO
+    address public MAINNET_RUMPEL_VAULT = 0xe47F9Dbbfe98d6930562017ee212C1A1Ae45ba61;
 
     address public MAINNET_SAFE_SINGLETON = 0xd9Db270c1B5E3Bd161E8c8503c55cEABeE709552; // 1.3.0
     address public MAINNET_SIGN_MESSAGE_LIB = 0xA65387F16B013cf2Af4605Ad8aA5ec25a2cbA3a2; // 1.3.0
@@ -27,7 +25,7 @@ contract RumpelWalletFactoryScripts is Script {
     function setUp() public {}
 
     function run() public {
-        uint256 deployerPrivateKey = vm.envUint("DEPLOYER_PRIVATE_KEY");
+        uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
 
         vm.startBroadcast(deployerPrivateKey);
         run(MAINNET_ADMIN);
