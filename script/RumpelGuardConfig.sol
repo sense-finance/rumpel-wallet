@@ -21,6 +21,7 @@ library RumpelGuardConfig {
     address public constant MAINNET_ZIRCUIT_RESTAKING_POOL = 0xF047ab4c75cebf0eB9ed34Ae2c186f3611aEAfa6;
     address public constant MAINNET_SYMBIOTIC_WSTETH_COLLATERAL = 0x32296969EEF7ebd568736EA78d659b803322fb01;
     address public constant MAINNET_KARAK_VAULT_SUPERVISOR = 0x54e44DbB92dBA848ACe27F44c0CB4268981eF1CC;
+    address public constant MAINNET_ETHENA_LP_STAKING = 0x8707f238936c12c309bfc2B9959C35828AcFc512;
 
     // Tokens
     address public constant MAINNET_RSUSDE = 0x82f5104b23FF2FA54C2345F821dAc9369e9E0B26;
@@ -57,7 +58,7 @@ library RumpelGuardConfig {
     }
 
     function getProtocolConfigs() internal pure returns (ProtocolConfig[] memory) {
-        ProtocolConfig[] memory configs = new ProtocolConfig[](7);
+        ProtocolConfig[] memory configs = new ProtocolConfig[](8);
 
         // Morpho Bundler (supply, withdraw, borrow, repay)
         configs[0] = ProtocolConfig({target: MAINNET_MORPHO_BUNDLER, allowedSelectors: new bytes4[](1)});
@@ -86,16 +87,25 @@ library RumpelGuardConfig {
 
         // KELP Airdrop Gain Vault
         configs[5] = ProtocolConfig({target: MAINNET_AGETH, allowedSelectors: new bytes4[](4)});
-        configs[5].allowedSelectors[0] = IEIP4626.deposit.selector;
-        configs[5].allowedSelectors[1] = IEIP4626.mint.selector;
-        configs[5].allowedSelectors[2] = IEIP4626.withdraw.selector;
-        configs[5].allowedSelectors[3] = IEIP4626.redeem.selector;
+        configs[5].allowedSelectors[0] = IERC4626.deposit.selector;
+        configs[5].allowedSelectors[1] = IERC4626.mint.selector;
+        configs[5].allowedSelectors[2] = IERC4626.withdraw.selector;
+        configs[5].allowedSelectors[3] = IERC4626.redeem.selector;
 
-        // Ethena Staking
-        configs[6] = ProtocolConfig({target: MAINNET_SUSDE, allowedSelectors: new bytes4[](3)});
-        configs[6].allowedSelectors[0] = IEThenaStaking.unstake.selector;
-        configs[6].allowedSelectors[1] = IEThenaStaking.cooldownAssets.selector;
-        configs[6].allowedSelectors[2] = IEThenaStaking.cooldownShares.selector;
+        // Ethena USDe staking
+        configs[6] = ProtocolConfig({target: MAINNET_SUSDE, allowedSelectors: new bytes4[](7)});
+        configs[6].allowedSelectors[0] = ISUSDE.unstake.selector;
+        configs[6].allowedSelectors[1] = ISUSDE.cooldownAssets.selector;
+        configs[6].allowedSelectors[2] = ISUSDE.cooldownShares.selector;
+        configs[6].allowedSelectors[3] = IERC4626.deposit.selector;
+        configs[6].allowedSelectors[4] = IERC4626.mint.selector;
+        configs[6].allowedSelectors[5] = IERC4626.withdraw.selector;
+        configs[6].allowedSelectors[6] = IERC4626.redeem.selector;
+
+        // Ethena USDe locking
+        configs[7] = ProtocolConfig({target: MAINNET_ETHENA_LP_STAKING, allowedSelectors: new bytes4[](2)});
+        configs[7].allowedSelectors[0] = IEthenaLpStaking.stake.selector;
+        configs[7].allowedSelectors[1] = IEthenaLpStaking.unstake.selector;
 
         return configs;
     }
@@ -131,17 +141,22 @@ interface ISymbioticWstETHCollateral {
     function withdraw(address recipient, uint256 amount) external;
 }
 
-interface IEIP4626 {
+interface IERC4626 {
     function deposit(uint256 assets, address receiver) external returns (uint256);
     function mint(uint256 shares, address receiver) external returns (uint256);
     function withdraw(uint256 assets, address receiver, address owner) external returns (uint256);
     function redeem(uint256 shares, address receiver, address owner) external returns (uint256);
 }
 
-interface IEThenaStaking {
+interface ISUSDE {
     function unstake(address receiver) external;
     function cooldownAssets(uint256 assets) external returns (uint256 shares);
     function cooldownShares(uint256 shares) external returns (uint256 assets);
+}
+
+interface IEthenaLpStaking {
+    function stake(address token, uint104 amount) external;
+    function unstake(address token, uint104 amount) external;
 }
 
 interface IKarakVaultSupervisor {
