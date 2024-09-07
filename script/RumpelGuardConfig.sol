@@ -117,7 +117,7 @@ library RumpelGuardConfig {
     }
 
     function getTokenConfigs() internal pure returns (TokenConfig[] memory) {
-        TokenConfig[] memory configs = new TokenConfig[](9);
+        TokenConfig[] memory configs = new TokenConfig[](11);
 
         configs[0] = TokenConfig({token: MAINNET_SUSDE, allowTransfer: true, allowApprove: true});
         configs[1] = TokenConfig({token: MAINNET_USDE, allowTransfer: true, allowApprove: true});
@@ -126,8 +126,10 @@ library RumpelGuardConfig {
         configs[4] = TokenConfig({token: MAINNET_KWEETH, allowTransfer: true, allowApprove: true});
         configs[5] = TokenConfig({token: MAINNET_WEETH, allowTransfer: true, allowApprove: true});
         configs[6] = TokenConfig({token: MAINNET_MSTETH, allowTransfer: true, allowApprove: true});
-        configs[7] = TokenConfig({token: MAINNET_RSUSDE, allowTransfer: true, allowApprove: true});
-        configs[8] = TokenConfig({token: MAINNET_AGETH, allowTransfer: true, allowApprove: true});
+        configs[7] = TokenConfig({token: MAINNET_RSUSDE, allowTransfer: true, allowApprove: false});
+        configs[8] = TokenConfig({token: MAINNET_AGETH, allowTransfer: true, allowApprove: false});
+        configs[9] = TokenConfig({token: MAINNET_SYMBIOTIC_WSTETH_COLLATERAL, allowTransfer: true, allowApprove: false});
+        configs[10] = TokenConfig({token: MAINNET_SYMBIOTIC_SUSDE_COLLATERAL, allowTransfer: true, allowApprove: false});
 
         return configs;
     }
