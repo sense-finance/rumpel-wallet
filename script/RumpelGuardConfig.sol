@@ -19,7 +19,8 @@ library RumpelGuardConfig {
     // Protocols
     address public constant MAINNET_MORPHO_BUNDLER = 0x4095F064B8d3c3548A3bebfd0Bbfd04750E30077;
     address public constant MAINNET_ZIRCUIT_RESTAKING_POOL = 0xF047ab4c75cebf0eB9ed34Ae2c186f3611aEAfa6;
-    address public constant MAINNET_SYMBIOTIC_WSTETH_COLLATERAL = 0x32296969EEF7ebd568736EA78d659b803322fb01;
+    address public constant MAINNET_SYMBIOTIC_WSTETH_COLLATERAL = 0xC329400492c6ff2438472D4651Ad17389fCb843a;
+    address public constant MAINNET_SYMBIOTIC_SUSDE_COLLATERAL = 0x19d0D8e6294B7a04a2733FE433444704B791939A;
     address public constant MAINNET_KARAK_VAULT_SUPERVISOR = 0x54e44DbB92dBA848ACe27F44c0CB4268981eF1CC;
     address public constant MAINNET_ETHENA_LP_STAKING = 0x8707f238936c12c309bfc2B9959C35828AcFc512;
 
@@ -58,7 +59,7 @@ library RumpelGuardConfig {
     }
 
     function getProtocolConfigs() internal pure returns (ProtocolConfig[] memory) {
-        ProtocolConfig[] memory configs = new ProtocolConfig[](8);
+        ProtocolConfig[] memory configs = new ProtocolConfig[](9);
 
         // Morpho Bundler (supply, withdraw, borrow, repay)
         configs[0] = ProtocolConfig({target: MAINNET_MORPHO_BUNDLER, allowedSelectors: new bytes4[](1)});
@@ -74,38 +75,43 @@ library RumpelGuardConfig {
         configs[2].allowedSelectors[0] = ISymbioticWstETHCollateral.deposit.selector;
         configs[2].allowedSelectors[1] = ISymbioticWstETHCollateral.withdraw.selector;
 
+        // Symbiotic SUSDe Collateral
+        configs[3] = ProtocolConfig({target: MAINNET_SYMBIOTIC_SUSDE_COLLATERAL, allowedSelectors: new bytes4[](2)});
+        configs[3].allowedSelectors[0] = ISymbioticWstETHCollateral.deposit.selector;
+        configs[3].allowedSelectors[1] = ISymbioticWstETHCollateral.withdraw.selector;
+
         // Karak Vault Supervisor
-        configs[3] = ProtocolConfig({target: MAINNET_KARAK_VAULT_SUPERVISOR, allowedSelectors: new bytes4[](3)});
-        configs[3].allowedSelectors[0] = IKarakVaultSupervisor.deposit.selector;
-        configs[3].allowedSelectors[1] = IKarakVaultSupervisor.gimmieShares.selector;
-        configs[3].allowedSelectors[2] = IKarakVaultSupervisor.returnShares.selector;
+        configs[4] = ProtocolConfig({target: MAINNET_KARAK_VAULT_SUPERVISOR, allowedSelectors: new bytes4[](3)});
+        configs[4].allowedSelectors[0] = IKarakVaultSupervisor.deposit.selector;
+        configs[4].allowedSelectors[1] = IKarakVaultSupervisor.gimmieShares.selector;
+        configs[4].allowedSelectors[2] = IKarakVaultSupervisor.returnShares.selector;
 
         // Mellow Ethena LRT Vault sUSDe
-        configs[4] = ProtocolConfig({target: MAINNET_RSUSDE, allowedSelectors: new bytes4[](2)});
-        configs[4].allowedSelectors[0] = IMellow.deposit.selector;
-        configs[4].allowedSelectors[1] = IMellow.registerWithdrawal.selector;
+        configs[5] = ProtocolConfig({target: MAINNET_RSUSDE, allowedSelectors: new bytes4[](2)});
+        configs[5].allowedSelectors[0] = IMellow.deposit.selector;
+        configs[5].allowedSelectors[1] = IMellow.registerWithdrawal.selector;
 
         // KELP Airdrop Gain Vault
-        configs[5] = ProtocolConfig({target: MAINNET_AGETH, allowedSelectors: new bytes4[](4)});
-        configs[5].allowedSelectors[0] = IERC4626.deposit.selector;
-        configs[5].allowedSelectors[1] = IERC4626.mint.selector;
-        configs[5].allowedSelectors[2] = IERC4626.withdraw.selector;
-        configs[5].allowedSelectors[3] = IERC4626.redeem.selector;
+        configs[6] = ProtocolConfig({target: MAINNET_AGETH, allowedSelectors: new bytes4[](4)});
+        configs[6].allowedSelectors[0] = IERC4626.deposit.selector;
+        configs[6].allowedSelectors[1] = IERC4626.mint.selector;
+        configs[6].allowedSelectors[2] = IERC4626.withdraw.selector;
+        configs[6].allowedSelectors[3] = IERC4626.redeem.selector;
 
         // Ethena USDe staking
-        configs[6] = ProtocolConfig({target: MAINNET_SUSDE, allowedSelectors: new bytes4[](7)});
-        configs[6].allowedSelectors[0] = ISUSDE.unstake.selector;
-        configs[6].allowedSelectors[1] = ISUSDE.cooldownAssets.selector;
-        configs[6].allowedSelectors[2] = ISUSDE.cooldownShares.selector;
-        configs[6].allowedSelectors[3] = IERC4626.deposit.selector;
-        configs[6].allowedSelectors[4] = IERC4626.mint.selector;
-        configs[6].allowedSelectors[5] = IERC4626.withdraw.selector;
-        configs[6].allowedSelectors[6] = IERC4626.redeem.selector;
+        configs[7] = ProtocolConfig({target: MAINNET_SUSDE, allowedSelectors: new bytes4[](7)});
+        configs[7].allowedSelectors[0] = ISUSDE.unstake.selector;
+        configs[7].allowedSelectors[1] = ISUSDE.cooldownAssets.selector;
+        configs[7].allowedSelectors[2] = ISUSDE.cooldownShares.selector;
+        configs[7].allowedSelectors[3] = IERC4626.deposit.selector;
+        configs[7].allowedSelectors[4] = IERC4626.mint.selector;
+        configs[7].allowedSelectors[5] = IERC4626.withdraw.selector;
+        configs[7].allowedSelectors[6] = IERC4626.redeem.selector;
 
         // Ethena USDe locking
-        configs[7] = ProtocolConfig({target: MAINNET_ETHENA_LP_STAKING, allowedSelectors: new bytes4[](2)});
-        configs[7].allowedSelectors[0] = IEthenaLpStaking.stake.selector;
-        configs[7].allowedSelectors[1] = IEthenaLpStaking.unstake.selector;
+        configs[8] = ProtocolConfig({target: MAINNET_ETHENA_LP_STAKING, allowedSelectors: new bytes4[](2)});
+        configs[8].allowedSelectors[0] = IEthenaLpStaking.stake.selector;
+        configs[8].allowedSelectors[1] = IEthenaLpStaking.unstake.selector;
 
         return configs;
     }
