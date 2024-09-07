@@ -1,5 +1,5 @@
-// SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.19;
+// SPDX-License-Identifier: AGPL-3.0-only
+pragma solidity =0.8.24;
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
@@ -14,7 +14,6 @@ contract RumpelModule is Ownable {
     struct Call {
         ISafe safe;
         address to;
-        uint256 value;
         bytes data;
         Enum.Operation operation;
     }
@@ -49,13 +48,13 @@ contract RumpelModule is Ownable {
                 }
             }
 
-            bool success = call.safe.execTransactionFromModule(call.to, call.value, call.data, call.operation);
+            bool success = call.safe.execTransactionFromModule(call.to, 0, call.data, call.operation);
 
             if (!success) {
                 revert ExecFailed(call.safe, call.to, call.data);
             }
 
-            emit ExecutionFromModule(call.safe, call.to, call.value, call.data);
+            emit ExecutionFromModule(call.safe, call.to, 0, call.data);
 
             unchecked {
                 ++i;
