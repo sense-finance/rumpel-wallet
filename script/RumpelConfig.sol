@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 pragma solidity =0.8.24;
 
-import {console2} from "forge-std/console2.sol";
 import {RumpelGuard} from "../src/RumpelGuard.sol";
 import {RumpelModule} from "../src/RumpelModule.sol";
 import {ERC20} from "solmate/tokens/ERC20.sol";
@@ -43,6 +42,9 @@ library RumpelConfig {
     address public constant MAINNET_KWEETH = 0x2DABcea55a12d73191AeCe59F508b191Fb68AdaC;
     address public constant MAINNET_WEETH = 0xCd5fE23C85820F7B72D0926FC9b05b43E359b7ee;
     address public constant MAINNET_MSTETH = 0x49446A0874197839D15395B908328a74ccc96Bc0;
+
+    address public constant MAINNET_RE7LRT = 0x84631c0d0081FDe56DeB72F6DE77abBbF6A9f93a;
+    address public constant MAINNET_RE7RWBTC = 0x7F43fDe12A40dE708d908Fb3b9BFB8540d9Ce444;
 
     function updateGuardAllowlist(RumpelGuard rumpelGuard, string memory tag) internal {
         setupGuardProtocols(rumpelGuard, tag);
@@ -94,6 +96,8 @@ library RumpelConfig {
 
         if (tagHash == keccak256(bytes("initial"))) {
             return getInitialGuardProtocolConfigs();
+        } else if (tagHash == keccak256(bytes("mellow-sep-26"))) {
+            return getMellowSep26GuardProtocolConfigs();
         }
 
         revert("Unsupported tag");
@@ -104,6 +108,8 @@ library RumpelConfig {
 
         if (tagHash == keccak256(bytes("initial"))) {
             return getInitialGuardTokenConfigs();
+        } else if (tagHash == keccak256(bytes("mellow-sep-26"))) {
+            return getMellowSep26GuardTokenConfigs();
         }
 
         revert("Unsupported tag");
@@ -111,6 +117,10 @@ library RumpelConfig {
 
     function getModuleTokenConfigs(string memory tag) internal pure returns (TokenModuleConfig[] memory) {
         bytes32 tagHash = keccak256(bytes(tag));
+
+        if (tagHash == keccak256(bytes("mellow-sep-26"))) {
+            return getMellowSep26ModuleTokenConfigs();
+        }
 
         revert("Unsupported tag");
     }
@@ -198,6 +208,40 @@ library RumpelConfig {
             TokenGuardConfig({token: MAINNET_SYMBIOTIC_WSTETH_COLLATERAL, allowTransfer: true, allowApprove: false});
         configs[10] =
             TokenGuardConfig({token: MAINNET_SYMBIOTIC_SUSDE_COLLATERAL, allowTransfer: true, allowApprove: false});
+
+        return configs;
+    }
+
+    function getMellowSep26GuardProtocolConfigs() internal pure returns (ProtocolGuardConfig[] memory) {
+        ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](2);
+
+        // Mellow Ethena LRT Vault re7LRT
+        configs[0] = ProtocolGuardConfig({target: MAINNET_RE7LRT, allowedSelectors: new bytes4[](2)});
+        configs[0].allowedSelectors[0] = IMellow.deposit.selector;
+        configs[0].allowedSelectors[1] = IMellow.registerWithdrawal.selector;
+
+        // Mellow Ethena RWBTC Vault re7RWBTC
+        configs[1] = ProtocolGuardConfig({target: MAINNET_RE7RWBTC, allowedSelectors: new bytes4[](2)});
+        configs[1].allowedSelectors[0] = IMellow.deposit.selector;
+        configs[1].allowedSelectors[1] = IMellow.registerWithdrawal.selector;
+
+        return configs;
+    }
+
+    function getMellowSep26GuardTokenConfigs() internal pure returns (TokenGuardConfig[] memory) {
+        TokenGuardConfig[] memory configs = new TokenGuardConfig[](2);
+
+        configs[0] = TokenGuardConfig({token: MAINNET_RE7LRT, allowTransfer: true, allowApprove: false});
+        configs[1] = TokenGuardConfig({token: MAINNET_RE7RWBTC, allowTransfer: true, allowApprove: false});
+
+        return configs;
+    }
+
+    function getMellowSep26ModuleTokenConfigs() internal pure returns (TokenModuleConfig[] memory) {
+        TokenModuleConfig[] memory configs = new TokenModuleConfig[](2);
+
+        configs[0] = TokenModuleConfig({token: MAINNET_RE7LRT, blockTransfer: true, blockApprove: true});
+        configs[1] = TokenModuleConfig({token: MAINNET_RE7RWBTC, blockTransfer: true, blockApprove: true});
 
         return configs;
     }
