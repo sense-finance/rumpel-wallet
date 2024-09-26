@@ -60,3 +60,11 @@ Rename `.env.sample` to `.env` and set the correct environment variables. Then:
 ```
 forge test
 ```
+
+### Exporting Safe transactions
+
+To get a transactions JSON that can be imported into Safe's Transaction Builder, run a forge script without `--broadcast`. Then:
+
+```
+./broadcast-to-safe-json.ts
+```

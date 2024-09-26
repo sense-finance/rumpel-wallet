@@ -12,3 +12,11 @@ docs/
 
 # Dotenv file
 .env
+
+# Broadcast script-related files
+yarn.lock
+package-lock.json
+package.json
+broadcast-to-safe-json.ts
+node_modules
+safe-transactions.json

@@ -11,7 +11,7 @@ import {RumpelGuard} from "../src/RumpelGuard.sol";
 import {CompatibilityFallbackHandler, ValidationBeacon} from "../src/external/CompatibilityFallbackHandler.sol";
 import {ISafeProxyFactory} from "../src/interfaces/external/ISafeProxyFactory.sol";
 import {ISafe} from "../src/interfaces/external/ISafe.sol";
-import {RumpelGuardConfig} from "./RumpelGuardConfig.sol";
+import {RumpelConfig} from "./RumpelConfig.sol";
 
 contract RumpelWalletFactoryScripts is Script {
     address public MAINNET_ADMIN = 0x9D89745fD63Af482ce93a9AdB8B0BbDbb98D3e06;
@@ -64,8 +64,7 @@ contract RumpelWalletFactoryScripts is Script {
         );
 
         // Populate initial allowlist
-        RumpelGuardConfig.setupProtocols(rumpelGuard);
-        RumpelGuardConfig.setupTokens(rumpelGuard);
+        RumpelConfig.updateGuardAllowlist(rumpelGuard, "initial");
 
         rumpelGuard.transferOwnership(admin);
         rumpelModule.transferOwnership(admin);
@@ -74,6 +73,13 @@ contract RumpelWalletFactoryScripts is Script {
         console.log("RumpelWalletFactory deployed at", address(rumpelWalletFactory));
 
         return (rumpelModule, rumpelGuard, rumpelWalletFactory);
+    }
+
+    function updateGuardAndModuleLists(RumpelGuard rumpelGuard, RumpelModule rumpelModule, string memory tag) public {
+        vm.startBroadcast(MAINNET_ADMIN); // Impersonating admin for safe tx building
+        RumpelConfig.updateGuardAllowlist(rumpelGuard, tag);
+        RumpelConfig.updateModuleBlocklist(rumpelModule, tag);
+        vm.stopBroadcast();
     }
 
     function addModuleCallBlocked(RumpelModule rumpelModule, address target, bytes4 functionSelector) public {
