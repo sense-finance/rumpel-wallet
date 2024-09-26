@@ -11,22 +11,24 @@ import {RumpelGuard} from "../src/RumpelGuard.sol";
 import {CompatibilityFallbackHandler, ValidationBeacon} from "../src/external/CompatibilityFallbackHandler.sol";
 import {ISafeProxyFactory} from "../src/interfaces/external/ISafeProxyFactory.sol";
 import {ISafe} from "../src/interfaces/external/ISafe.sol";
+import {RumpelGuardConfig} from "./RumpelGuardConfig.sol";
 
 contract RumpelWalletFactoryScripts is Script {
     address public MAINNET_ADMIN = 0x9D89745fD63Af482ce93a9AdB8B0BbDbb98D3e06;
-    address public MAINNET_RUMPEL_VAULT = 0x1EeEBa76f211C4Dce994b9c5A74BDF25DB649Fa1;
-    address public MAINNET_SAFE_SINGLETON = 0xd9Db270c1B5E3Bd161E8c8503c55cEABeE709552;
-    ISafeProxyFactory public MAINNET_SAFE_PROXY_FACTORY = ISafeProxyFactory(0xa6B71E26C5e0845f74c812102Ca7114b6a896AB2);
 
-    address public MAINNET_SIGN_MESSAGE_LIB = 0xA65387F16B013cf2Af4605Ad8aA5ec25a2cbA3a2;
+    address public MAINNET_RUMPEL_VAULT = 0xe47F9Dbbfe98d6930562017ee212C1A1Ae45ba61;
+
+    address public MAINNET_SAFE_SINGLETON = 0xd9Db270c1B5E3Bd161E8c8503c55cEABeE709552; // 1.3.0
+    address public MAINNET_SIGN_MESSAGE_LIB = 0xA65387F16B013cf2Af4605Ad8aA5ec25a2cbA3a2; // 1.3.0
+    address public MAINNET_SAFE_PROXY_FACTORY = 0xa6B71E26C5e0845f74c812102Ca7114b6a896AB2; // 1.3.0
 
     function setUp() public {}
 
     function run() public {
-        uint256 deployerPrivateKey = vm.envUint("DEPLOYER_PRIVATE_KEY");
+        uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
 
         vm.startBroadcast(deployerPrivateKey);
-        run(msg.sender);
+        run(MAINNET_ADMIN);
         vm.stopBroadcast();
     }
 
@@ -37,13 +39,13 @@ contract RumpelWalletFactoryScripts is Script {
 
         ValidationBeacon validationBeacon = new ValidationBeacon();
         CompatibilityFallbackHandler compatibilityFallbackHandler =
-            new CompatibilityFallbackHandler(msg.sender, validationBeacon);
+            new CompatibilityFallbackHandler(admin, validationBeacon);
 
         // Script that will be delegatecalled to enable modules
         InitializationScript initializationScript = new InitializationScript();
 
         RumpelWalletFactory rumpelWalletFactory = new RumpelWalletFactory(
-            MAINNET_SAFE_PROXY_FACTORY,
+            ISafeProxyFactory(MAINNET_SAFE_PROXY_FACTORY),
             address(compatibilityFallbackHandler),
             MAINNET_SAFE_SINGLETON,
             address(rumpelModule),
@@ -55,13 +57,15 @@ contract RumpelWalletFactoryScripts is Script {
         rumpelModule.addBlockedModuleCall(address(0), ISafe.enableModule.selector);
         // Prevent us from disabling the module.
         rumpelModule.addBlockedModuleCall(address(0), ISafe.disableModule.selector);
-        // Prevent us from setting the guard.
-        rumpelModule.addBlockedModuleCall(address(0), ISafe.setGuard.selector);
 
         // Allow Safes to delegate pToken claiming
         rumpelGuard.setCallAllowed(
             MAINNET_RUMPEL_VAULT, PointTokenVault.trustClaimer.selector, RumpelGuard.AllowListState.ON
         );
+
+        // Populate initial allowlist
+        RumpelGuardConfig.setupProtocols(rumpelGuard);
+        RumpelGuardConfig.setupTokens(rumpelGuard);
 
         rumpelGuard.transferOwnership(admin);
         rumpelModule.transferOwnership(admin);
@@ -93,5 +97,14 @@ contract RumpelWalletFactoryScripts is Script {
     ) public {
         addModuleCallBlocked(rumpelModule, target, functionSelector);
         setCallAllowed(rumpelGuard, target, functionSelector, RumpelGuard.AllowListState.PERMANENTLY_ON);
+    }
+
+    function addBlockedModuleCall(RumpelModule rumpelModule, address target, bytes4 functionSelector) public {
+        rumpelModule.addBlockedModuleCall(target, functionSelector);
+    }
+
+    // TODO: don't forget to make this call in the future
+    function addSetGuardBlocked(RumpelModule rumpelModule) public {
+        rumpelModule.addBlockedModuleCall(address(0), ISafe.setGuard.selector);
     }
 }
