@@ -218,12 +218,12 @@ library RumpelConfig {
     function getMellowRe7GuardProtocolConfigs() internal pure returns (ProtocolGuardConfig[] memory) {
         ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](2);
 
-        // Mellow Ethena LRT Vault re7LRT
+        // Mellow LRT Vault re7LRT
         configs[0] = ProtocolGuardConfig({target: MAINNET_RE7LRT, allowedSelectors: new bytes4[](2)});
         configs[0].allowedSelectors[0] = IMellow.deposit.selector;
         configs[0].allowedSelectors[1] = IMellow.registerWithdrawal.selector;
 
-        // Mellow Ethena RWBTC Vault re7RWBTC
+        // Mellow WBTC Vault re7RWBTC
         configs[1] = ProtocolGuardConfig({target: MAINNET_RE7RWBTC, allowedSelectors: new bytes4[](2)});
         configs[1].allowedSelectors[0] = IMellow.deposit.selector;
         configs[1].allowedSelectors[1] = IMellow.registerWithdrawal.selector;
