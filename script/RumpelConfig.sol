@@ -45,6 +45,7 @@ library RumpelConfig {
 
     address public constant MAINNET_RE7LRT = 0x84631c0d0081FDe56DeB72F6DE77abBbF6A9f93a;
     address public constant MAINNET_RE7RWBTC = 0x7F43fDe12A40dE708d908Fb3b9BFB8540d9Ce444;
+    address public constant MAINNET_WBTC = 0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599;
 
     function updateGuardAllowlist(RumpelGuard rumpelGuard, string memory tag) internal {
         setupGuardProtocols(rumpelGuard, tag);
@@ -96,8 +97,8 @@ library RumpelConfig {
 
         if (tagHash == keccak256(bytes("initial"))) {
             return getInitialGuardProtocolConfigs();
-        } else if (tagHash == keccak256(bytes("mellow-sep-26"))) {
-            return getMellowSep26GuardProtocolConfigs();
+        } else if (tagHash == keccak256(bytes("mellow-re7"))) {
+            return getMellowRe7GuardProtocolConfigs();
         }
 
         revert("Unsupported tag");
@@ -108,8 +109,8 @@ library RumpelConfig {
 
         if (tagHash == keccak256(bytes("initial"))) {
             return getInitialGuardTokenConfigs();
-        } else if (tagHash == keccak256(bytes("mellow-sep-26"))) {
-            return getMellowSep26GuardTokenConfigs();
+        } else if (tagHash == keccak256(bytes("mellow-re7"))) {
+            return getMellowRe7GuardTokenConfigs();
         }
 
         revert("Unsupported tag");
@@ -118,13 +119,14 @@ library RumpelConfig {
     function getModuleTokenConfigs(string memory tag) internal pure returns (TokenModuleConfig[] memory) {
         bytes32 tagHash = keccak256(bytes(tag));
 
-        if (tagHash == keccak256(bytes("mellow-sep-26"))) {
-            return getMellowSep26ModuleTokenConfigs();
+        if (tagHash == keccak256(bytes("mellow-re7"))) {
+            return getMellowRe7ModuleTokenConfigs();
         }
 
         revert("Unsupported tag");
     }
 
+    // Initial ----
     function getInitialGuardProtocolConfigs() internal pure returns (ProtocolGuardConfig[] memory) {
         ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](10);
 
@@ -212,7 +214,8 @@ library RumpelConfig {
         return configs;
     }
 
-    function getMellowSep26GuardProtocolConfigs() internal pure returns (ProtocolGuardConfig[] memory) {
+    // Mellow Re7 ----
+    function getMellowRe7GuardProtocolConfigs() internal pure returns (ProtocolGuardConfig[] memory) {
         ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](2);
 
         // Mellow Ethena LRT Vault re7LRT
@@ -228,16 +231,17 @@ library RumpelConfig {
         return configs;
     }
 
-    function getMellowSep26GuardTokenConfigs() internal pure returns (TokenGuardConfig[] memory) {
-        TokenGuardConfig[] memory configs = new TokenGuardConfig[](2);
+    function getMellowRe7GuardTokenConfigs() internal pure returns (TokenGuardConfig[] memory) {
+        TokenGuardConfig[] memory configs = new TokenGuardConfig[](3);
 
-        configs[0] = TokenGuardConfig({token: MAINNET_RE7LRT, allowTransfer: true, allowApprove: false});
-        configs[1] = TokenGuardConfig({token: MAINNET_RE7RWBTC, allowTransfer: true, allowApprove: false});
+        configs[0] = TokenGuardConfig({token: MAINNET_WBTC, allowTransfer: true, allowApprove: true});
+        configs[1] = TokenGuardConfig({token: MAINNET_RE7LRT, allowTransfer: true, allowApprove: false});
+        configs[2] = TokenGuardConfig({token: MAINNET_RE7RWBTC, allowTransfer: true, allowApprove: false});
 
         return configs;
     }
 
-    function getMellowSep26ModuleTokenConfigs() internal pure returns (TokenModuleConfig[] memory) {
+    function getMellowRe7ModuleTokenConfigs() internal pure returns (TokenModuleConfig[] memory) {
         TokenModuleConfig[] memory configs = new TokenModuleConfig[](2);
 
         configs[0] = TokenModuleConfig({token: MAINNET_RE7LRT, blockTransfer: true, blockApprove: true});
