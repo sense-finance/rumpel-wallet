@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 pragma solidity =0.8.24;
 
-import {console2} from "forge-std/console2.sol";
 import {RumpelGuard} from "../src/RumpelGuard.sol";
 import {RumpelModule} from "../src/RumpelModule.sol";
 import {ERC20} from "solmate/tokens/ERC20.sol";
@@ -13,8 +12,8 @@ struct ProtocolGuardConfig {
 
 struct TokenGuardConfig {
     address token;
-    bool allowTransfer;
-    bool allowApprove;
+    RumpelGuard.AllowListState transferAllowState;
+    RumpelGuard.AllowListState approveAllowState;
 }
 
 struct TokenModuleConfig {
@@ -44,6 +43,10 @@ library RumpelConfig {
     address public constant MAINNET_WEETH = 0xCd5fE23C85820F7B72D0926FC9b05b43E359b7ee;
     address public constant MAINNET_MSTETH = 0x49446A0874197839D15395B908328a74ccc96Bc0;
 
+    address public constant MAINNET_RE7LRT = 0x84631c0d0081FDe56DeB72F6DE77abBbF6A9f93a;
+    address public constant MAINNET_RE7RWBTC = 0x7F43fDe12A40dE708d908Fb3b9BFB8540d9Ce444;
+    address public constant MAINNET_WBTC = 0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599;
+
     function updateGuardAllowlist(RumpelGuard rumpelGuard, string memory tag) internal {
         setupGuardProtocols(rumpelGuard, tag);
         setupGuardTokens(rumpelGuard, tag);
@@ -67,11 +70,11 @@ library RumpelConfig {
         TokenGuardConfig[] memory tokens = getGuardTokenConfigs(tag);
         for (uint256 i = 0; i < tokens.length; i++) {
             TokenGuardConfig memory config = tokens[i];
-            if (config.allowTransfer) {
-                rumpelGuard.setCallAllowed(config.token, ERC20.transfer.selector, RumpelGuard.AllowListState.ON);
+            if (config.transferAllowState != rumpelGuard.allowedCalls(config.token, ERC20.transfer.selector)) {
+                rumpelGuard.setCallAllowed(config.token, ERC20.transfer.selector, config.transferAllowState);
             }
-            if (config.allowApprove) {
-                rumpelGuard.setCallAllowed(config.token, ERC20.approve.selector, RumpelGuard.AllowListState.ON);
+            if (config.approveAllowState != rumpelGuard.allowedCalls(config.token, ERC20.approve.selector)) {
+                rumpelGuard.setCallAllowed(config.token, ERC20.approve.selector, config.approveAllowState);
             }
         }
     }
@@ -94,6 +97,8 @@ library RumpelConfig {
 
         if (tagHash == keccak256(bytes("initial"))) {
             return getInitialGuardProtocolConfigs();
+        } else if (tagHash == keccak256(bytes("mellow-re7"))) {
+            return getMellowRe7GuardProtocolConfigs();
         }
 
         revert("Unsupported tag");
@@ -104,6 +109,8 @@ library RumpelConfig {
 
         if (tagHash == keccak256(bytes("initial"))) {
             return getInitialGuardTokenConfigs();
+        } else if (tagHash == keccak256(bytes("mellow-re7"))) {
+            return getMellowRe7GuardTokenConfigs();
         }
 
         revert("Unsupported tag");
@@ -112,9 +119,14 @@ library RumpelConfig {
     function getModuleTokenConfigs(string memory tag) internal pure returns (TokenModuleConfig[] memory) {
         bytes32 tagHash = keccak256(bytes(tag));
 
+        if (tagHash == keccak256(bytes("mellow-re7"))) {
+            return getMellowRe7ModuleTokenConfigs();
+        }
+
         revert("Unsupported tag");
     }
 
+    // Initial ----
     function getInitialGuardProtocolConfigs() internal pure returns (ProtocolGuardConfig[] memory) {
         ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](10);
 
@@ -185,19 +197,109 @@ library RumpelConfig {
     function getInitialGuardTokenConfigs() internal pure returns (TokenGuardConfig[] memory) {
         TokenGuardConfig[] memory configs = new TokenGuardConfig[](11);
 
-        configs[0] = TokenGuardConfig({token: MAINNET_SUSDE, allowTransfer: true, allowApprove: true});
-        configs[1] = TokenGuardConfig({token: MAINNET_USDE, allowTransfer: true, allowApprove: true});
-        configs[2] = TokenGuardConfig({token: MAINNET_WSTETH, allowTransfer: true, allowApprove: true});
-        configs[3] = TokenGuardConfig({token: MAINNET_KUSDE, allowTransfer: true, allowApprove: true});
-        configs[4] = TokenGuardConfig({token: MAINNET_KWEETH, allowTransfer: true, allowApprove: true});
-        configs[5] = TokenGuardConfig({token: MAINNET_WEETH, allowTransfer: true, allowApprove: true});
-        configs[6] = TokenGuardConfig({token: MAINNET_MSTETH, allowTransfer: true, allowApprove: true});
-        configs[7] = TokenGuardConfig({token: MAINNET_RSUSDE, allowTransfer: true, allowApprove: false});
-        configs[8] = TokenGuardConfig({token: MAINNET_AGETH, allowTransfer: true, allowApprove: false});
-        configs[9] =
-            TokenGuardConfig({token: MAINNET_SYMBIOTIC_WSTETH_COLLATERAL, allowTransfer: true, allowApprove: false});
-        configs[10] =
-            TokenGuardConfig({token: MAINNET_SYMBIOTIC_SUSDE_COLLATERAL, allowTransfer: true, allowApprove: false});
+        configs[0] = TokenGuardConfig({
+            token: MAINNET_SUSDE,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.ON
+        });
+        configs[1] = TokenGuardConfig({
+            token: MAINNET_USDE,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.ON
+        });
+        configs[2] = TokenGuardConfig({
+            token: MAINNET_WSTETH,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.ON
+        });
+        configs[3] = TokenGuardConfig({
+            token: MAINNET_KUSDE,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.ON
+        });
+        configs[4] = TokenGuardConfig({
+            token: MAINNET_KWEETH,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.ON
+        });
+        configs[5] = TokenGuardConfig({
+            token: MAINNET_WEETH,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.ON
+        });
+        configs[6] = TokenGuardConfig({
+            token: MAINNET_MSTETH,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.ON
+        });
+        configs[7] = TokenGuardConfig({
+            token: MAINNET_RSUSDE,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+        configs[8] = TokenGuardConfig({
+            token: MAINNET_AGETH,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+        configs[9] = TokenGuardConfig({
+            token: MAINNET_SYMBIOTIC_WSTETH_COLLATERAL,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+        configs[10] = TokenGuardConfig({
+            token: MAINNET_SYMBIOTIC_SUSDE_COLLATERAL,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+
+        return configs;
+    }
+
+    // Mellow Re7 ----
+    function getMellowRe7GuardProtocolConfigs() internal pure returns (ProtocolGuardConfig[] memory) {
+        ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](2);
+
+        // Mellow LRT Vault re7LRT
+        configs[0] = ProtocolGuardConfig({target: MAINNET_RE7LRT, allowedSelectors: new bytes4[](2)});
+        configs[0].allowedSelectors[0] = IMellow.deposit.selector;
+        configs[0].allowedSelectors[1] = IMellow.registerWithdrawal.selector;
+
+        // Mellow WBTC Vault re7RWBTC
+        configs[1] = ProtocolGuardConfig({target: MAINNET_RE7RWBTC, allowedSelectors: new bytes4[](2)});
+        configs[1].allowedSelectors[0] = IMellow.deposit.selector;
+        configs[1].allowedSelectors[1] = IMellow.registerWithdrawal.selector;
+
+        return configs;
+    }
+
+    function getMellowRe7GuardTokenConfigs() internal pure returns (TokenGuardConfig[] memory) {
+        TokenGuardConfig[] memory configs = new TokenGuardConfig[](3);
+
+        configs[0] = TokenGuardConfig({
+            token: MAINNET_WBTC,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.ON
+        });
+        configs[1] = TokenGuardConfig({
+            token: MAINNET_RE7LRT,
+            transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+        configs[2] = TokenGuardConfig({
+            token: MAINNET_RE7RWBTC,
+            transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+
+        return configs;
+    }
+
+    function getMellowRe7ModuleTokenConfigs() internal pure returns (TokenModuleConfig[] memory) {
+        TokenModuleConfig[] memory configs = new TokenModuleConfig[](2);
+
+        configs[0] = TokenModuleConfig({token: MAINNET_RE7LRT, blockTransfer: true, blockApprove: true});
+        configs[1] = TokenModuleConfig({token: MAINNET_RE7RWBTC, blockTransfer: true, blockApprove: true});
 
         return configs;
     }
