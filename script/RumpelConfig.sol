@@ -56,6 +56,7 @@ library RumpelConfig {
     address public constant MAINNET_YT_RE7LRT_26DEC2024 = 0x89E7f4E5210A77Ac0f20511389Df71eC98ce9971;
     address public constant MAINNET_YT_RSTETH_26DEC2024 = 0x11CCff2F748a0100dBd457FF7170A54e12064Aba;
     address public constant MAINNET_YT_AMPHRETH_26DEC2024 = 0x5dB8a2391a72F1114BbaE30eFc9CD89f4a29F988;
+    address public constant MAINNET_AMPHRETH = 0x5fD13359Ba15A84B76f7F87568309040176167cd;
 
     function updateGuardAllowlist(RumpelGuard rumpelGuard, string memory tag) internal {
         setupGuardProtocols(rumpelGuard, tag);
@@ -109,7 +110,7 @@ library RumpelConfig {
             return getInitialGuardProtocolConfigs();
         } else if (tagHash == keccak256(bytes("mellow-re7"))) {
             return getMellowRe7GuardProtocolConfigs();
-        } else if (tagHash == keccak256(bytes("initial-yts-08oct24"))) {
+        } else if (tagHash == keccak256(bytes("initial-yts-and-amphrETH-08oct24"))) {
             // No initial YT protocol Guard updates, only token transfers
             return new ProtocolGuardConfig[](0);
         }
@@ -124,8 +125,8 @@ library RumpelConfig {
             return getInitialGuardTokenConfigs();
         } else if (tagHash == keccak256(bytes("mellow-re7"))) {
             return getMellowRe7GuardTokenConfigs();
-        } else if (tagHash == keccak256(bytes("initial-yts-08oct24"))) {
-            return getInitialYTsGuardTokenConfigs();
+        } else if (tagHash == keccak256(bytes("initial-yts-and-amphrETH-08oct24"))) {
+            return getInitialYTsAndAmphrETHGuardTokenConfigs();
         }
 
         revert("Unsupported tag");
@@ -136,7 +137,7 @@ library RumpelConfig {
 
         if (tagHash == keccak256(bytes("mellow-re7"))) {
             return getMellowRe7ModuleTokenConfigs();
-        } else if (tagHash == keccak256(bytes("initial-yts-08oct24"))) {
+        } else if (tagHash == keccak256(bytes("initial-yts-and-amphrETH-08oct24"))) {
             // No blocklist for the initial YT add
             return new TokenModuleConfig[](0);
         }
@@ -322,8 +323,8 @@ library RumpelConfig {
         return configs;
     }
 
-    function getInitialYTsGuardTokenConfigs() internal pure returns (TokenGuardConfig[] memory) {
-        TokenGuardConfig[] memory configs = new TokenGuardConfig[](9);
+    function getInitialYTsAndAmphrETHGuardTokenConfigs() internal pure returns (TokenGuardConfig[] memory) {
+        TokenGuardConfig[] memory configs = new TokenGuardConfig[](10);
 
         configs[0] = TokenGuardConfig({
             token: MAINNET_YTEBTC_26DEC2024,
@@ -377,6 +378,12 @@ library RumpelConfig {
             token: MAINNET_YT_AMPHRETH_26DEC2024,
             transferAllowState: RumpelGuard.AllowListState.ON,
             approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+
+        configs[9] = TokenGuardConfig({
+            token: MAINNET_AMPHRETH,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.ON
         });
 
         return configs;
