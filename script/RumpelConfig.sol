@@ -111,7 +111,7 @@ library RumpelConfig {
             return getInitialGuardProtocolConfigs();
         } else if (tagHash == keccak256(bytes("mellow-re7"))) {
             return getMellowRe7GuardProtocolConfigs();
-        } else if (tagHash == keccak256(bytes("initial-yts-and-amphrETH-09oct24"))) {
+        } else if (tagHash == keccak256(bytes("initial-yts-amphrETH-and-LBTC-09oct24"))) {
             // No initial YT protocol Guard updates, only token transfers
             return new ProtocolGuardConfig[](0);
         }
@@ -126,7 +126,7 @@ library RumpelConfig {
             return getInitialGuardTokenConfigs();
         } else if (tagHash == keccak256(bytes("mellow-re7"))) {
             return getMellowRe7GuardTokenConfigs();
-        } else if (tagHash == keccak256(bytes("initial-yts-and-amphrETH-09oct24"))) {
+        } else if (tagHash == keccak256(bytes("initial-yts-amphrETH-and-LBTC-09oct24"))) {
             return getInitialYTsAndAmphrETHGuardTokenConfigs();
         }
 
@@ -138,7 +138,7 @@ library RumpelConfig {
 
         if (tagHash == keccak256(bytes("mellow-re7"))) {
             return getMellowRe7ModuleTokenConfigs();
-        } else if (tagHash == keccak256(bytes("initial-yts-and-amphrETH-09oct24"))) {
+        } else if (tagHash == keccak256(bytes("initial-yts-amphrETH-and-LBTC-09oct24"))) {
             // No blocklist for the initial YT add
             return new TokenModuleConfig[](0);
         }
