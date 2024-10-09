@@ -22,6 +22,11 @@ struct TokenModuleConfig {
     bool blockApprove;
 }
 
+struct ProtocolModuleConfig {
+    address target;
+    bytes4[] allowedSelectors;
+}
+
 library RumpelConfig {
     // Protocols
     address public constant MAINNET_MORPHO_BUNDLER = 0x4095F064B8d3c3548A3bebfd0Bbfd04750E30077;
@@ -34,6 +39,7 @@ library RumpelConfig {
 
     // Tokens
     address public constant MAINNET_RSUSDE = 0x82f5104b23FF2FA54C2345F821dAc9369e9E0B26;
+    address public constant MAINNET_RSTETH = 0x7a4EffD87C2f3C55CA251080b1343b605f327E3a;
     address public constant MAINNET_AGETH = 0xe1B4d34E8754600962Cd944B535180Bd758E6c2e;
     address public constant MAINNET_SUSDE = 0x9D39A5DE30e57443BfF2A8307A4256c8797A3497;
     address public constant MAINNET_USDE = 0x4c9EDD5852cd905f086C759E8383e09bff1E68B3;
@@ -47,6 +53,15 @@ library RumpelConfig {
     address public constant MAINNET_RE7RWBTC = 0x7F43fDe12A40dE708d908Fb3b9BFB8540d9Ce444;
     address public constant MAINNET_WBTC = 0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599;
 
+    // MAINNET_SUSDE
+    // MAINNET_WBTC
+    // MAINNET_WEETH
+    // MAINNET_WSTETH
+    // MAINNET_USDE
+    // MAINNET_MSTETH
+    // stETH
+    // weETHs
+
     function updateGuardAllowlist(RumpelGuard rumpelGuard, string memory tag) internal {
         setupGuardProtocols(rumpelGuard, tag);
         setupGuardTokens(rumpelGuard, tag);
@@ -54,6 +69,7 @@ library RumpelConfig {
 
     function updateModuleBlocklist(RumpelModule rumpelModule, string memory tag) internal {
         setupModuleTokens(rumpelModule, tag);
+        setupModuleProtocols(rumpelModule, tag);
     }
 
     function setupGuardProtocols(RumpelGuard rumpelGuard, string memory tag) internal {
@@ -92,6 +108,16 @@ library RumpelConfig {
         }
     }
 
+    function setupModuleProtocols(RumpelModule rumpelModule, string memory tag) internal {
+        ProtocolModuleConfig[] memory protocols = getModuleProtocolConfigs(tag);
+        for (uint256 i = 0; i < protocols.length; i++) {
+            ProtocolModuleConfig memory config = protocols[i];
+            for (uint256 j = 0; j < config.allowedSelectors.length; j++) {
+                rumpelModule.addBlockedModuleCall(config.target, config.allowedSelectors[j]);
+            }
+        }
+    }
+
     function getGuardProtocolConfigs(string memory tag) internal pure returns (ProtocolGuardConfig[] memory) {
         bytes32 tagHash = keccak256(bytes(tag));
 
@@ -121,6 +147,18 @@ library RumpelConfig {
 
         if (tagHash == keccak256(bytes("mellow-re7"))) {
             return getMellowRe7ModuleTokenConfigs();
+        } else if (tagHash == keccak256(bytes("initial-blocklist-policy"))) {
+            return getInitialBlocklistPolicyTokenConfigs();
+        }
+
+        revert("Unsupported tag");
+    }
+
+    function getModuleProtocolConfigs(string memory tag) internal pure returns (ProtocolModuleConfig[] memory) {
+        bytes32 tagHash = keccak256(bytes(tag));
+
+        if (tagHash == keccak256(bytes("initial-blocklist-policy"))) {
+            return getInitialBlocklistPolicyProtocolConfigs();
         }
 
         revert("Unsupported tag");
@@ -300,6 +338,41 @@ library RumpelConfig {
 
         configs[0] = TokenModuleConfig({token: MAINNET_RE7LRT, blockTransfer: true, blockApprove: true});
         configs[1] = TokenModuleConfig({token: MAINNET_RE7RWBTC, blockTransfer: true, blockApprove: true});
+
+        return configs;
+    }
+
+    function getInitialBlocklistPolicyTokenConfigs() internal pure returns (TokenModuleConfig[] memory) {
+        TokenModuleConfig[] memory configs = new TokenModuleConfig[](2);
+
+        configs[0] =
+            TokenModuleConfig({token: MAINNET_SYMBIOTIC_WSTETH_COLLATERAL, blockTransfer: true, blockApprove: true});
+        configs[1] =
+            TokenModuleConfig({token: MAINNET_SYMBIOTIC_SUSDE_COLLATERAL, blockTransfer: true, blockApprove: true});
+        configs[2] = TokenModuleConfig({token: MAINNET_RSUSDE, blockTransfer: true, blockApprove: true});
+        configs[3] = TokenModuleConfig({token: MAINNET_AGETH, blockTransfer: true, blockApprove: true});
+        configs[4] = TokenModuleConfig({token: MAINNET_KUSDE, blockTransfer: true, blockApprove: true});
+        configs[5] = TokenModuleConfig({token: MAINNET_KWEETH, blockTransfer: true, blockApprove: true});
+
+        return configs;
+    }
+
+    function getInitialBlocklistPolicyProtocolConfigs() internal pure returns (ProtocolModuleConfig[] memory) {
+        ProtocolModuleConfig[] memory configs = new ProtocolModuleConfig[](1);
+
+        // Symbiotic WstETH Collateral
+        configs[0] =
+            ProtocolModuleConfig({target: MAINNET_SYMBIOTIC_WSTETH_COLLATERAL, allowedSelectors: new bytes4[](1)});
+        configs[0].allowedSelectors[0] = ISymbioticWstETHCollateral.withdraw.selector;
+
+        // Symbiotic SUSDe Collateral
+        configs[1] =
+            ProtocolModuleConfig({target: MAINNET_SYMBIOTIC_SUSDE_COLLATERAL, allowedSelectors: new bytes4[](1)});
+        configs[1].allowedSelectors[0] = ISymbioticWstETHCollateral.withdraw.selector;
+
+        // Zircuit Restaking Pool
+        configs[2] = ProtocolModuleConfig({target: MAINNET_ZIRCUIT_RESTAKING_POOL, allowedSelectors: new bytes4[](1)});
+        configs[2].allowedSelectors[0] = IZircuitRestakingPool.withdraw.selector;
 
         return configs;
     }
