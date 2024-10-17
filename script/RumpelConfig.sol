@@ -455,12 +455,12 @@ library RumpelConfig {
         configs[5] = TokenGuardConfig({
             token: MAINNET_KUSDE,
             transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
-            approveAllowState: RumpelGuard.AllowListState.OFF
+            approveAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON
         });
         configs[6] = TokenGuardConfig({
             token: MAINNET_KWEETH,
             transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
-            approveAllowState: RumpelGuard.AllowListState.OFF
+            approveAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON
         });
         configs[7] = TokenGuardConfig({
             token: MAINNET_YTEBTC_26DEC2024,
