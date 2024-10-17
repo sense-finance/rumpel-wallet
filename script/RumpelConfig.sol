@@ -128,6 +128,8 @@ library RumpelConfig {
             return getInitialGuardProtocolConfigs();
         } else if (tagHash == keccak256(bytes("mellow-re7"))) {
             return getMellowRe7GuardProtocolConfigs();
+        } else if (tagHash == keccak256(bytes("initial-yts-amphrETH-and-LBTC-09oct24"))) {
+            return new ProtocolGuardConfig[](0);
         } else if (tagHash == keccak256(bytes("first-pass-blocklist-policy-16oct24"))) {
             return new ProtocolGuardConfig[](0);
         }
@@ -453,12 +455,12 @@ library RumpelConfig {
         configs[5] = TokenGuardConfig({
             token: MAINNET_KUSDE,
             transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
-            approveAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON
+            approveAllowState: RumpelGuard.AllowListState.OFF
         });
         configs[6] = TokenGuardConfig({
             token: MAINNET_KWEETH,
             transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
-            approveAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON
+            approveAllowState: RumpelGuard.AllowListState.OFF
         });
         configs[7] = TokenGuardConfig({
             token: MAINNET_YTEBTC_26DEC2024,
@@ -508,7 +510,7 @@ library RumpelConfig {
         configs[16] = TokenGuardConfig({
             token: MAINNET_AMPHRETH,
             transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
-            approveAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON
+            approveAllowState: RumpelGuard.AllowListState.OFF
         });
         configs[17] = TokenGuardConfig({
             token: MAINNET_SYMBIOTIC_LBTC,
