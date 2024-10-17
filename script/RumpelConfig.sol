@@ -510,7 +510,7 @@ library RumpelConfig {
         configs[16] = TokenGuardConfig({
             token: MAINNET_AMPHRETH,
             transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
-            approveAllowState: RumpelGuard.AllowListState.OFF
+            approveAllowState: RumpelGuard.AllowListState.ON
         });
         configs[17] = TokenGuardConfig({
             token: MAINNET_SYMBIOTIC_LBTC,
