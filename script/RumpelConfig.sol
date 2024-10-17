@@ -53,14 +53,17 @@ library RumpelConfig {
     address public constant MAINNET_RE7RWBTC = 0x7F43fDe12A40dE708d908Fb3b9BFB8540d9Ce444;
     address public constant MAINNET_WBTC = 0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599;
 
-    // MAINNET_SUSDE
-    // MAINNET_WBTC
-    // MAINNET_WEETH
-    // MAINNET_WSTETH
-    // MAINNET_USDE
-    // MAINNET_MSTETH
-    // stETH
-    // weETHs
+    address public constant MAINNET_YTEBTC_26DEC2024 = 0xeB993B610b68F2631f70CA1cf4Fe651dB81f368e;
+    address public constant MAINNET_YT_WEETHK_26DEC2024 = 0x7B64b99A1fd80b6c012E354a14ADb352b5916CE1;
+    address public constant MAINNET_YT_AGETH_26DEC2024 = 0x3568f1d2e8058F6D99Daa17051Cb4a2930C83978;
+    address public constant MAINNET_YT_WEETHS_26DEC2024 = 0x719B51Dd92B7809A80A2E8c91D89367BF58f1D7A;
+    address public constant MAINNET_YT_SUSDE_26DEC2024 = 0xbE05538f48D76504953c5d1068898C6642937427;
+    address public constant MAINNET_YT_USDE_26DEC2024 = 0x5D8B3cd632c58D5CE75C2141C1C8b3b0C209b3ed;
+    address public constant MAINNET_YT_RE7LRT_26DEC2024 = 0x89E7f4E5210A77Ac0f20511389Df71eC98ce9971;
+    address public constant MAINNET_YT_RSTETH_26DEC2024 = 0x11CCff2F748a0100dBd457FF7170A54e12064Aba;
+    address public constant MAINNET_YT_AMPHRETH_26DEC2024 = 0x5dB8a2391a72F1114BbaE30eFc9CD89f4a29F988;
+    address public constant MAINNET_AMPHRETH = 0x5fD13359Ba15A84B76f7F87568309040176167cd;
+    address public constant MAINNET_SYMBIOTIC_LBTC = 0x9C0823D3A1172F9DdF672d438dec79c39a64f448;
 
     function updateGuardAllowlist(RumpelGuard rumpelGuard, string memory tag) internal {
         setupGuardProtocols(rumpelGuard, tag);
@@ -125,6 +128,8 @@ library RumpelConfig {
             return getInitialGuardProtocolConfigs();
         } else if (tagHash == keccak256(bytes("mellow-re7"))) {
             return getMellowRe7GuardProtocolConfigs();
+        } else if (tagHash == keccak256(bytes("first-pass-blocklist-policy-16oct24"))) {
+            return new ProtocolGuardConfig[](0);
         }
 
         revert("Unsupported tag");
@@ -137,6 +142,10 @@ library RumpelConfig {
             return getInitialGuardTokenConfigs();
         } else if (tagHash == keccak256(bytes("mellow-re7"))) {
             return getMellowRe7GuardTokenConfigs();
+        } else if (tagHash == keccak256(bytes("initial-yts-amphrETH-and-LBTC-09oct24"))) {
+            return getInitialYTsAndAmphrETHGuardTokenConfigs();
+        } else if (tagHash == keccak256(bytes("first-pass-blocklist-policy-16oct24"))) {
+            return getFirstPassBlocklistPolicyGuardTokenConfigs();
         }
 
         revert("Unsupported tag");
@@ -147,8 +156,8 @@ library RumpelConfig {
 
         if (tagHash == keccak256(bytes("mellow-re7"))) {
             return getMellowRe7ModuleTokenConfigs();
-        } else if (tagHash == keccak256(bytes("initial-blocklist-policy"))) {
-            return getInitialBlocklistPolicyTokenConfigs();
+        } else if (tagHash == keccak256(bytes("first-pass-blocklist-policy-16oct24"))) {
+            return getFirstPassBlocklistPolicyModuleTokenConfigs();
         }
 
         revert("Unsupported tag");
@@ -157,10 +166,9 @@ library RumpelConfig {
     function getModuleProtocolConfigs(string memory tag) internal pure returns (ProtocolModuleConfig[] memory) {
         bytes32 tagHash = keccak256(bytes(tag));
 
-        if (tagHash == keccak256(bytes("initial-blocklist-policy"))) {
-            return getInitialBlocklistPolicyProtocolConfigs();
+        if (tagHash == keccak256(bytes("first-pass-blocklist-policy-16oct24"))) {
+            return new ProtocolModuleConfig[](0);
         }
-
         revert("Unsupported tag");
     }
 
@@ -342,8 +350,80 @@ library RumpelConfig {
         return configs;
     }
 
-    function getInitialBlocklistPolicyGuardTokenConfigs() internal pure returns (TokenGuardConfig[] memory) {
-        TokenGuardConfig[] memory configs = new TokenGuardConfig[](1);
+    function getInitialYTsAndAmphrETHGuardTokenConfigs() internal pure returns (TokenGuardConfig[] memory) {
+        TokenGuardConfig[] memory configs = new TokenGuardConfig[](11);
+
+        configs[0] = TokenGuardConfig({
+            token: MAINNET_YTEBTC_26DEC2024,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+
+        configs[1] = TokenGuardConfig({
+            token: MAINNET_YT_WEETHK_26DEC2024,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+
+        configs[2] = TokenGuardConfig({
+            token: MAINNET_YT_AGETH_26DEC2024,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+
+        configs[3] = TokenGuardConfig({
+            token: MAINNET_YT_WEETHS_26DEC2024,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+
+        configs[4] = TokenGuardConfig({
+            token: MAINNET_YT_SUSDE_26DEC2024,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+
+        configs[5] = TokenGuardConfig({
+            token: MAINNET_YT_USDE_26DEC2024,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+
+        configs[6] = TokenGuardConfig({
+            token: MAINNET_YT_RE7LRT_26DEC2024,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+
+        configs[7] = TokenGuardConfig({
+            token: MAINNET_YT_RSTETH_26DEC2024,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+
+        configs[8] = TokenGuardConfig({
+            token: MAINNET_YT_AMPHRETH_26DEC2024,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+
+        configs[9] = TokenGuardConfig({
+            token: MAINNET_AMPHRETH,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.ON
+        });
+
+        configs[10] = TokenGuardConfig({
+            token: MAINNET_SYMBIOTIC_LBTC,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+
+        return configs;
+    }
+
+    function getFirstPassBlocklistPolicyGuardTokenConfigs() internal pure returns (TokenGuardConfig[] memory) {
+        TokenGuardConfig[] memory configs = new TokenGuardConfig[](18);
 
         configs[0] = TokenGuardConfig({
             token: MAINNET_SYMBIOTIC_WSTETH_COLLATERAL,
@@ -380,12 +460,67 @@ library RumpelConfig {
             transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
             approveAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON
         });
+        configs[7] = TokenGuardConfig({
+            token: MAINNET_YTEBTC_26DEC2024,
+            transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+        configs[8] = TokenGuardConfig({
+            token: MAINNET_YT_WEETHK_26DEC2024,
+            transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+        configs[9] = TokenGuardConfig({
+            token: MAINNET_YT_AGETH_26DEC2024,
+            transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+        configs[10] = TokenGuardConfig({
+            token: MAINNET_YT_WEETHS_26DEC2024,
+            transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+        configs[11] = TokenGuardConfig({
+            token: MAINNET_YT_SUSDE_26DEC2024,
+            transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+        configs[12] = TokenGuardConfig({
+            token: MAINNET_YT_USDE_26DEC2024,
+            transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+        configs[13] = TokenGuardConfig({
+            token: MAINNET_YT_RE7LRT_26DEC2024,
+            transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+        configs[14] = TokenGuardConfig({
+            token: MAINNET_YT_RSTETH_26DEC2024,
+            transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+        configs[15] = TokenGuardConfig({
+            token: MAINNET_YT_AMPHRETH_26DEC2024,
+            transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+        configs[16] = TokenGuardConfig({
+            token: MAINNET_AMPHRETH,
+            transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
+            approveAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON
+        });
+        configs[17] = TokenGuardConfig({
+            token: MAINNET_SYMBIOTIC_LBTC,
+            transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
 
         return configs;
     }
 
-    function getInitialBlocklistPolicyModuleTokenConfigs() internal pure returns (TokenModuleConfig[] memory) {
-        TokenModuleConfig[] memory configs = new TokenModuleConfig[](2);
+    function getFirstPassBlocklistPolicyModuleTokenConfigs() internal pure returns (TokenModuleConfig[] memory) {
+        TokenModuleConfig[] memory configs = new TokenModuleConfig[](18);
 
         configs[0] =
             TokenModuleConfig({token: MAINNET_SYMBIOTIC_WSTETH_COLLATERAL, blockTransfer: true, blockApprove: true});
@@ -396,30 +531,17 @@ library RumpelConfig {
         configs[4] = TokenModuleConfig({token: MAINNET_AGETH, blockTransfer: true, blockApprove: true});
         configs[5] = TokenModuleConfig({token: MAINNET_KUSDE, blockTransfer: true, blockApprove: true});
         configs[6] = TokenModuleConfig({token: MAINNET_KWEETH, blockTransfer: true, blockApprove: true});
-
-        return configs;
-    }
-
-    function getInitialBlocklistPolicyModuleProtocolConfigs() internal pure returns (ProtocolModuleConfig[] memory) {
-        ProtocolModuleConfig[] memory configs = new ProtocolModuleConfig[](1);
-
-        // Symbiotic WstETH Collateral
-        configs[0] =
-            ProtocolModuleConfig({target: MAINNET_SYMBIOTIC_WSTETH_COLLATERAL, allowedSelectors: new bytes4[](1)});
-        configs[0].allowedSelectors[0] = ISymbioticWstETHCollateral.withdraw.selector;
-
-        // Symbiotic SUSDe Collateral
-        configs[1] =
-            ProtocolModuleConfig({target: MAINNET_SYMBIOTIC_SUSDE_COLLATERAL, allowedSelectors: new bytes4[](1)});
-        configs[1].allowedSelectors[0] = ISymbioticWstETHCollateral.withdraw.selector;
-
-        // Zircuit Restaking Pool
-        configs[2] = ProtocolModuleConfig({target: MAINNET_ZIRCUIT_RESTAKING_POOL, allowedSelectors: new bytes4[](1)});
-        configs[2].allowedSelectors[0] = IZircuitRestakingPool.withdraw.selector;
-
-        // Karak Vault Supervisor
-        configs[3] = ProtocolModuleConfig({target: MAINNET_ETHENA_LP_STAKING, allowedSelectors: new bytes4[](1)});
-        configs[3].allowedSelectors[0] = IEthenaLpStaking.unstake.selector;
+        configs[7] = TokenModuleConfig({token: MAINNET_YTEBTC_26DEC2024, blockTransfer: true, blockApprove: true});
+        configs[8] = TokenModuleConfig({token: MAINNET_YT_WEETHK_26DEC2024, blockTransfer: true, blockApprove: true});
+        configs[9] = TokenModuleConfig({token: MAINNET_YT_AGETH_26DEC2024, blockTransfer: true, blockApprove: true});
+        configs[10] = TokenModuleConfig({token: MAINNET_YT_WEETHS_26DEC2024, blockTransfer: true, blockApprove: true});
+        configs[11] = TokenModuleConfig({token: MAINNET_YT_SUSDE_26DEC2024, blockTransfer: true, blockApprove: true});
+        configs[12] = TokenModuleConfig({token: MAINNET_YT_USDE_26DEC2024, blockTransfer: true, blockApprove: true});
+        configs[13] = TokenModuleConfig({token: MAINNET_YT_RE7LRT_26DEC2024, blockTransfer: true, blockApprove: true});
+        configs[14] = TokenModuleConfig({token: MAINNET_YT_RSTETH_26DEC2024, blockTransfer: true, blockApprove: true});
+        configs[15] = TokenModuleConfig({token: MAINNET_YT_AMPHRETH_26DEC2024, blockTransfer: true, blockApprove: true});
+        configs[16] = TokenModuleConfig({token: MAINNET_AMPHRETH, blockTransfer: true, blockApprove: true});
+        configs[17] = TokenModuleConfig({token: MAINNET_SYMBIOTIC_LBTC, blockTransfer: true, blockApprove: true});
 
         return configs;
     }
