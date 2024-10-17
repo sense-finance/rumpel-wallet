@@ -342,7 +342,49 @@ library RumpelConfig {
         return configs;
     }
 
-    function getInitialBlocklistPolicyTokenConfigs() internal pure returns (TokenModuleConfig[] memory) {
+    function getInitialBlocklistPolicyGuardTokenConfigs() internal pure returns (TokenGuardConfig[] memory) {
+        TokenGuardConfig[] memory configs = new TokenGuardConfig[](1);
+
+        configs[0] = TokenGuardConfig({
+            token: MAINNET_SYMBIOTIC_WSTETH_COLLATERAL,
+            transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
+            approveAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON
+        });
+        configs[1] = TokenGuardConfig({
+            token: MAINNET_SYMBIOTIC_SUSDE_COLLATERAL,
+            transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
+            approveAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON
+        });
+        configs[2] = TokenGuardConfig({
+            token: MAINNET_RSUSDE,
+            transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
+            approveAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON
+        });
+        configs[3] = TokenGuardConfig({
+            token: MAINNET_RSTETH,
+            transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
+            approveAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON
+        });
+        configs[4] = TokenGuardConfig({
+            token: MAINNET_AGETH,
+            transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
+            approveAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON
+        });
+        configs[5] = TokenGuardConfig({
+            token: MAINNET_KUSDE,
+            transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
+            approveAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON
+        });
+        configs[6] = TokenGuardConfig({
+            token: MAINNET_KWEETH,
+            transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
+            approveAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON
+        });
+
+        return configs;
+    }
+
+    function getInitialBlocklistPolicyModuleTokenConfigs() internal pure returns (TokenModuleConfig[] memory) {
         TokenModuleConfig[] memory configs = new TokenModuleConfig[](2);
 
         configs[0] =
@@ -350,14 +392,15 @@ library RumpelConfig {
         configs[1] =
             TokenModuleConfig({token: MAINNET_SYMBIOTIC_SUSDE_COLLATERAL, blockTransfer: true, blockApprove: true});
         configs[2] = TokenModuleConfig({token: MAINNET_RSUSDE, blockTransfer: true, blockApprove: true});
-        configs[3] = TokenModuleConfig({token: MAINNET_AGETH, blockTransfer: true, blockApprove: true});
-        configs[4] = TokenModuleConfig({token: MAINNET_KUSDE, blockTransfer: true, blockApprove: true});
-        configs[5] = TokenModuleConfig({token: MAINNET_KWEETH, blockTransfer: true, blockApprove: true});
+        configs[3] = TokenModuleConfig({token: MAINNET_RSTETH, blockTransfer: true, blockApprove: true});
+        configs[4] = TokenModuleConfig({token: MAINNET_AGETH, blockTransfer: true, blockApprove: true});
+        configs[5] = TokenModuleConfig({token: MAINNET_KUSDE, blockTransfer: true, blockApprove: true});
+        configs[6] = TokenModuleConfig({token: MAINNET_KWEETH, blockTransfer: true, blockApprove: true});
 
         return configs;
     }
 
-    function getInitialBlocklistPolicyProtocolConfigs() internal pure returns (ProtocolModuleConfig[] memory) {
+    function getInitialBlocklistPolicyModuleProtocolConfigs() internal pure returns (ProtocolModuleConfig[] memory) {
         ProtocolModuleConfig[] memory configs = new ProtocolModuleConfig[](1);
 
         // Symbiotic WstETH Collateral
@@ -373,6 +416,10 @@ library RumpelConfig {
         // Zircuit Restaking Pool
         configs[2] = ProtocolModuleConfig({target: MAINNET_ZIRCUIT_RESTAKING_POOL, allowedSelectors: new bytes4[](1)});
         configs[2].allowedSelectors[0] = IZircuitRestakingPool.withdraw.selector;
+
+        // Karak Vault Supervisor
+        configs[3] = ProtocolModuleConfig({target: MAINNET_ETHENA_LP_STAKING, allowedSelectors: new bytes4[](1)});
+        configs[3].allowedSelectors[0] = IEthenaLpStaking.unstake.selector;
 
         return configs;
     }
