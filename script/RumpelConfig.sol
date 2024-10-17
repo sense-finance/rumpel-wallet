@@ -428,27 +428,27 @@ library RumpelConfig {
         configs[0] = TokenGuardConfig({
             token: MAINNET_SYMBIOTIC_WSTETH_COLLATERAL,
             transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
-            approveAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON
+            approveAllowState: RumpelGuard.AllowListState.OFF
         });
         configs[1] = TokenGuardConfig({
             token: MAINNET_SYMBIOTIC_SUSDE_COLLATERAL,
             transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
-            approveAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON
+            approveAllowState: RumpelGuard.AllowListState.OFF
         });
         configs[2] = TokenGuardConfig({
             token: MAINNET_RSUSDE,
             transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
-            approveAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON
+            approveAllowState: RumpelGuard.AllowListState.OFF
         });
         configs[3] = TokenGuardConfig({
             token: MAINNET_RSTETH,
             transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
-            approveAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON
+            approveAllowState: RumpelGuard.AllowListState.OFF
         });
         configs[4] = TokenGuardConfig({
             token: MAINNET_AGETH,
             transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
-            approveAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON
+            approveAllowState: RumpelGuard.AllowListState.OFF
         });
         configs[5] = TokenGuardConfig({
             token: MAINNET_KUSDE,
