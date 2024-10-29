@@ -30,6 +30,7 @@ struct ProtocolModuleConfig {
 library RumpelConfig {
     // Protocols
     address public constant MAINNET_MORPHO_BUNDLER = 0x4095F064B8d3c3548A3bebfd0Bbfd04750E30077;
+    address public constant MAINNET_MORPHO_BASE = 0xBBBBBbbBBb9cC5e90e3b3Af64bdAF62C37EEFFCb;
     address public constant MAINNET_ZIRCUIT_RESTAKING_POOL = 0xF047ab4c75cebf0eB9ed34Ae2c186f3611aEAfa6;
     address public constant MAINNET_SYMBIOTIC_WSTETH_COLLATERAL = 0xC329400492c6ff2438472D4651Ad17389fCb843a;
     address public constant MAINNET_SYMBIOTIC_SUSDE_COLLATERAL = 0x19d0D8e6294B7a04a2733FE433444704B791939A;
@@ -132,6 +133,8 @@ library RumpelConfig {
             return new ProtocolGuardConfig[](0);
         } else if (tagHash == keccak256(bytes("first-pass-blocklist-policy-16oct24"))) {
             return new ProtocolGuardConfig[](0);
+        } else if (tagHash == keccak256(bytes("morpho-set-auth-28oct24"))) {
+            return getMorphoGuardSetAuthProtocolConfigs();
         }
 
         revert("Unsupported tag");
@@ -148,6 +151,8 @@ library RumpelConfig {
             return getInitialYTsAndAmphrETHGuardTokenConfigs();
         } else if (tagHash == keccak256(bytes("first-pass-blocklist-policy-16oct24"))) {
             return getFirstPassBlocklistPolicyGuardTokenConfigs();
+        } else if (tagHash == keccak256(bytes("morpho-set-auth-28oct24"))) {
+            return new TokenGuardConfig[](0);
         }
 
         revert("Unsupported tag");
@@ -160,6 +165,8 @@ library RumpelConfig {
             return getMellowRe7ModuleTokenConfigs();
         } else if (tagHash == keccak256(bytes("first-pass-blocklist-policy-16oct24"))) {
             return getFirstPassBlocklistPolicyModuleTokenConfigs();
+        } else if (tagHash == keccak256(bytes("morpho-set-auth-28oct24"))) {
+            return new TokenModuleConfig[](0);
         }
 
         revert("Unsupported tag");
@@ -170,7 +177,10 @@ library RumpelConfig {
 
         if (tagHash == keccak256(bytes("first-pass-blocklist-policy-16oct24"))) {
             return new ProtocolModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("morpho-set-auth-28oct24"))) {
+            return new ProtocolModuleConfig[](0);
         }
+
         revert("Unsupported tag");
     }
 
@@ -547,10 +557,23 @@ library RumpelConfig {
 
         return configs;
     }
+
+    function getMorphoGuardSetAuthProtocolConfigs() internal pure returns (ProtocolGuardConfig[] memory) {
+        ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](1);
+
+        configs[0] = ProtocolGuardConfig({target: MAINNET_MORPHO_BASE, allowedSelectors: new bytes4[](1)});
+        configs[0].allowedSelectors[0] = IMorphoBase.setAuthorization.selector;
+
+        return configs;
+    }
 }
 
 interface IMorphoBundler {
     function multicall(bytes[] memory data) external;
+}
+
+interface IMorphoBase {
+    function setAuthorization(address authorized, bool newIsAuthorized) external;
 }
 
 interface IZircuitRestakingPool {

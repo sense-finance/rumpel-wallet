@@ -1,0 +1,20 @@
+{
+  "version": "1.0",
+  "chainId": "1",
+  "createdAt": 1730162251288,
+  "meta": {
+    "name": "Transactions Batch",
+    "description": "morpho-set-auth-28oct24",
+    "txBuilderVersion": "1.10.0",
+    "createdFromSafeAddress": "0x9D89745fD63Af482ce93a9AdB8B0BbDbb98D3e06",
+    "createdFromOwnerAddress": "",
+    "checksum": "0xca50b10b1f94cf1684e6f5b86a254e72e20af291af35378420656f3c083f0c64"
+  },
+  "transactions": [
+    {
+      "to": "0x9000fef2846a5253fd2c6ed5241de0fddb404302",
+      "value": "0x0",
+      "data": "0x5534fa0c000000000000000000000000bbbbbbbbbb9cc5e90e3b3af64bdaf62c37eeffcbeecea000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001"
+    }
+  ]
+}
