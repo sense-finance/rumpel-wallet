@@ -161,7 +161,7 @@ library RumpelConfig {
             return new TokenGuardConfig[](0);
         } else if (tagHash == keccak256(bytes("fluid-loop-weETH-and-wstETH-10nov24"))) {
             return new TokenGuardConfig[](0);
-        } 
+        }
 
         revert("Unsupported tag");
     }
@@ -192,7 +192,6 @@ library RumpelConfig {
         } else if (tagHash == keccak256(bytes("fluid-loop-weETH-and-wstETH-10nov24"))) {
             return new ProtocolModuleConfig[](0);
         }
-
 
         revert("Unsupported tag");
     }
@@ -580,7 +579,7 @@ library RumpelConfig {
         return configs;
     }
 
-    function getFluidLoopWeETHAndWstEthConfigs() internal pure returns(ProtocolGuardConfig[] memory) {
+    function getFluidLoopWeETHAndWstEthConfigs() internal pure returns (ProtocolGuardConfig[] memory) {
         ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](2);
 
         configs[0] = ProtocolGuardConfig({target: MAINNET_FLUID_VAULTT1, allowedSelectors: new bytes4[](1)});
@@ -588,6 +587,8 @@ library RumpelConfig {
 
         configs[1] = ProtocolGuardConfig({target: MAINNET_FLUID_VAULT_FACTORY, allowedSelectors: new bytes4[](1)});
         configs[1].allowedSelectors[0] = IFluidVaultFactory.safeTransferFrom.selector;
+
+        return configs;
     }
 }
 
@@ -649,9 +650,9 @@ interface IMellow {
 }
 
 interface IFluidVaultT1 {
-    function operate(uint256 nftId_,int256 newCol_,int256 newDebt_,address to_) external;
+    function operate(uint256 nftId_, int256 newCol_, int256 newDebt_, address to_) external;
 }
 
 interface IFluidVaultFactory {
-    function safeTransferFrom(address from_,address to_,uint256 id_,bytes calldata data_) external;
+    function safeTransferFrom(address from_, address to_, uint256 id_, bytes calldata data_) external;
 }
