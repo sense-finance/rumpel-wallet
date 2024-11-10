@@ -5,6 +5,8 @@ import {RumpelGuard} from "../src/RumpelGuard.sol";
 import {RumpelModule} from "../src/RumpelModule.sol";
 import {ERC20} from "solmate/tokens/ERC20.sol";
 
+import {console} from "forge-std/console.sol";
+
 struct ProtocolGuardConfig {
     address target;
     bytes4[] allowedSelectors;
@@ -22,9 +24,15 @@ struct TokenModuleConfig {
     bool blockApprove;
 }
 
+struct ProtocolModuleConfig {
+    address target;
+    bytes4[] allowedSelectors;
+}
+
 library RumpelConfig {
     // Protocols
     address public constant MAINNET_MORPHO_BUNDLER = 0x4095F064B8d3c3548A3bebfd0Bbfd04750E30077;
+    address public constant MAINNET_MORPHO_BASE = 0xBBBBBbbBBb9cC5e90e3b3Af64bdAF62C37EEFFCb;
     address public constant MAINNET_ZIRCUIT_RESTAKING_POOL = 0xF047ab4c75cebf0eB9ed34Ae2c186f3611aEAfa6;
     address public constant MAINNET_SYMBIOTIC_WSTETH_COLLATERAL = 0xC329400492c6ff2438472D4651Ad17389fCb843a;
     address public constant MAINNET_SYMBIOTIC_SUSDE_COLLATERAL = 0x19d0D8e6294B7a04a2733FE433444704B791939A;
@@ -36,6 +44,7 @@ library RumpelConfig {
 
     // Tokens
     address public constant MAINNET_RSUSDE = 0x82f5104b23FF2FA54C2345F821dAc9369e9E0B26;
+    address public constant MAINNET_RSTETH = 0x7a4EffD87C2f3C55CA251080b1343b605f327E3a;
     address public constant MAINNET_AGETH = 0xe1B4d34E8754600962Cd944B535180Bd758E6c2e;
     address public constant MAINNET_SUSDE = 0x9D39A5DE30e57443BfF2A8307A4256c8797A3497;
     address public constant MAINNET_USDE = 0x4c9EDD5852cd905f086C759E8383e09bff1E68B3;
@@ -68,6 +77,7 @@ library RumpelConfig {
 
     function updateModuleBlocklist(RumpelModule rumpelModule, string memory tag) internal {
         setupModuleTokens(rumpelModule, tag);
+        setupModuleProtocols(rumpelModule, tag);
     }
 
     function setupGuardProtocols(RumpelGuard rumpelGuard, string memory tag) internal {
@@ -106,6 +116,16 @@ library RumpelConfig {
         }
     }
 
+    function setupModuleProtocols(RumpelModule rumpelModule, string memory tag) internal {
+        ProtocolModuleConfig[] memory protocols = getModuleProtocolConfigs(tag);
+        for (uint256 i = 0; i < protocols.length; i++) {
+            ProtocolModuleConfig memory config = protocols[i];
+            for (uint256 j = 0; j < config.allowedSelectors.length; j++) {
+                rumpelModule.addBlockedModuleCall(config.target, config.allowedSelectors[j]);
+            }
+        }
+    }
+
     function getGuardProtocolConfigs(string memory tag) internal pure returns (ProtocolGuardConfig[] memory) {
         bytes32 tagHash = keccak256(bytes(tag));
 
@@ -114,9 +134,12 @@ library RumpelConfig {
         } else if (tagHash == keccak256(bytes("mellow-re7"))) {
             return getMellowRe7GuardProtocolConfigs();
         } else if (tagHash == keccak256(bytes("initial-yts-amphrETH-and-LBTC-09oct24"))) {
-            // No initial YT protocol Guard updates, only token transfers
             return new ProtocolGuardConfig[](0);
-        } else if ((tagHash == keccak256(bytes("fluid-loop-weETH-and-wstETH-10nov24")))) {
+        } else if (tagHash == keccak256(bytes("first-pass-blocklist-policy-16oct24"))) {
+            return new ProtocolGuardConfig[](0);
+        } else if (tagHash == keccak256(bytes("morpho-set-auth-28oct24"))) {
+            return getMorphoGuardSetAuthProtocolConfigs();
+        } else if (tagHash == keccak256(bytes("fluid-loop-weETH-and-wstETH-10nov24"))) {
             return getFluidLoopWeETHAndWstEthConfigs();
         }
 
@@ -132,9 +155,13 @@ library RumpelConfig {
             return getMellowRe7GuardTokenConfigs();
         } else if (tagHash == keccak256(bytes("initial-yts-amphrETH-and-LBTC-09oct24"))) {
             return getInitialYTsAndAmphrETHGuardTokenConfigs();
-        } else if ((tagHash == keccak256(bytes("fluid-loop-weETH-and-wstETH-10nov24")))) {
+        } else if (tagHash == keccak256(bytes("first-pass-blocklist-policy-16oct24"))) {
+            return getFirstPassBlocklistPolicyGuardTokenConfigs();
+        } else if (tagHash == keccak256(bytes("morpho-set-auth-28oct24"))) {
             return new TokenGuardConfig[](0);
-        }
+        } else if (tagHash == keccak256(bytes("fluid-loop-weETH-and-wstETH-10nov24"))) {
+            return new TokenGuardConfig[](0);
+        } 
 
         revert("Unsupported tag");
     }
@@ -144,12 +171,28 @@ library RumpelConfig {
 
         if (tagHash == keccak256(bytes("mellow-re7"))) {
             return getMellowRe7ModuleTokenConfigs();
-        } else if (tagHash == keccak256(bytes("initial-yts-amphrETH-and-LBTC-09oct24"))) {
-            // No blocklist for the initial YT add
+        } else if (tagHash == keccak256(bytes("first-pass-blocklist-policy-16oct24"))) {
+            return getFirstPassBlocklistPolicyModuleTokenConfigs();
+        } else if (tagHash == keccak256(bytes("morpho-set-auth-28oct24"))) {
             return new TokenModuleConfig[](0);
-        } else if ((tagHash == keccak256(bytes("fluid-loop-weETH-and-wstETH-10nov24")))) {
+        } else if (tagHash == keccak256(bytes("fluid-loop-weETH-and-wstETH-10nov24"))) {
             return new TokenModuleConfig[](0);
         }
+
+        revert("Unsupported tag");
+    }
+
+    function getModuleProtocolConfigs(string memory tag) internal pure returns (ProtocolModuleConfig[] memory) {
+        bytes32 tagHash = keccak256(bytes(tag));
+
+        if (tagHash == keccak256(bytes("first-pass-blocklist-policy-16oct24"))) {
+            return new ProtocolModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("morpho-set-auth-28oct24"))) {
+            return new ProtocolModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("fluid-loop-weETH-and-wstETH-10nov24"))) {
+            return new ProtocolModuleConfig[](0);
+        }
+
 
         revert("Unsupported tag");
     }
@@ -404,6 +447,139 @@ library RumpelConfig {
         return configs;
     }
 
+    function getFirstPassBlocklistPolicyGuardTokenConfigs() internal pure returns (TokenGuardConfig[] memory) {
+        TokenGuardConfig[] memory configs = new TokenGuardConfig[](18);
+
+        configs[0] = TokenGuardConfig({
+            token: MAINNET_SYMBIOTIC_WSTETH_COLLATERAL,
+            transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+        configs[1] = TokenGuardConfig({
+            token: MAINNET_SYMBIOTIC_SUSDE_COLLATERAL,
+            transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+        configs[2] = TokenGuardConfig({
+            token: MAINNET_RSUSDE,
+            transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+        configs[3] = TokenGuardConfig({
+            token: MAINNET_RSTETH,
+            transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+        configs[4] = TokenGuardConfig({
+            token: MAINNET_AGETH,
+            transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+        configs[5] = TokenGuardConfig({
+            token: MAINNET_KUSDE,
+            transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
+            approveAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON
+        });
+        configs[6] = TokenGuardConfig({
+            token: MAINNET_KWEETH,
+            transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
+            approveAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON
+        });
+        configs[7] = TokenGuardConfig({
+            token: MAINNET_YTEBTC_26DEC2024,
+            transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+        configs[8] = TokenGuardConfig({
+            token: MAINNET_YT_WEETHK_26DEC2024,
+            transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+        configs[9] = TokenGuardConfig({
+            token: MAINNET_YT_AGETH_26DEC2024,
+            transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+        configs[10] = TokenGuardConfig({
+            token: MAINNET_YT_WEETHS_26DEC2024,
+            transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+        configs[11] = TokenGuardConfig({
+            token: MAINNET_YT_SUSDE_26DEC2024,
+            transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+        configs[12] = TokenGuardConfig({
+            token: MAINNET_YT_USDE_26DEC2024,
+            transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+        configs[13] = TokenGuardConfig({
+            token: MAINNET_YT_RE7LRT_26DEC2024,
+            transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+        configs[14] = TokenGuardConfig({
+            token: MAINNET_YT_RSTETH_26DEC2024,
+            transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+        configs[15] = TokenGuardConfig({
+            token: MAINNET_YT_AMPHRETH_26DEC2024,
+            transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+        configs[16] = TokenGuardConfig({
+            token: MAINNET_AMPHRETH,
+            transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
+            approveAllowState: RumpelGuard.AllowListState.ON
+        });
+        configs[17] = TokenGuardConfig({
+            token: MAINNET_SYMBIOTIC_LBTC,
+            transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+
+        return configs;
+    }
+
+    function getFirstPassBlocklistPolicyModuleTokenConfigs() internal pure returns (TokenModuleConfig[] memory) {
+        TokenModuleConfig[] memory configs = new TokenModuleConfig[](18);
+
+        configs[0] =
+            TokenModuleConfig({token: MAINNET_SYMBIOTIC_WSTETH_COLLATERAL, blockTransfer: true, blockApprove: true});
+        configs[1] =
+            TokenModuleConfig({token: MAINNET_SYMBIOTIC_SUSDE_COLLATERAL, blockTransfer: true, blockApprove: true});
+        configs[2] = TokenModuleConfig({token: MAINNET_RSUSDE, blockTransfer: true, blockApprove: true});
+        configs[3] = TokenModuleConfig({token: MAINNET_RSTETH, blockTransfer: true, blockApprove: true});
+        configs[4] = TokenModuleConfig({token: MAINNET_AGETH, blockTransfer: true, blockApprove: true});
+        configs[5] = TokenModuleConfig({token: MAINNET_KUSDE, blockTransfer: true, blockApprove: true});
+        configs[6] = TokenModuleConfig({token: MAINNET_KWEETH, blockTransfer: true, blockApprove: true});
+        configs[7] = TokenModuleConfig({token: MAINNET_YTEBTC_26DEC2024, blockTransfer: true, blockApprove: true});
+        configs[8] = TokenModuleConfig({token: MAINNET_YT_WEETHK_26DEC2024, blockTransfer: true, blockApprove: true});
+        configs[9] = TokenModuleConfig({token: MAINNET_YT_AGETH_26DEC2024, blockTransfer: true, blockApprove: true});
+        configs[10] = TokenModuleConfig({token: MAINNET_YT_WEETHS_26DEC2024, blockTransfer: true, blockApprove: true});
+        configs[11] = TokenModuleConfig({token: MAINNET_YT_SUSDE_26DEC2024, blockTransfer: true, blockApprove: true});
+        configs[12] = TokenModuleConfig({token: MAINNET_YT_USDE_26DEC2024, blockTransfer: true, blockApprove: true});
+        configs[13] = TokenModuleConfig({token: MAINNET_YT_RE7LRT_26DEC2024, blockTransfer: true, blockApprove: true});
+        configs[14] = TokenModuleConfig({token: MAINNET_YT_RSTETH_26DEC2024, blockTransfer: true, blockApprove: true});
+        configs[15] = TokenModuleConfig({token: MAINNET_YT_AMPHRETH_26DEC2024, blockTransfer: true, blockApprove: true});
+        configs[16] = TokenModuleConfig({token: MAINNET_AMPHRETH, blockTransfer: true, blockApprove: true});
+        configs[17] = TokenModuleConfig({token: MAINNET_SYMBIOTIC_LBTC, blockTransfer: true, blockApprove: true});
+
+        return configs;
+    }
+
+    function getMorphoGuardSetAuthProtocolConfigs() internal pure returns (ProtocolGuardConfig[] memory) {
+        ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](1);
+
+        configs[0] = ProtocolGuardConfig({target: MAINNET_MORPHO_BASE, allowedSelectors: new bytes4[](1)});
+        configs[0].allowedSelectors[0] = IMorphoBase.setAuthorization.selector;
+
+        return configs;
+    }
+
     function getFluidLoopWeETHAndWstEthConfigs() internal pure returns(ProtocolGuardConfig[] memory) {
         ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](2);
 
@@ -412,13 +588,15 @@ library RumpelConfig {
 
         configs[1] = ProtocolGuardConfig({target: MAINNET_FLUID_VAULT_FACTORY, allowedSelectors: new bytes4[](1)});
         configs[1].allowedSelectors[0] = IFluidVaultFactory.safeTransferFrom.selector;
-
-        return configs;
     }
 }
 
 interface IMorphoBundler {
     function multicall(bytes[] memory data) external;
+}
+
+interface IMorphoBase {
+    function setAuthorization(address authorized, bool newIsAuthorized) external;
 }
 
 interface IZircuitRestakingPool {
