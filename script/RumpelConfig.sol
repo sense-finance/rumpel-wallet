@@ -163,7 +163,7 @@ library RumpelConfig {
             return new TokenGuardConfig[](0);
         } else if (tagHash == keccak256(bytes("fluid-nft-transfer-11nov24"))) {
             return new TokenGuardConfig[](0);
-        } 
+        }
 
         revert("Unsupported tag");
     }
@@ -179,7 +179,7 @@ library RumpelConfig {
             return new TokenModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("fluid-loop-weETH-and-wstETH-10nov24"))) {
             return new TokenModuleConfig[](0);
-        }  else if (tagHash == keccak256(bytes("fluid-nft-transfer-11nov24"))) {
+        } else if (tagHash == keccak256(bytes("fluid-nft-transfer-11nov24"))) {
             return new TokenModuleConfig[](0);
         }
 
@@ -598,10 +598,15 @@ library RumpelConfig {
     }
 
     function getFluidNftTransferCongfigs() internal pure returns (ProtocolGuardConfig[] memory) {
-        ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](1);
+        ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](2);
 
         configs[0] = ProtocolGuardConfig({target: MAINNET_FLUID_VAULT_FACTORY, allowedSelectors: new bytes4[](1)});
         configs[0].allowedSelectors[0] = IFluidVaultFactory.transferFrom.selector;
+
+        configs[1] = ProtocolGuardConfig({target: MAINNET_FLUID_VAULT_FACTORY, allowedSelectors: new bytes4[](1)});
+        configs[1].allowedSelectors[0] = IFluidVaultFactory_.safeTransferFrom.selector;
+
+        return configs;
     }
 }
 
@@ -667,6 +672,10 @@ interface IFluidVaultT1 {
 }
 
 interface IFluidVaultFactory {
-    function safeTransferFrom(address from_,address to_,uint256 id_,bytes calldata data_) external;
+    function safeTransferFrom(address from_, address to_, uint256 id_, bytes calldata data_) external;
     function transferFrom(address from_, address to_, uint256 id_) external;
+}
+
+interface IFluidVaultFactory_ {
+    function safeTransferFrom(address from_, address to_, uint256 id_) external;
 }
