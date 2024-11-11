@@ -5,8 +5,6 @@ import {RumpelGuard} from "../src/RumpelGuard.sol";
 import {RumpelModule} from "../src/RumpelModule.sol";
 import {ERC20} from "solmate/tokens/ERC20.sol";
 
-import {console} from "forge-std/console.sol";
-
 struct ProtocolGuardConfig {
     address target;
     bytes4[] allowedSelectors;
@@ -141,6 +139,8 @@ library RumpelConfig {
             return getMorphoGuardSetAuthProtocolConfigs();
         } else if (tagHash == keccak256(bytes("fluid-loop-weETH-and-wstETH-10nov24"))) {
             return getFluidLoopWeETHAndWstEthConfigs();
+        } else if (tagHash == keccak256(bytes("fluid-nft-transfer-11nov24"))) {
+            return getFluidNftTransferCongfigs();
         }
 
         revert("Unsupported tag");
@@ -161,6 +161,8 @@ library RumpelConfig {
             return new TokenGuardConfig[](0);
         } else if (tagHash == keccak256(bytes("fluid-loop-weETH-and-wstETH-10nov24"))) {
             return new TokenGuardConfig[](0);
+        } else if (tagHash == keccak256(bytes("fluid-nft-transfer-11nov24"))) {
+            return new TokenGuardConfig[](0);
         } 
 
         revert("Unsupported tag");
@@ -177,6 +179,8 @@ library RumpelConfig {
             return new TokenModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("fluid-loop-weETH-and-wstETH-10nov24"))) {
             return new TokenModuleConfig[](0);
+        }  else if (tagHash == keccak256(bytes("fluid-nft-transfer-11nov24"))) {
+            return new TokenModuleConfig[](0);
         }
 
         revert("Unsupported tag");
@@ -191,7 +195,10 @@ library RumpelConfig {
             return new ProtocolModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("fluid-loop-weETH-and-wstETH-10nov24"))) {
             return new ProtocolModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("fluid-nft-transfer-11nov24"))) {
+            return new ProtocolModuleConfig[](0);
         }
+
 
 
         revert("Unsupported tag");
@@ -589,6 +596,13 @@ library RumpelConfig {
         configs[1] = ProtocolGuardConfig({target: MAINNET_FLUID_VAULT_FACTORY, allowedSelectors: new bytes4[](1)});
         configs[1].allowedSelectors[0] = IFluidVaultFactory.safeTransferFrom.selector;
     }
+
+    function getFluidNftTransferCongfigs() internal pure returns (ProtocolGuardConfig[] memory) {
+        ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](1);
+
+        configs[0] = ProtocolGuardConfig({target: MAINNET_FLUID_VAULT_FACTORY, allowedSelectors: new bytes4[](1)});
+        configs[0].allowedSelectors[0] = IFluidVaultFactory.transferFrom.selector;
+    }
 }
 
 interface IMorphoBundler {
@@ -654,4 +668,5 @@ interface IFluidVaultT1 {
 
 interface IFluidVaultFactory {
     function safeTransferFrom(address from_,address to_,uint256 id_,bytes calldata data_) external;
+    function transferFrom(address from_, address to_, uint256 id_) external;
 }
