@@ -5,6 +5,8 @@ import {RumpelGuard} from "../src/RumpelGuard.sol";
 import {RumpelModule} from "../src/RumpelModule.sol";
 import {ERC20} from "solmate/tokens/ERC20.sol";
 
+import {console} from "forge-std/console.sol";
+
 struct ProtocolGuardConfig {
     address target;
     bytes4[] allowedSelectors;
@@ -37,6 +39,8 @@ library RumpelConfig {
     address public constant MAINNET_KARAK_VAULT_SUPERVISOR = 0x54e44DbB92dBA848ACe27F44c0CB4268981eF1CC;
     address public constant MAINNET_KARAK_DELEGATION_SUPERVISOR = 0xAfa904152E04aBFf56701223118Be2832A4449E0;
     address public constant MAINNET_ETHENA_LP_STAKING = 0x8707f238936c12c309bfc2B9959C35828AcFc512;
+    address public constant MAINNET_FLUID_VAULTT1 = 0xeAEf563015634a9d0EE6CF1357A3b205C35e028D;
+    address public constant MAINNET_FLUID_VAULT_FACTORY = 0x324c5Dc1fC42c7a4D43d92df1eBA58a54d13Bf2d;
 
     // Tokens
     address public constant MAINNET_RSUSDE = 0x82f5104b23FF2FA54C2345F821dAc9369e9E0B26;
@@ -135,6 +139,8 @@ library RumpelConfig {
             return new ProtocolGuardConfig[](0);
         } else if (tagHash == keccak256(bytes("morpho-set-auth-28oct24"))) {
             return getMorphoGuardSetAuthProtocolConfigs();
+        } else if (tagHash == keccak256(bytes("fluid-loop-weETH-and-wstETH-10nov24"))) {
+            return getFluidLoopWeETHAndWstEthConfigs();
         }
 
         revert("Unsupported tag");
@@ -153,6 +159,8 @@ library RumpelConfig {
             return getFirstPassBlocklistPolicyGuardTokenConfigs();
         } else if (tagHash == keccak256(bytes("morpho-set-auth-28oct24"))) {
             return new TokenGuardConfig[](0);
+        } else if (tagHash == keccak256(bytes("fluid-loop-weETH-and-wstETH-10nov24"))) {
+            return new TokenGuardConfig[](0);
         }
 
         revert("Unsupported tag");
@@ -167,6 +175,8 @@ library RumpelConfig {
             return getFirstPassBlocklistPolicyModuleTokenConfigs();
         } else if (tagHash == keccak256(bytes("morpho-set-auth-28oct24"))) {
             return new TokenModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("fluid-loop-weETH-and-wstETH-10nov24"))) {
+            return new TokenModuleConfig[](0);
         }
 
         revert("Unsupported tag");
@@ -178,6 +188,8 @@ library RumpelConfig {
         if (tagHash == keccak256(bytes("first-pass-blocklist-policy-16oct24"))) {
             return new ProtocolModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("morpho-set-auth-28oct24"))) {
+            return new ProtocolModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("fluid-loop-weETH-and-wstETH-10nov24"))) {
             return new ProtocolModuleConfig[](0);
         }
 
@@ -566,6 +578,18 @@ library RumpelConfig {
 
         return configs;
     }
+
+    function getFluidLoopWeETHAndWstEthConfigs() internal pure returns (ProtocolGuardConfig[] memory) {
+        ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](2);
+
+        configs[0] = ProtocolGuardConfig({target: MAINNET_FLUID_VAULTT1, allowedSelectors: new bytes4[](1)});
+        configs[0].allowedSelectors[0] = IFluidVaultT1.operate.selector;
+
+        configs[1] = ProtocolGuardConfig({target: MAINNET_FLUID_VAULT_FACTORY, allowedSelectors: new bytes4[](1)});
+        configs[1].allowedSelectors[0] = IFluidVaultFactory.safeTransferFrom.selector;
+
+        return configs;
+    }
 }
 
 interface IMorphoBundler {
@@ -623,4 +647,12 @@ interface IMellow {
         uint256 requestDeadline,
         bool closePrevious
     ) external;
+}
+
+interface IFluidVaultT1 {
+    function operate(uint256 nftId_, int256 newCol_, int256 newDebt_, address to_) external;
+}
+
+interface IFluidVaultFactory {
+    function safeTransferFrom(address from_, address to_, uint256 id_, bytes calldata data_) external;
 }
