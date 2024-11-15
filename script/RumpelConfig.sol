@@ -39,6 +39,7 @@ library RumpelConfig {
     address public constant MAINNET_ETHENA_LP_STAKING = 0x8707f238936c12c309bfc2B9959C35828AcFc512;
     address public constant MAINNET_FLUID_VAULTT1 = 0xeAEf563015634a9d0EE6CF1357A3b205C35e028D;
     address public constant MAINNET_FLUID_VAULT_FACTORY = 0x324c5Dc1fC42c7a4D43d92df1eBA58a54d13Bf2d;
+    address public constant MAINNET_FLUID_VAULT_WEETHS_WSTETH = 0x1c6068eC051f0Ac1688cA1FE76810FA9c8644278;
 
     // Tokens
     address public constant MAINNET_RSUSDE = 0x82f5104b23FF2FA54C2345F821dAc9369e9E0B26;
@@ -141,6 +142,8 @@ library RumpelConfig {
             return getFluidLoopWeETHAndWstEthConfigs();
         } else if (tagHash == keccak256(bytes("fluid-nft-transfer-11nov24"))) {
             return getFluidNftTransferCongfigs();
+        } else if (tagHash == keccak256(bytes("fluid-loop-weETHs-and-wstETH-15nov24"))) {
+            return getFluidLoopWeETHsAndWstEthConfigs();
         }
 
         revert("Unsupported tag");
@@ -163,6 +166,8 @@ library RumpelConfig {
             return new TokenGuardConfig[](0);
         } else if (tagHash == keccak256(bytes("fluid-nft-transfer-11nov24"))) {
             return new TokenGuardConfig[](0);
+        } else if (tagHash == keccak256(bytes("fluid-loop-weETHs-and-wstETH-15nov24"))) {
+            return new TokenGuardConfig[](0);
         }
 
         revert("Unsupported tag");
@@ -181,6 +186,8 @@ library RumpelConfig {
             return new TokenModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("fluid-nft-transfer-11nov24"))) {
             return new TokenModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("fluid-loop-weETHs-and-wstETH-15nov24"))) {
+            return new TokenModuleConfig[](0);
         }
 
         revert("Unsupported tag");
@@ -196,6 +203,8 @@ library RumpelConfig {
         } else if (tagHash == keccak256(bytes("fluid-loop-weETH-and-wstETH-10nov24"))) {
             return new ProtocolModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("fluid-nft-transfer-11nov24"))) {
+            return new ProtocolModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("fluid-loop-weETHs-and-wstETH-15nov24"))) {
             return new ProtocolModuleConfig[](0);
         }
 
@@ -605,6 +614,15 @@ library RumpelConfig {
 
         configs[1] = ProtocolGuardConfig({target: MAINNET_FLUID_VAULT_FACTORY, allowedSelectors: new bytes4[](1)});
         configs[1].allowedSelectors[0] = IFluidVaultFactory_.safeTransferFrom.selector;
+
+        return configs;
+    }
+
+    function getFluidLoopWeETHsAndWstEthConfigs() internal pure returns (ProtocolGuardConfig[] memory){
+        ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](2);
+
+        configs[0] = ProtocolGuardConfig({target: MAINNET_FLUID_VAULT_WEETHS_WSTETH, allowedSelectors: new bytes4[](1)});
+        configs[0].allowedSelectors[0] =  IFluidVaultT1.operate.selector;
 
         return configs;
     }
