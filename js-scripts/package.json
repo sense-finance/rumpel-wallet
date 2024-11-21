@@ -1,0 +1,19 @@
+{
+  "name": "puppeteer-scraper",
+  "module": "index.ts",
+  "type": "module",
+  "scripts": {
+    "broadcast-to-safe": "bun run broadcast-to-safe-json.ts",
+    "build-broadcast-script": "bun build broadcast-to-safe-json.ts --compile --outfile ../export-txs-for-safe"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "@morpho-labs/gnosis-tx-builder": "^2.0.0",
+    "ethers": "^6.13.2"
+  }
+}
