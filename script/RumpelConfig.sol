@@ -40,6 +40,8 @@ library RumpelConfig {
     address public constant MAINNET_FLUID_VAULTT1 = 0xeAEf563015634a9d0EE6CF1357A3b205C35e028D;
     address public constant MAINNET_FLUID_VAULT_FACTORY = 0x324c5Dc1fC42c7a4D43d92df1eBA58a54d13Bf2d;
     address public constant MAINNET_FLUID_VAULT_WEETHS_WSTETH = 0x1c6068eC051f0Ac1688cA1FE76810FA9c8644278;
+    address public constant MAINNET_FLUID_VAULT_SUSDE_USDC = 0x3996464c0fCCa8183e13ea5E5e74375e2c8744Dd;
+    address public constant MAINNET_FLUID_VAULT_SUSDE_USDT = 0xBc345229C1b52e4c30530C614BB487323BA38Da5;
 
     // Tokens
     address public constant MAINNET_RSUSDE = 0x82f5104b23FF2FA54C2345F821dAc9369e9E0B26;
@@ -66,6 +68,10 @@ library RumpelConfig {
     address public constant MAINNET_YT_RE7LRT_26DEC2024 = 0x89E7f4E5210A77Ac0f20511389Df71eC98ce9971;
     address public constant MAINNET_YT_RSTETH_26DEC2024 = 0x11CCff2F748a0100dBd457FF7170A54e12064Aba;
     address public constant MAINNET_YT_AMPHRETH_26DEC2024 = 0x5dB8a2391a72F1114BbaE30eFc9CD89f4a29F988;
+    address public constant MAINNET_YT_KARAK_SUSDE_30JAN2025 = 0x27f6F2f5e87A383471C79296c64E4e82269877f7;
+    address public constant MAINNET_YT_CORN_LBTC_26DEC2024 = 0x1caE47aA3e10A77C55Ee32f8623D6B5ACC947344;
+    address public constant MAINNET_YT_RSUSDE_27MAR2025 = 0x079F21309eB9cbD2a387972eB2168d57C8542e32;
+
     address public constant MAINNET_AMPHRETH = 0x5fD13359Ba15A84B76f7F87568309040176167cd;
     address public constant MAINNET_SYMBIOTIC_LBTC = 0x9C0823D3A1172F9DdF672d438dec79c39a64f448;
 
@@ -144,6 +150,8 @@ library RumpelConfig {
             return getFluidNftTransferCongfigs();
         } else if (tagHash == keccak256(bytes("fluid-loop-weETHs-and-wstETH-15nov24"))) {
             return getFluidLoopWeETHsAndWstEthConfigs();
+        } else if (tagHash == keccak256(bytes("fluid-and-yt-susde-21nov24"))) {
+            return getFluidAndYTsUSDeProtocolGuardConfigs();
         }
 
         revert("Unsupported tag");
@@ -168,6 +176,8 @@ library RumpelConfig {
             return new TokenGuardConfig[](0);
         } else if (tagHash == keccak256(bytes("fluid-loop-weETHs-and-wstETH-15nov24"))) {
             return new TokenGuardConfig[](0);
+        } else if (tagHash == keccak256(bytes("fluid-and-yt-susde-21nov24"))) {
+            return getFluidAndYTsUSDeTokenGuardConfigs();
         }
 
         revert("Unsupported tag");
@@ -188,6 +198,8 @@ library RumpelConfig {
             return new TokenModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("fluid-loop-weETHs-and-wstETH-15nov24"))) {
             return new TokenModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("fluid-and-yt-susde-21nov24"))) {
+            return new TokenModuleConfig[](0);
         }
 
         revert("Unsupported tag");
@@ -205,6 +217,8 @@ library RumpelConfig {
         } else if (tagHash == keccak256(bytes("fluid-nft-transfer-11nov24"))) {
             return new ProtocolModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("fluid-loop-weETHs-and-wstETH-15nov24"))) {
+            return new ProtocolModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("fluid-and-yt-susde-21nov24"))) {
             return new ProtocolModuleConfig[](0);
         }
 
@@ -618,11 +632,45 @@ library RumpelConfig {
         return configs;
     }
 
-    function getFluidLoopWeETHsAndWstEthConfigs() internal pure returns (ProtocolGuardConfig[] memory){
+    function getFluidLoopWeETHsAndWstEthConfigs() internal pure returns (ProtocolGuardConfig[] memory) {
         ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](2);
 
         configs[0] = ProtocolGuardConfig({target: MAINNET_FLUID_VAULT_WEETHS_WSTETH, allowedSelectors: new bytes4[](1)});
-        configs[0].allowedSelectors[0] =  IFluidVaultT1.operate.selector;
+        configs[0].allowedSelectors[0] = IFluidVaultT1.operate.selector;
+
+        return configs;
+    }
+
+    function getFluidAndYTsUSDeProtocolGuardConfigs() internal pure returns (ProtocolGuardConfig[] memory) {
+        ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](2);
+
+        configs[0] = ProtocolGuardConfig({target: MAINNET_FLUID_VAULT_SUSDE_USDC, allowedSelectors: new bytes4[](1)});
+        configs[0].allowedSelectors[0] = IFluidVaultT1.operate.selector;
+
+        configs[1] = ProtocolGuardConfig({target: MAINNET_FLUID_VAULT_SUSDE_USDT, allowedSelectors: new bytes4[](1)});
+        configs[1].allowedSelectors[0] = IFluidVaultT1.operate.selector;
+
+        return configs;
+    }
+
+    function getFluidAndYTsUSDeTokenGuardConfigs() internal pure returns (TokenGuardConfig[] memory) {
+        TokenGuardConfig[] memory configs = new TokenGuardConfig[](3);
+
+        configs[0] = TokenGuardConfig({
+            token: MAINNET_YT_KARAK_SUSDE_30JAN2025,
+            transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+        configs[1] = TokenGuardConfig({
+            token: MAINNET_YT_CORN_LBTC_26DEC2024,
+            transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+        configs[2] = TokenGuardConfig({
+            token: MAINNET_YT_RSUSDE_27MAR2025,
+            transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
 
         return configs;
     }
