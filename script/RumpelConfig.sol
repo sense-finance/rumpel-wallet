@@ -75,6 +75,10 @@ library RumpelConfig {
     address public constant MAINNET_AMPHRETH = 0x5fD13359Ba15A84B76f7F87568309040176167cd;
     address public constant MAINNET_SYMBIOTIC_LBTC = 0x9C0823D3A1172F9DdF672d438dec79c39a64f448;
 
+    // YT Yield Claiming
+    address public constant MAINNET_SY_SUSDE = 0xD288755556c235afFfb6316702719C32bD8706e8;
+    address public constant MAINNET_PENDLE_ROUTERV4 = 0x888888888889758F76e7103c6CbF23ABbF58F946;
+
     function updateGuardAllowlist(RumpelGuard rumpelGuard, string memory tag) internal {
         setupGuardProtocols(rumpelGuard, tag);
         setupGuardTokens(rumpelGuard, tag);
@@ -152,6 +156,8 @@ library RumpelConfig {
             return getFluidLoopWeETHsAndWstEthConfigs();
         } else if (tagHash == keccak256(bytes("fluid-susde-and-yts-21nov24"))) {
             return getFluidSusdeAndYTsProtocolGuardConfigs();
+        } else if (tagHash == keccak256(bytes("claim-yt-yield-susde"))) {
+            return getClaimYTYieldProtocolGuardConfigs();
         }
 
         revert("Unsupported tag");
@@ -178,6 +184,8 @@ library RumpelConfig {
             return new TokenGuardConfig[](0);
         } else if (tagHash == keccak256(bytes("fluid-susde-and-yts-21nov24"))) {
             return getFluidSusdeAndYTsTokenGuardConfigs();
+        } else if (tagHash == keccak256(bytes("claim-yt-yield-susde"))) {
+            return new TokenGuardConfig[](0);
         }
 
         revert("Unsupported tag");
@@ -200,6 +208,8 @@ library RumpelConfig {
             return new TokenModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("fluid-susde-and-yts-21nov24"))) {
             return getFluidSusdeAndYTsModuleTokenConfigs();
+        } else if (tagHash == keccak256(bytes("claim-yt-yield-susde"))) {
+            return new TokenModuleConfig[](0);
         }
 
         revert("Unsupported tag");
@@ -219,6 +229,8 @@ library RumpelConfig {
         } else if (tagHash == keccak256(bytes("fluid-loop-weETHs-and-wstETH-15nov24"))) {
             return new ProtocolModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("fluid-susde-and-yts-21nov24"))) {
+            return new ProtocolModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("claim-yt-yield-susde"))) {
             return new ProtocolModuleConfig[](0);
         }
 
@@ -685,6 +697,18 @@ library RumpelConfig {
 
         return configs;
     }
+
+    function getClaimYTYieldProtocolGuardConfigs() internal pure returns (ProtocolGuardConfig[] memory) {
+        ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](2);
+
+        configs[0] = ProtocolGuardConfig({target: MAINNET_PENDLE_ROUTERV4, allowedSelectors: new bytes4[](1)});
+        configs[0].allowedSelectors[0] = IPendleRouterV4.redeemDueInterestAndRewards.selector;
+
+        configs[1] = ProtocolGuardConfig({target: MAINNET_SY_SUSDE, allowedSelectors: new bytes4[](1)});
+        configs[1].allowedSelectors[0] = IStandardizedYield.redeem.selector;
+
+        return configs;
+    }
 }
 
 interface IMorphoBundler {
@@ -755,4 +779,24 @@ interface IFluidVaultFactory {
 
 interface IFluidVaultFactory_ {
     function safeTransferFrom(address from_, address to_, uint256 id_) external;
+}
+
+// @dev actually a function in ActionMiscV3 called through the RouterProxy
+interface IPendleRouterV4 {
+    function redeemDueInterestAndRewards(
+        address user,
+        address[] calldata sys,
+        address[] calldata yts,
+        address[] calldata markets
+    ) external;
+}
+
+interface IStandardizedYield {
+    function redeem(
+        address receiver,
+        uint256 amountSharesToRedeem,
+        address tokenOut,
+        uint256 minTokenOut,
+        bool burnFromInternalBalance
+    ) external;
 }
