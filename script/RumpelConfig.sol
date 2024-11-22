@@ -42,6 +42,7 @@ library RumpelConfig {
     address public constant MAINNET_FLUID_VAULT_WEETHS_WSTETH = 0x1c6068eC051f0Ac1688cA1FE76810FA9c8644278;
     address public constant MAINNET_FLUID_VAULT_SUSDE_USDC = 0x3996464c0fCCa8183e13ea5E5e74375e2c8744Dd;
     address public constant MAINNET_FLUID_VAULT_SUSDE_USDT = 0xBc345229C1b52e4c30530C614BB487323BA38Da5;
+    address public constant MAINNET_FLUID_VAULT_SUSDE_GHO = 0x2F3780e21cAba1bEdFB24E37C97917def304dFFA;
 
     // Tokens
     address public constant MAINNET_RSUSDE = 0x82f5104b23FF2FA54C2345F821dAc9369e9E0B26;
@@ -642,13 +643,16 @@ library RumpelConfig {
     }
 
     function getFluidSusdeAndYTsProtocolGuardConfigs() internal pure returns (ProtocolGuardConfig[] memory) {
-        ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](2);
+        ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](3);
 
         configs[0] = ProtocolGuardConfig({target: MAINNET_FLUID_VAULT_SUSDE_USDC, allowedSelectors: new bytes4[](1)});
         configs[0].allowedSelectors[0] = IFluidVaultT1.operate.selector;
 
         configs[1] = ProtocolGuardConfig({target: MAINNET_FLUID_VAULT_SUSDE_USDT, allowedSelectors: new bytes4[](1)});
         configs[1].allowedSelectors[0] = IFluidVaultT1.operate.selector;
+
+        configs[2] = ProtocolGuardConfig({target: MAINNET_FLUID_VAULT_SUSDE_GHO, allowedSelectors: new bytes4[](1)});
+        configs[2].allowedSelectors[0] = IFluidVaultT1.operate.selector;
 
         return configs;
     }
