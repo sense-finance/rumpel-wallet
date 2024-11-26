@@ -14,16 +14,16 @@ import {RumpelWalletFactoryScripts} from "../script/RumpelWalletFactory.s.sol";
 import {RumpelConfig, IPendleRouterV4} from "../script/RumpelConfig.sol";
 
 contract RumpelWalletClaimPendleYield is Test {
+    address public GUARD_OWNER = 0x9D89745fD63Af482ce93a9AdB8B0BbDbb98D3e06;
     RumpelModule public rumpelModule = RumpelModule(0x28c3498B4956f4aD8d4549ACA8F66260975D361a);
     RumpelGuard public rumpelGuard = RumpelGuard(0x9000FeF2846A5253fD2C6ed5241De0fddb404302);
 
-    IPendleRouterV4 public pendleRouter = IPendleRouterV4(0x00000000005BBB0EF59571E58418F9a4357b68A0);
     IStandardizedYield sySUSDE = IStandardizedYield(RumpelConfig.MAINNET_SY_SUSDE);
-
-    address public GUARD_OWNER = 0x9D89745fD63Af482ce93a9AdB8B0BbDbb98D3e06;
-
     ERC20 public sySUSDEErc20 = ERC20(RumpelConfig.MAINNET_SY_SUSDE);
-    ERC20 public susdeErc20 = ERC20(0x9D39A5DE30e57443BfF2A8307A4256c8797A3497);
+    ERC20 public susdeErc20 = ERC20(RumpelConfig.MAINNET_SUSDE);
+
+    IPendleRouterV4 public pendleRouterV3 = IPendleRouterV4(0x00000000005BBB0EF59571E58418F9a4357b68A0);
+    IPendleRouterV4 public pendleRouterV4 = IPendleRouterV4(RumpelConfig.MAINNET_PENDLE_ROUTERV4);
 
     PendelYieldTokenFactory pendelYieldFactory = PendelYieldTokenFactory(0x273b4bFA3Bb30fe8F32c467b5f0046834557F072);
     PendelYieldToken yt = PendelYieldToken(RumpelConfig.MAINNET_YT_SUSDE_26DEC2024);
@@ -42,27 +42,20 @@ contract RumpelWalletClaimPendleYield is Test {
 
         uint256 desiredBlockNumber = 21246172;
         vm.rollFork(desiredBlockNumber);
-
-        vm.startPrank(GUARD_OWNER);
-        rumpelGuard.setCallAllowed(
-            0x00000000005BBB0EF59571E58418F9a4357b68A0,
-            IPendleRouterV4.redeemDueInterestAndRewards.selector,
-            RumpelGuard.AllowListState.ON
-        );
-        rumpelGuard.setCallAllowed(
-            RumpelConfig.MAINNET_SY_SUSDE, IStandardizedYield.redeem.selector, RumpelGuard.AllowListState.ON
-        );
-        vm.stopPrank();
     }
 
-    function test_setup() public view {
-        RumpelGuard.AllowListState allowed =
-            rumpelGuard.allowedCalls(RumpelConfig.MAINNET_SY_SUSDE, IStandardizedYield.redeem.selector);
-
-        assertEq(uint256(allowed), 1);
+    function test_RouterV3() public {
+        _testRedeem(address(pendleRouterV3));
     }
 
-    function test_redeem() public {
+    // same test as v3 but v4 fails,
+    // the tenderly simulation against v4 works from logged data works as expected
+    // https://www.tdly.co/shared/simulation/1cdc9c33-d9b9-4b61-ad08-d3f7cd31e1e7
+    function test_RouterV4() public {
+        _testRedeem(address(pendleRouterV4));
+    }
+
+    function _testRedeem(address router) internal {
         // wallet with interest
         address wallet = 0x356bF754079D5A797da8884a328120016C1B8Ddb;
 
@@ -73,8 +66,7 @@ contract RumpelWalletClaimPendleYield is Test {
         uint256 accruedInterest = (principal * (currentIndex - prevIndex) * 1e18) / (prevIndex * currentIndex);
 
         uint256 feePercentage = pendelYieldFactory.interestFeeRate();
-        uint256 fee = accruedInterest * feePercentage / 1e18;
-        uint256 finalAmount = accruedInterest - fee;
+        uint256 finalAmount = accruedInterest - (accruedInterest * feePercentage / 1e18);
 
         uint256 syBalanceBefore = sySUSDEErc20.balanceOf(wallet);
 
@@ -83,8 +75,11 @@ contract RumpelWalletClaimPendleYield is Test {
         yts[0] = RumpelConfig.MAINNET_YT_SUSDE_26DEC2024;
 
         // redeem interest from YT in SY tokens
+        bytes memory data = abi.encodeWithSelector(0xf7e375e8, wallet, emptyAddressArray, yts, emptyAddressArray);
+        console.logBytes(data);
+
         vm.prank(wallet);
-        pendleRouter.redeemDueInterestAndRewards(wallet, emptyAddressArray, yts, emptyAddressArray);
+        IPendleRouterV4(router).redeemDueInterestAndRewards(wallet, emptyAddressArray, yts, emptyAddressArray);
 
         uint256 syBalanceAfter = sySUSDEErc20.balanceOf(wallet);
         assertGt(syBalanceAfter, syBalanceBefore);
@@ -107,6 +102,13 @@ contract PendelYieldToken {
     }
 
     mapping(address => UserInterest) public userInterest;
+
+    function redeemDueInterestAndRewards(
+        address user,
+        address[] calldata sys,
+        address[] calldata yts,
+        address[] calldata markets
+    ) external {}
 }
 
 contract PendelYieldTokenFactory {
