@@ -158,6 +158,8 @@ library RumpelConfig {
             return getFluidSusdeAndYTsProtocolGuardConfigs();
         } else if (tagHash == keccak256(bytes("claim-yt-yield-susde"))) {
             return getClaimYTYieldProtocolGuardConfigs();
+        } else if (tagHash == keccak256(bytes("alternative-yt-yield-claiming"))) {
+            return getAlternativeYTYieldClaimingProtocolGuardConfigs();
         }
 
         revert("Unsupported tag");
@@ -186,6 +188,8 @@ library RumpelConfig {
             return getFluidSusdeAndYTsTokenGuardConfigs();
         } else if (tagHash == keccak256(bytes("claim-yt-yield-susde"))) {
             return new TokenGuardConfig[](0);
+        } else if (tagHash == keccak256(bytes("alternative-yt-yield-claiming"))) {
+            return new TokenGuardConfig[](0);
         }
 
         revert("Unsupported tag");
@@ -210,6 +214,8 @@ library RumpelConfig {
             return getFluidSusdeAndYTsModuleTokenConfigs();
         } else if (tagHash == keccak256(bytes("claim-yt-yield-susde"))) {
             return new TokenModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("alternative-yt-yield-claiming"))) {
+            return new TokenModuleConfig[](0);
         }
 
         revert("Unsupported tag");
@@ -231,6 +237,8 @@ library RumpelConfig {
         } else if (tagHash == keccak256(bytes("fluid-susde-and-yts-21nov24"))) {
             return new ProtocolModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("claim-yt-yield-susde"))) {
+            return new ProtocolModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("alternative-yt-yield-claiming"))) {
             return new ProtocolModuleConfig[](0);
         }
 
@@ -709,6 +717,15 @@ library RumpelConfig {
 
         return configs;
     }
+
+    function getAlternativeYTYieldClaimingProtocolGuardConfigs() internal pure returns (ProtocolGuardConfig[] memory) {
+        ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](1);
+
+        configs[0] = ProtocolGuardConfig({target: MAINNET_PENDLE_ROUTERV4, allowedSelectors: new bytes4[](1)});
+        configs[0].allowedSelectors[0] = IPendleRouterV4.redeemDueInterestAndRewardsV2.selector;
+
+        return configs;
+    }
 }
 
 interface IMorphoBundler {
@@ -789,6 +806,15 @@ interface IPendleRouterV4 {
         address[] calldata yts,
         address[] calldata markets
     ) external;
+
+    // redeemDueInterestAndRewardsV2(IStandardizedYield[],RedeemYtIncomeToTokenStruct[],IPMarket[],IPSwapAggregator,SwapDataExtra[])
+    function redeemDueInterestAndRewardsV2(
+        IStandardizedYield[] calldata SYs,
+        RedeemYtIncomeToTokenStruct[] calldata YTs,
+        IPMarket[] calldata markets,
+        IPSwapAggregator pendleSwap,
+        SwapDataExtra[] calldata swaps
+    ) external;
 }
 
 interface IStandardizedYield {
@@ -800,3 +826,11 @@ interface IStandardizedYield {
         bool burnFromInternalBalance
     ) external;
 }
+
+interface RedeemYtIncomeToTokenStruct {}
+
+interface IPMarket {}
+
+interface IPSwapAggregator {}
+
+interface SwapDataExtra {}
