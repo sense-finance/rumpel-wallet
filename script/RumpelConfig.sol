@@ -151,7 +151,7 @@ library RumpelConfig {
             return getFluidNftTransferCongfigs();
         } else if (tagHash == keccak256(bytes("fluid-loop-weETHs-and-wstETH-15nov24"))) {
             return getFluidLoopWeETHsAndWstEthConfigs();
-        } else if (tagHash == keccak256(bytes("fluid-susde-and-yts-21nov24"))) {
+        } else if (tagHash == keccak256(bytes("fluid-susde-and-yts-26nov24"))) {
             return getFluidSusdeAndYTsProtocolGuardConfigs();
         }
 
@@ -177,7 +177,7 @@ library RumpelConfig {
             return new TokenGuardConfig[](0);
         } else if (tagHash == keccak256(bytes("fluid-loop-weETHs-and-wstETH-15nov24"))) {
             return new TokenGuardConfig[](0);
-        } else if (tagHash == keccak256(bytes("fluid-susde-and-yts-21nov24"))) {
+        } else if (tagHash == keccak256(bytes("fluid-susde-and-yts-26nov24"))) {
             return getFluidSusdeAndYTsTokenGuardConfigs();
         }
 
@@ -199,7 +199,7 @@ library RumpelConfig {
             return new TokenModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("fluid-loop-weETHs-and-wstETH-15nov24"))) {
             return new TokenModuleConfig[](0);
-        } else if (tagHash == keccak256(bytes("fluid-susde-and-yts-21nov24"))) {
+        } else if (tagHash == keccak256(bytes("fluid-susde-and-yts-26nov24"))) {
             return getFluidSusdeAndYTsModuleTokenConfigs();
         }
 
@@ -219,7 +219,7 @@ library RumpelConfig {
             return new ProtocolModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("fluid-loop-weETHs-and-wstETH-15nov24"))) {
             return new ProtocolModuleConfig[](0);
-        } else if (tagHash == keccak256(bytes("fluid-susde-and-yts-21nov24"))) {
+        } else if (tagHash == keccak256(bytes("fluid-susde-and-yts-26nov24"))) {
             return new ProtocolModuleConfig[](0);
         }
 
