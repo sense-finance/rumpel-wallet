@@ -160,6 +160,8 @@ library RumpelConfig {
             return getClaimYTYieldProtocolGuardConfigs();
         } else if (tagHash == keccak256(bytes("alternative-yt-yield-claiming"))) {
             return getAlternativeYTYieldClaimingProtocolGuardConfigs();
+        } else if (tagHash == keccak256(bytes("sYsUSDe-token-approve"))) {
+            return new ProtocolGuardConfig[](0);
         }
 
         revert("Unsupported tag");
@@ -190,6 +192,8 @@ library RumpelConfig {
             return new TokenGuardConfig[](0);
         } else if (tagHash == keccak256(bytes("alternative-yt-yield-claiming"))) {
             return new TokenGuardConfig[](0);
+        } else if (tagHash == keccak256(bytes("sYsUSDe-token-approve"))) {
+            return getSYsUSDeApproveTokenGuardConfigs();
         }
 
         revert("Unsupported tag");
@@ -216,6 +220,8 @@ library RumpelConfig {
             return new TokenModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("alternative-yt-yield-claiming"))) {
             return new TokenModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("sYsUSDe-token-approve"))) {
+            return new TokenModuleConfig[](0);
         }
 
         revert("Unsupported tag");
@@ -239,6 +245,8 @@ library RumpelConfig {
         } else if (tagHash == keccak256(bytes("claim-yt-yield-susde"))) {
             return new ProtocolModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("alternative-yt-yield-claiming"))) {
+            return new ProtocolModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("sYsUSDe-token-approve"))) {
             return new ProtocolModuleConfig[](0);
         }
 
@@ -723,6 +731,18 @@ library RumpelConfig {
 
         configs[0] = ProtocolGuardConfig({target: MAINNET_PENDLE_ROUTERV4, allowedSelectors: new bytes4[](1)});
         configs[0].allowedSelectors[0] = IPendleRouterV4.redeemDueInterestAndRewardsV2.selector;
+
+        return configs;
+    }
+
+    function getSYsUSDeApproveTokenGuardConfigs() internal pure returns (TokenGuardConfig[] memory) {
+        TokenGuardConfig[] memory configs = new TokenGuardConfig[](1);
+
+        configs[0] = TokenGuardConfig({
+            token: MAINNET_SY_SUSDE,
+            transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
 
         return configs;
     }
