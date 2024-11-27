@@ -741,7 +741,7 @@ library RumpelConfig {
         configs[0] = TokenGuardConfig({
             token: MAINNET_SY_SUSDE,
             transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
-            approveAllowState: RumpelGuard.AllowListState.OFF
+            approveAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON
         });
 
         return configs;
