@@ -1,0 +1,20 @@
+{
+  "version": "1.0",
+  "chainId": "1",
+  "createdAt": 1732684906856,
+  "meta": {
+    "name": "Transactions Batch",
+    "description": "alternative-yt-yield-claiming",
+    "txBuilderVersion": "1.10.0",
+    "createdFromSafeAddress": "0x9D89745fD63Af482ce93a9AdB8B0BbDbb98D3e06",
+    "createdFromOwnerAddress": "",
+    "checksum": "0xfdb41a4dac89050d59f3ee1ef9fd90b2edd5c8093d2594328a7382ba776fb386"
+  },
+  "transactions": [
+    {
+      "to": "0x9000fef2846a5253fd2c6ed5241de0fddb404302",
+      "value": "0x0",
+      "data": "0x5534fa0c000000000000000000000000888888888889758f76e7103c6cbf23abbf58f9460741a803000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001"
+    }
+  ]
+}
