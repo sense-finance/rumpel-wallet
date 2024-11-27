@@ -799,13 +799,43 @@ interface IFluidVaultFactory_ {
 }
 
 // @dev actually a function in ActionMiscV3 called through the RouterProxy
-interface IPendleRouterV4 {
+contract IPendleRouterV4 {
+    struct RedeemYtIncomeToTokenStruct {
+        IPYieldToken yt;
+        bool doRedeemInterest;
+        bool doRedeemRewards;
+        address tokenRedeemSy;
+        uint256 minTokenRedeemOut;
+    }
+
+    struct SwapData {
+        SwapType swapType;
+        address extRouter;
+        bytes extCalldata;
+        bool needScale;
+    }
+
+    struct SwapDataExtra {
+        address tokenIn;
+        address tokenOut;
+        uint256 minOut;
+        SwapData swapData;
+    }
+
+    enum SwapType {
+        NONE,
+        KYBERSWAP,
+        ONE_INCH,
+        // ETH_WETH not used in Aggregator
+        ETH_WETH
+    }
+
     function redeemDueInterestAndRewards(
         address user,
         address[] calldata sys,
         address[] calldata yts,
         address[] calldata markets
-    ) external;
+    ) external {}
 
     // redeemDueInterestAndRewardsV2(IStandardizedYield[],RedeemYtIncomeToTokenStruct[],IPMarket[],IPSwapAggregator,SwapDataExtra[])
     function redeemDueInterestAndRewardsV2(
@@ -814,7 +844,7 @@ interface IPendleRouterV4 {
         IPMarket[] calldata markets,
         IPSwapAggregator pendleSwap,
         SwapDataExtra[] calldata swaps
-    ) external;
+    ) external returns (uint256[] memory netOutFromSwaps, uint256[] memory netInterests) {}
 }
 
 interface IStandardizedYield {
@@ -827,7 +857,7 @@ interface IStandardizedYield {
     ) external;
 }
 
-interface RedeemYtIncomeToTokenStruct {}
+interface IPYieldToken {}
 
 interface IPMarket {}
 
