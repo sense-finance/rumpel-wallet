@@ -163,6 +163,8 @@ library RumpelConfig {
             return getAlternativeYTYieldClaimingProtocolGuardConfigs();
         } else if (tagHash == keccak256(bytes("sYsUSDe-token-approve"))) {
             return new ProtocolGuardConfig[](0);
+        } else if (tagHash == keccak256(bytes("ethena-staking-lp-withdraw"))) {
+            return getEthenaStakingLPWithdrawProtocolGuardConfigs();
         }
 
         revert("Unsupported tag");
@@ -195,6 +197,8 @@ library RumpelConfig {
             return new TokenGuardConfig[](0);
         } else if (tagHash == keccak256(bytes("sYsUSDe-token-approve"))) {
             return getSYsUSDeApproveTokenGuardConfigs();
+        } else if (tagHash == keccak256(bytes("ethena-staking-lp-withdraw"))) {
+            return new TokenGuardConfig[](0);
         }
 
         revert("Unsupported tag");
@@ -223,6 +227,8 @@ library RumpelConfig {
             return new TokenModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("sYsUSDe-token-approve"))) {
             return new TokenModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("ethena-staking-lp-withdraw"))) {
+            return new TokenModuleConfig[](0);
         }
 
         revert("Unsupported tag");
@@ -248,6 +254,8 @@ library RumpelConfig {
         } else if (tagHash == keccak256(bytes("alternative-yt-yield-claiming"))) {
             return new ProtocolModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("sYsUSDe-token-approve"))) {
+            return new ProtocolModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("ethena-staking-lp-withdraw"))) {
             return new ProtocolModuleConfig[](0);
         }
 
@@ -750,6 +758,15 @@ library RumpelConfig {
 
         return configs;
     }
+
+    function getEthenaStakingLPWithdrawProtocolGuardConfigs() internal pure returns (ProtocolGuardConfig[] memory) {
+        ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](1);
+
+        configs[0] = ProtocolGuardConfig({target: MAINNET_ETHENA_LP_STAKING, allowedSelectors: new bytes4[](1)});
+        configs[0].allowedSelectors[0] = IEthenaLpStaking.withdraw.selector;
+
+        return configs;
+    }
 }
 
 interface IMorphoBundler {
@@ -786,6 +803,7 @@ interface ISUSDE {
 interface IEthenaLpStaking {
     function stake(address token, uint104 amount) external;
     function unstake(address token, uint104 amount) external;
+    function withdraw(address token, uint104 amount) external;
 }
 
 interface IKarakVaultSupervisor {
