@@ -1,0 +1,20 @@
+{
+  "version": "1.0",
+  "chainId": "1",
+  "createdAt": 1733447142744,
+  "meta": {
+    "name": "Transactions Batch",
+    "description": "ethena-staking-lp-withdraw",
+    "txBuilderVersion": "1.10.0",
+    "createdFromSafeAddress": "0x9D89745fD63Af482ce93a9AdB8B0BbDbb98D3e06",
+    "createdFromOwnerAddress": "",
+    "checksum": "0x308a89c5c72a0dec3abb71e57e3ab255a6f8fb1c51fd63ca6c0ab5c58c5c0ccc"
+  },
+  "transactions": [
+    {
+      "to": "0x9000fef2846a5253fd2c6ed5241de0fddb404302",
+      "value": "0x0",
+      "data": "0x5534fa0c0000000000000000000000008707f238936c12c309bfc2b9959c35828acfc5126ab498a3000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001"
+    }
+  ]
+}
