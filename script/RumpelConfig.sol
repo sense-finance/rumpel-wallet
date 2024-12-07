@@ -79,6 +79,7 @@ library RumpelConfig {
     // YT Yield Claiming
     address public constant MAINNET_SY_SUSDE = 0xD288755556c235afFfb6316702719C32bD8706e8;
     address public constant MAINNET_PENDLE_ROUTERV4 = 0x888888888889758F76e7103c6CbF23ABbF58F946;
+    address public constant MAINNET_SY_RSUSDE = 0xBCD9522EEf626dD0363347BDE6cAB105c2C7797e;
 
     function updateGuardAllowlist(RumpelGuard rumpelGuard, string memory tag) internal {
         setupGuardProtocols(rumpelGuard, tag);
@@ -165,6 +166,8 @@ library RumpelConfig {
             return new ProtocolGuardConfig[](0);
         } else if (tagHash == keccak256(bytes("ethena-staking-lp-withdraw"))) {
             return getEthenaStakingLPWithdrawProtocolGuardConfigs();
+        } else if (tagHash == keccak256(bytes("claim-rsusde-yield"))) {
+            return getClaimRSUSDeYieldProtocolGuardConfigs();
         }
 
         revert("Unsupported tag");
@@ -199,6 +202,8 @@ library RumpelConfig {
             return getSYsUSDeApproveTokenGuardConfigs();
         } else if (tagHash == keccak256(bytes("ethena-staking-lp-withdraw"))) {
             return new TokenGuardConfig[](0);
+        } else if (tagHash == keccak256(bytes("claim-rsusde-yield"))) {
+            return getClaimRSUSDeYieldTokenGuardConfigs();
         }
 
         revert("Unsupported tag");
@@ -229,6 +234,8 @@ library RumpelConfig {
             return new TokenModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("ethena-staking-lp-withdraw"))) {
             return new TokenModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("claim-rsusde-yield"))) {
+            return new TokenModuleConfig[](0);
         }
 
         revert("Unsupported tag");
@@ -256,6 +263,8 @@ library RumpelConfig {
         } else if (tagHash == keccak256(bytes("sYsUSDe-token-approve"))) {
             return new ProtocolModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("ethena-staking-lp-withdraw"))) {
+            return new ProtocolModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("claim-rsusde-yield"))) {
             return new ProtocolModuleConfig[](0);
         }
 
@@ -764,6 +773,27 @@ library RumpelConfig {
 
         configs[0] = ProtocolGuardConfig({target: MAINNET_ETHENA_LP_STAKING, allowedSelectors: new bytes4[](1)});
         configs[0].allowedSelectors[0] = IEthenaLpStaking.withdraw.selector;
+
+        return configs;
+    }
+
+    function getClaimRSUSDeYieldProtocolGuardConfigs() internal pure returns (ProtocolGuardConfig[] memory) {
+        ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](1);
+
+        configs[0] = ProtocolGuardConfig({target: MAINNET_SY_RSUSDE, allowedSelectors: new bytes4[](1)});
+        configs[0].allowedSelectors[0] = IStandardizedYield.redeem.selector;
+
+        return configs;
+    }
+
+    function getClaimRSUSDeYieldTokenGuardConfigs() internal pure returns (TokenGuardConfig[] memory) {
+        TokenGuardConfig[] memory configs = new TokenGuardConfig[](1);
+
+        configs[0] = TokenGuardConfig({
+            token: MAINNET_SY_RSUSDE,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.ON
+        });
 
         return configs;
     }
