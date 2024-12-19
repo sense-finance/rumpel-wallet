@@ -183,7 +183,7 @@ library RumpelConfig {
             return getEthenaStakingLPWithdrawProtocolGuardConfigs();
         } else if (tagHash == keccak256(bytes("claim-rsusde-yield"))) {
             return getClaimRSUSDeYieldProtocolGuardConfigs();
-        } else if (tagHash == keccak256(bytes("initial-fluid-asset-blocklist"))) {
+        } else if (tagHash == keccak256(bytes("fluid-asset-blocklist"))) {
             return new ProtocolGuardConfig[](0);
         }
 
@@ -221,8 +221,8 @@ library RumpelConfig {
             return new TokenGuardConfig[](0);
         } else if (tagHash == keccak256(bytes("claim-rsusde-yield"))) {
             return getClaimRSUSDeYieldTokenGuardConfigs();
-        } else if (tagHash == keccak256(bytes("initial-fluid-asset-blocklist"))) {
-            return new TokenGuardConfig[](0);
+        } else if (tagHash == keccak256(bytes("fluid-asset-blocklist"))) {
+            return getInitialFluidAssetTokenGuardConfigs();
         }
 
         revert("Unsupported tag");
@@ -256,7 +256,7 @@ library RumpelConfig {
             return new TokenModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("claim-rsusde-yield"))) {
             return new TokenModuleConfig[](0);
-        } else if (tagHash == keccak256(bytes("initial-fluid-asset-blocklist"))) {
+        } else if (tagHash == keccak256(bytes("fluid-asset-blocklist"))) {
             return getInitialFluidAssetTokenModuleConfigs();
         }
 
@@ -288,7 +288,7 @@ library RumpelConfig {
             return new ProtocolModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("claim-rsusde-yield"))) {
             return new ProtocolModuleConfig[](0);
-        } else if (tagHash == keccak256(bytes("initial-fluid-asset-blocklist"))) {
+        } else if (tagHash == keccak256(bytes("fluid-asset-blocklist"))) {
             return getInitialFluidAssetProtocolModuleConfigs();
         }
 
@@ -817,6 +817,28 @@ library RumpelConfig {
             token: MAINNET_SY_RSUSDE,
             transferAllowState: RumpelGuard.AllowListState.ON,
             approveAllowState: RumpelGuard.AllowListState.ON
+        });
+
+        return configs;
+    }
+
+    function getInitialFluidAssetTokenGuardConfigs() internal pure returns (TokenGuardConfig[] memory) {
+        TokenGuardConfig[] memory configs = new TokenGuardConfig[](3);
+
+        configs[0] = TokenGuardConfig({
+            token: MAINNET_WEETH,
+            transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
+            approveAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON
+        });
+        configs[1] = TokenGuardConfig({
+            token: MAINNET_WEETHS,
+            transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
+            approveAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON
+        });
+        configs[2] = TokenGuardConfig({
+            token: MAINNET_WSTETH,
+            transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
+            approveAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON
         });
 
         return configs;
