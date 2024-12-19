@@ -4,6 +4,7 @@ pragma solidity =0.8.24;
 import {RumpelGuard} from "../src/RumpelGuard.sol";
 import {RumpelModule} from "../src/RumpelModule.sol";
 import {ERC20} from "solmate/tokens/ERC20.sol";
+import {console} from "forge-std/console.sol";
 
 struct ProtocolGuardConfig {
     address target;
@@ -24,7 +25,7 @@ struct TokenModuleConfig {
 
 struct ProtocolModuleConfig {
     address target;
-    bytes4[] allowedSelectors;
+    bytes4[] blockedSelectors;
 }
 
 library RumpelConfig {
@@ -37,7 +38,7 @@ library RumpelConfig {
     address public constant MAINNET_KARAK_VAULT_SUPERVISOR = 0x54e44DbB92dBA848ACe27F44c0CB4268981eF1CC;
     address public constant MAINNET_KARAK_DELEGATION_SUPERVISOR = 0xAfa904152E04aBFf56701223118Be2832A4449E0;
     address public constant MAINNET_ETHENA_LP_STAKING = 0x8707f238936c12c309bfc2B9959C35828AcFc512;
-    address public constant MAINNET_FLUID_VAULTT1 = 0xeAEf563015634a9d0EE6CF1357A3b205C35e028D;
+    address public constant MAINNET_FLUID_VAULT_WEETH_WSTETH = 0xeAEf563015634a9d0EE6CF1357A3b205C35e028D;
     address public constant MAINNET_FLUID_VAULT_FACTORY = 0x324c5Dc1fC42c7a4D43d92df1eBA58a54d13Bf2d;
     address public constant MAINNET_FLUID_VAULT_WEETHS_WSTETH = 0x1c6068eC051f0Ac1688cA1FE76810FA9c8644278;
     address public constant MAINNET_FLUID_VAULT_SUSDE_USDC = 0x3996464c0fCCa8183e13ea5E5e74375e2c8744Dd;
@@ -54,6 +55,7 @@ library RumpelConfig {
     address public constant MAINNET_KUSDE = 0xBE3cA34D0E877A1Fc889BD5231D65477779AFf4e;
     address public constant MAINNET_KWEETH = 0x2DABcea55a12d73191AeCe59F508b191Fb68AdaC;
     address public constant MAINNET_WEETH = 0xCd5fE23C85820F7B72D0926FC9b05b43E359b7ee;
+    address public constant MAINNET_WEETHS = 0x917ceE801a67f933F2e6b33fC0cD1ED2d5909D88;
     address public constant MAINNET_MSTETH = 0x49446A0874197839D15395B908328a74ccc96Bc0;
 
     address public constant MAINNET_RE7LRT = 0x84631c0d0081FDe56DeB72F6DE77abBbF6A9f93a;
@@ -119,10 +121,18 @@ library RumpelConfig {
         for (uint256 i = 0; i < tokens.length; i++) {
             TokenModuleConfig memory config = tokens[i];
             if (config.blockTransfer) {
-                rumpelModule.addBlockedModuleCall(config.token, ERC20.transfer.selector);
+                if (rumpelModule.blockedModuleCalls(config.token, ERC20.transfer.selector) != true) {
+                    rumpelModule.addBlockedModuleCall(config.token, ERC20.transfer.selector);
+                } else {
+                    console.log("Transfer already blocked");
+                }
             }
             if (config.blockApprove) {
-                rumpelModule.addBlockedModuleCall(config.token, ERC20.approve.selector);
+                if (rumpelModule.blockedModuleCalls(config.token, ERC20.approve.selector) != true) {
+                    rumpelModule.addBlockedModuleCall(config.token, ERC20.approve.selector);
+                } else {
+                    console.log("Approve already blocked");
+                }
             }
         }
     }
@@ -131,12 +141,17 @@ library RumpelConfig {
         ProtocolModuleConfig[] memory protocols = getModuleProtocolConfigs(tag);
         for (uint256 i = 0; i < protocols.length; i++) {
             ProtocolModuleConfig memory config = protocols[i];
-            for (uint256 j = 0; j < config.allowedSelectors.length; j++) {
-                rumpelModule.addBlockedModuleCall(config.target, config.allowedSelectors[j]);
+            for (uint256 j = 0; j < config.blockedSelectors.length; j++) {
+                if (rumpelModule.blockedModuleCalls(config.target, config.blockedSelectors[j]) != true) {
+                    rumpelModule.addBlockedModuleCall(config.target, config.blockedSelectors[j]);
+                } else {
+                    console.log("Selector already blocked");
+                }
             }
         }
     }
 
+    // Allowlist ----
     function getGuardProtocolConfigs(string memory tag) internal pure returns (ProtocolGuardConfig[] memory) {
         bytes32 tagHash = keccak256(bytes(tag));
 
@@ -168,6 +183,8 @@ library RumpelConfig {
             return getEthenaStakingLPWithdrawProtocolGuardConfigs();
         } else if (tagHash == keccak256(bytes("claim-rsusde-yield"))) {
             return getClaimRSUSDeYieldProtocolGuardConfigs();
+        } else if (tagHash == keccak256(bytes("initial-fluid-asset-blocklist"))) {
+            return new ProtocolGuardConfig[](0);
         }
 
         revert("Unsupported tag");
@@ -204,11 +221,14 @@ library RumpelConfig {
             return new TokenGuardConfig[](0);
         } else if (tagHash == keccak256(bytes("claim-rsusde-yield"))) {
             return getClaimRSUSDeYieldTokenGuardConfigs();
+        } else if (tagHash == keccak256(bytes("initial-fluid-asset-blocklist"))) {
+            return new TokenGuardConfig[](0);
         }
 
         revert("Unsupported tag");
     }
 
+    // Blocklist ----
     function getModuleTokenConfigs(string memory tag) internal pure returns (TokenModuleConfig[] memory) {
         bytes32 tagHash = keccak256(bytes(tag));
 
@@ -236,6 +256,8 @@ library RumpelConfig {
             return new TokenModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("claim-rsusde-yield"))) {
             return new TokenModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("initial-fluid-asset-blocklist"))) {
+            return getInitialFluidAssetTokenModuleConfigs();
         }
 
         revert("Unsupported tag");
@@ -266,6 +288,8 @@ library RumpelConfig {
             return new ProtocolModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("claim-rsusde-yield"))) {
             return new ProtocolModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("initial-fluid-asset-blocklist"))) {
+            return getInitialFluidAssetProtocolModuleConfigs();
         }
 
         revert("Unsupported tag");
@@ -657,7 +681,7 @@ library RumpelConfig {
     function getFluidLoopWeETHAndWstEthConfigs() internal pure returns (ProtocolGuardConfig[] memory) {
         ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](2);
 
-        configs[0] = ProtocolGuardConfig({target: MAINNET_FLUID_VAULTT1, allowedSelectors: new bytes4[](1)});
+        configs[0] = ProtocolGuardConfig({target: MAINNET_FLUID_VAULT_WEETH_WSTETH, allowedSelectors: new bytes4[](1)});
         configs[0].allowedSelectors[0] = IFluidVaultT1.operate.selector;
 
         configs[1] = ProtocolGuardConfig({target: MAINNET_FLUID_VAULT_FACTORY, allowedSelectors: new bytes4[](1)});
@@ -794,6 +818,47 @@ library RumpelConfig {
             transferAllowState: RumpelGuard.AllowListState.ON,
             approveAllowState: RumpelGuard.AllowListState.ON
         });
+
+        return configs;
+    }
+
+    function getInitialFluidAssetTokenModuleConfigs() internal pure returns (TokenModuleConfig[] memory) {
+        TokenModuleConfig[] memory configs = new TokenModuleConfig[](3);
+
+        configs[0] = TokenModuleConfig({token: MAINNET_WEETH, blockTransfer: true, blockApprove: true});
+        configs[1] = TokenModuleConfig({token: MAINNET_WEETHS, blockTransfer: true, blockApprove: true});
+        configs[2] = TokenModuleConfig({token: MAINNET_WSTETH, blockTransfer: true, blockApprove: true});
+
+        return configs;
+    }
+
+    function getInitialFluidAssetProtocolModuleConfigs() internal pure returns (ProtocolModuleConfig[] memory) {
+        ProtocolModuleConfig[] memory configs = new ProtocolModuleConfig[](8);
+
+        configs[0] = ProtocolModuleConfig({target: MAINNET_FLUID_VAULT_WEETH_WSTETH, blockedSelectors: new bytes4[](1)});
+        configs[0].blockedSelectors[0] = IFluidVaultT1.operate.selector;
+
+        configs[1] =
+            ProtocolModuleConfig({target: MAINNET_FLUID_VAULT_WEETHS_WSTETH, blockedSelectors: new bytes4[](1)});
+        configs[1].blockedSelectors[0] = IFluidVaultT1.operate.selector;
+
+        configs[2] = ProtocolModuleConfig({target: MAINNET_FLUID_VAULT_SUSDE_USDC, blockedSelectors: new bytes4[](1)});
+        configs[2].blockedSelectors[0] = IFluidVaultT1.operate.selector;
+
+        configs[3] = ProtocolModuleConfig({target: MAINNET_FLUID_VAULT_SUSDE_USDT, blockedSelectors: new bytes4[](1)});
+        configs[3].blockedSelectors[0] = IFluidVaultT1.operate.selector;
+
+        configs[4] = ProtocolModuleConfig({target: MAINNET_FLUID_VAULT_SUSDE_GHO, blockedSelectors: new bytes4[](1)});
+        configs[4].blockedSelectors[0] = IFluidVaultT1.operate.selector;
+
+        configs[5] = ProtocolModuleConfig({target: MAINNET_FLUID_VAULT_FACTORY, blockedSelectors: new bytes4[](1)});
+        configs[5].blockedSelectors[0] = IFluidVaultFactory.transferFrom.selector;
+
+        configs[6] = ProtocolModuleConfig({target: MAINNET_FLUID_VAULT_FACTORY, blockedSelectors: new bytes4[](1)});
+        configs[6].blockedSelectors[0] = IFluidVaultFactory_.safeTransferFrom.selector;
+
+        configs[7] = ProtocolModuleConfig({target: MAINNET_FLUID_VAULT_FACTORY, blockedSelectors: new bytes4[](1)});
+        configs[7].blockedSelectors[0] = IFluidVaultFactory.safeTransferFrom.selector;
 
         return configs;
     }
