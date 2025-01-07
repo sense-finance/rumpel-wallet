@@ -44,6 +44,7 @@ library RumpelConfig {
     address public constant MAINNET_FLUID_VAULT_SUSDE_USDC = 0x3996464c0fCCa8183e13ea5E5e74375e2c8744Dd;
     address public constant MAINNET_FLUID_VAULT_SUSDE_USDT = 0xBc345229C1b52e4c30530C614BB487323BA38Da5;
     address public constant MAINNET_FLUID_VAULT_SUSDE_GHO = 0x2F3780e21cAba1bEdFB24E37C97917def304dFFA;
+    address public constant MAINNET_ETHERFI_LRT2_CLAIM = 0x6Db24Ee656843E3fE03eb8762a54D86186bA6B64;
 
     // Tokens
     address public constant MAINNET_RSUSDE = 0x82f5104b23FF2FA54C2345F821dAc9369e9E0B26;
@@ -82,6 +83,9 @@ library RumpelConfig {
     address public constant MAINNET_SY_SUSDE = 0xD288755556c235afFfb6316702719C32bD8706e8;
     address public constant MAINNET_PENDLE_ROUTERV4 = 0x888888888889758F76e7103c6CbF23ABbF58F946;
     address public constant MAINNET_SY_RSUSDE = 0xBCD9522EEf626dD0363347BDE6cAB105c2C7797e;
+
+    // Additional Reward Assets
+    address public constant MAINNET_LRT2 = 0x8F08B70456eb22f6109F57b8fafE862ED28E6040;
 
     function updateGuardAllowlist(RumpelGuard rumpelGuard, string memory tag) internal {
         setupGuardProtocols(rumpelGuard, tag);
@@ -185,6 +189,8 @@ library RumpelConfig {
             return getClaimRSUSDeYieldProtocolGuardConfigs();
         } else if (tagHash == keccak256(bytes("fluid-asset-blocklist"))) {
             return new ProtocolGuardConfig[](0);
+        } else if (tagHash == keccak256(bytes("lrt2-claiming"))) {
+            return getClaimLRT2ProtocolGuardConfigs();
         }
 
         revert("Unsupported tag");
@@ -223,6 +229,8 @@ library RumpelConfig {
             return getClaimRSUSDeYieldTokenGuardConfigs();
         } else if (tagHash == keccak256(bytes("fluid-asset-blocklist"))) {
             return getInitialFluidAssetTokenGuardConfigs();
+        } else if (tagHash == keccak256(bytes("lrt2-claiming"))) {
+            return getClaimLRT2AssetTokenGuardConfigs();
         }
 
         revert("Unsupported tag");
@@ -258,6 +266,8 @@ library RumpelConfig {
             return new TokenModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("fluid-asset-blocklist"))) {
             return getInitialFluidAssetTokenModuleConfigs();
+        } else if (tagHash == keccak256(bytes("lrt2-claiming"))) {
+            return new TokenModuleConfig[](0);
         }
 
         revert("Unsupported tag");
@@ -290,6 +300,8 @@ library RumpelConfig {
             return new ProtocolModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("fluid-asset-blocklist"))) {
             return getInitialFluidAssetProtocolModuleConfigs();
+        } else if (tagHash == keccak256(bytes("lrt2-claiming"))) {
+            return new ProtocolModuleConfig[](0);
         }
 
         revert("Unsupported tag");
@@ -884,6 +896,27 @@ library RumpelConfig {
 
         return configs;
     }
+
+    function getClaimLRT2ProtocolGuardConfigs() internal pure returns (ProtocolGuardConfig[] memory) {
+        ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](1);
+
+        configs[0] = ProtocolGuardConfig({target: MAINNET_ETHERFI_LRT2_CLAIM, allowedSelectors: new bytes4[](1)});
+        configs[0].allowedSelectors[0] = ILRT2Claim.claim.selector;
+
+        return configs;
+    }
+
+    function getClaimLRT2AssetTokenGuardConfigs() internal pure returns (TokenGuardConfig[] memory) {
+        TokenGuardConfig[] memory configs = new TokenGuardConfig[](1);
+
+        configs[0] = TokenGuardConfig({
+            token: MAINNET_LRT2,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.ON
+        });
+
+        return configs;
+    }
 }
 
 interface IMorphoBundler {
@@ -1023,3 +1056,12 @@ interface IPMarket {}
 interface IPSwapAggregator {}
 
 interface SwapDataExtra {}
+
+interface ILRT2Claim {
+    function claim(
+        address account,
+        uint256 cumulativeAmount,
+        bytes32 expectedMerkleRoot,
+        bytes32[] calldata merkleProof
+    ) external;
+}
