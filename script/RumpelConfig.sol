@@ -57,6 +57,8 @@ library RumpelConfig {
     address public constant MAINNET_WEETH = 0xCd5fE23C85820F7B72D0926FC9b05b43E359b7ee;
     address public constant MAINNET_WEETHS = 0x917ceE801a67f933F2e6b33fC0cD1ED2d5909D88;
     address public constant MAINNET_MSTETH = 0x49446A0874197839D15395B908328a74ccc96Bc0;
+    address public constant MAINNET_USDT = 0xdAC17F958D2ee523a2206206994597C13D831ec7;
+    address public constant MAINNET_GHO = 0x40D16FC0246aD3160Ccc09B8D0D3A2cD28aE6C2f;
 
     address public constant MAINNET_RE7LRT = 0x84631c0d0081FDe56DeB72F6DE77abBbF6A9f93a;
     address public constant MAINNET_RE7RWBTC = 0x7F43fDe12A40dE708d908Fb3b9BFB8540d9Ce444;
@@ -185,6 +187,8 @@ library RumpelConfig {
             return getClaimRSUSDeYieldProtocolGuardConfigs();
         } else if (tagHash == keccak256(bytes("fluid-asset-blocklist"))) {
             return new ProtocolGuardConfig[](0);
+        } else if (tagHash == keccak256(bytes("stables-guard"))) {
+            return new ProtocolGuardConfig[](0);
         }
 
         revert("Unsupported tag");
@@ -223,6 +227,8 @@ library RumpelConfig {
             return getClaimRSUSDeYieldTokenGuardConfigs();
         } else if (tagHash == keccak256(bytes("fluid-asset-blocklist"))) {
             return getInitialFluidAssetTokenGuardConfigs();
+        } else if (tagHash == keccak256(bytes("stables-guard"))) {
+            return getStablesTokenGuardConfigs();
         }
 
         revert("Unsupported tag");
@@ -258,6 +264,8 @@ library RumpelConfig {
             return new TokenModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("fluid-asset-blocklist"))) {
             return getInitialFluidAssetTokenModuleConfigs();
+        } else if (tagHash == keccak256(bytes("stables-guard"))) {
+            return new TokenModuleConfig[](0);
         }
 
         revert("Unsupported tag");
@@ -290,6 +298,8 @@ library RumpelConfig {
             return new ProtocolModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("fluid-asset-blocklist"))) {
             return getInitialFluidAssetProtocolModuleConfigs();
+        } else if (tagHash == keccak256(bytes("stables-guard"))) {
+            return new ProtocolModuleConfig[](0);
         }
 
         revert("Unsupported tag");
@@ -881,6 +891,24 @@ library RumpelConfig {
 
         configs[7] = ProtocolModuleConfig({target: MAINNET_FLUID_VAULT_FACTORY, blockedSelectors: new bytes4[](1)});
         configs[7].blockedSelectors[0] = IFluidVaultFactory.safeTransferFrom.selector;
+
+        return configs;
+    }
+
+    function getStablesTokenGuardConfigs() internal pure returns (TokenGuardConfig[] memory) {
+        TokenGuardConfig[] memory configs = new TokenGuardConfig[](2);
+
+        configs[0] = TokenGuardConfig({
+            token: MAINNET_USDT,
+            transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
+            approveAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON
+        });
+
+        configs[1] = TokenGuardConfig({
+            token: MAINNET_GHO,
+            transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
+            approveAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON
+        });
 
         return configs;
     }
