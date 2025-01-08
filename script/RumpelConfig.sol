@@ -74,6 +74,8 @@ library RumpelConfig {
     address public constant MAINNET_YT_KARAK_SUSDE_30JAN2025 = 0x27f6F2f5e87A383471C79296c64E4e82269877f7; // sy token added
     address public constant MAINNET_YT_CORN_LBTC_26DEC2024 = 0x1caE47aA3e10A77C55Ee32f8623D6B5ACC947344;
     address public constant MAINNET_YT_RSUSDE_27MAR2025 = 0x079F21309eB9cbD2a387972eB2168d57C8542e32; // sy token added
+    address public constant MAINNET_YT_SUSDE_27MAR2025 = 0x96512230bF0Fa4E20Cf02C3e8A7d983132cd2b9F;
+    address public constant MAINNET_YT_SUSDE_29MAY2025 = 0x1de6Ff19FDA7496DdC12f2161f6ad6427c52aBBe;
 
     address public constant MAINNET_AMPHRETH = 0x5fD13359Ba15A84B76f7F87568309040176167cd;
     address public constant MAINNET_SYMBIOTIC_LBTC = 0x9C0823D3A1172F9DdF672d438dec79c39a64f448;
@@ -188,6 +190,8 @@ library RumpelConfig {
             return new ProtocolGuardConfig[](0);
         } else if (tagHash == keccak256(bytes("add-karak-pendle-sy-token"))) {
             return getAddKarakPendleSYProtocolGuardConfigs();
+        } else if (tagHash == keccak256(bytes("add-march-may-2025-susde-yts"))) {
+            return new ProtocolGuardConfig[](0);
         }
 
         revert("Unsupported tag");
@@ -228,6 +232,8 @@ library RumpelConfig {
             return getInitialFluidAssetTokenGuardConfigs();
         } else if (tagHash == keccak256(bytes("add-karak-pendle-sy-token"))) {
             return getAddKarakPendleSYTokenGuardConfigs();
+        } else if (tagHash == keccak256(bytes("add-march-may-2025-susde-yts"))) {
+            return getMarchAndMay2025SusdeYTsTokenGuardConfigs();
         }
 
         revert("Unsupported tag");
@@ -265,6 +271,8 @@ library RumpelConfig {
             return getInitialFluidAssetTokenModuleConfigs();
         } else if (tagHash == keccak256(bytes("add-karak-pendle-sy-token"))) {
             return new TokenModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("add-march-may-2025-susde-yts"))) {
+            return new TokenModuleConfig[](0);
         }
 
         revert("Unsupported tag");
@@ -298,6 +306,8 @@ library RumpelConfig {
         } else if (tagHash == keccak256(bytes("fluid-asset-blocklist"))) {
             return getInitialFluidAssetProtocolModuleConfigs();
         } else if (tagHash == keccak256(bytes("add-karak-pendle-sy-token"))) {
+            return new ProtocolModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("add-march-may-2025-susde-yts"))) {
             return new ProtocolModuleConfig[](0);
         }
 
@@ -914,6 +924,24 @@ library RumpelConfig {
 
         return configs;
     }
+
+    function getMarchAndMay2025SusdeYTsTokenGuardConfigs() internal pure returns(TokenGuardConfig[] memory) {
+        TokenGuardConfig[] memory configs = new TokenGuardConfig[](2);
+
+        configs[0] = TokenGuardConfig({
+            token: MAINNET_YT_SUSDE_27MAR2025,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+       configs[1] = TokenGuardConfig({
+            token: MAINNET_YT_SUSDE_27MAY2025,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+
+        return configs;
+    }
+
 }
 
 interface IMorphoBundler {
@@ -1051,5 +1079,3 @@ interface IPYieldToken {}
 interface IPMarket {}
 
 interface IPSwapAggregator {}
-
-interface SwapDataExtra {}
