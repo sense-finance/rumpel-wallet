@@ -900,14 +900,14 @@ library RumpelConfig {
 
         configs[0] = TokenGuardConfig({
             token: MAINNET_USDT,
-            transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
-            approveAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.ON
         });
 
         configs[1] = TokenGuardConfig({
             token: MAINNET_GHO,
-            transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
-            approveAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.ON
         });
 
         return configs;
