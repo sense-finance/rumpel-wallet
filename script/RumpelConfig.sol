@@ -934,7 +934,7 @@ library RumpelConfig {
             approveAllowState: RumpelGuard.AllowListState.OFF
         });
        configs[1] = TokenGuardConfig({
-            token: MAINNET_YT_SUSDE_27MAY2025,
+            token: MAINNET_YT_SUSDE_29MAY2025,
             transferAllowState: RumpelGuard.AllowListState.ON,
             approveAllowState: RumpelGuard.AllowListState.OFF
         });
