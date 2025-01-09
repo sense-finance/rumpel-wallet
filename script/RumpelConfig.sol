@@ -284,6 +284,7 @@ library RumpelConfig {
         } else if (tagHash == keccak256(bytes("lrt2-claiming"))) {
             return new TokenModuleConfig[](0);
         }
+
         revert("Unsupported tag");
     }
 
@@ -914,7 +915,7 @@ library RumpelConfig {
 
         return configs;
     }
-    
+
     function getStablesTokenGuardConfigs() internal pure returns (TokenGuardConfig[] memory) {
         TokenGuardConfig[] memory configs = new TokenGuardConfig[](2);
 
@@ -932,7 +933,6 @@ library RumpelConfig {
 
         return configs;
     }
-
     
     function getAddKarakPendleSYProtocolGuardConfigs() internal pure returns (ProtocolGuardConfig[] memory) {
         ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](1);
