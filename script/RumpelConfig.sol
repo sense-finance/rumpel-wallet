@@ -85,6 +85,8 @@ library RumpelConfig {
     address public constant MAINNET_PENDLE_ROUTERV4 = 0x888888888889758F76e7103c6CbF23ABbF58F946;
     address public constant MAINNET_SY_RSUSDE = 0xBCD9522EEf626dD0363347BDE6cAB105c2C7797e;
     address public constant MAINNET_SY_KARAK_SUSDE_30JAN2025 = 0x1b641894e66aec7Bf5ab86517e8D81763Cc8e19E;
+    address public constant MAINNET_SY_SUSDE_27MAR2025 = 0x3Ee118EFC826d30A29645eAf3b2EaaC9E8320185;
+    address public constant MAINNET_SY_SUSDE_29MAY2025 = 0xE877B2A8a53763C8B0534a15e87da28f3aC1257e;
 
     function updateGuardAllowlist(RumpelGuard rumpelGuard, string memory tag) internal {
         setupGuardProtocols(rumpelGuard, tag);
@@ -191,7 +193,7 @@ library RumpelConfig {
         } else if (tagHash == keccak256(bytes("add-karak-pendle-sy-token"))) {
             return getAddKarakPendleSYProtocolGuardConfigs();
         } else if (tagHash == keccak256(bytes("add-march-may-2025-susde-yts"))) {
-            return new ProtocolGuardConfig[](0);
+            return getMarchAndMay2025SusdeYTsProtocolGuardConfigs();
         }
 
         revert("Unsupported tag");
@@ -925,8 +927,20 @@ library RumpelConfig {
         return configs;
     }
 
+    function getMarchAndMay2025SusdeYTsProtocolGuardConfigs() internal pure returns (ProtocolGuardConfig[] memory) {
+        ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](2);
+
+        configs[0] = ProtocolGuardConfig({target: MAINNET_SY_SUSDE_27MAR2025, allowedSelectors: new bytes4[](1)});
+        configs[0].allowedSelectors[0] = IStandardizedYield.redeem.selector;
+
+        configs[1] = ProtocolGuardConfig({target: MAINNET_YT_SUSDE_29MAY2025, allowedSelectors: new bytes4[](1)});
+        configs[1].allowedSelectors[0] = IStandardizedYield.redeem.selector;
+
+        return configs;
+    }
+
     function getMarchAndMay2025SusdeYTsTokenGuardConfigs() internal pure returns(TokenGuardConfig[] memory) {
-        TokenGuardConfig[] memory configs = new TokenGuardConfig[](2);
+        TokenGuardConfig[] memory configs = new TokenGuardConfig[](4);
 
         configs[0] = TokenGuardConfig({
             token: MAINNET_YT_SUSDE_27MAR2025,
@@ -937,6 +951,18 @@ library RumpelConfig {
             token: MAINNET_YT_SUSDE_29MAY2025,
             transferAllowState: RumpelGuard.AllowListState.ON,
             approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+
+        configs[2] = TokenGuardConfig({
+            token: MAINNET_SY_SUSDE_27MAR2025,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.ON
+        });
+        
+        configs[3] = TokenGuardConfig({
+            token: MAINNET_SY_SUSDE_29MAY2025,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.ON
         });
 
         return configs;
