@@ -58,6 +58,8 @@ library RumpelConfig {
     address public constant MAINNET_WEETH = 0xCd5fE23C85820F7B72D0926FC9b05b43E359b7ee;
     address public constant MAINNET_WEETHS = 0x917ceE801a67f933F2e6b33fC0cD1ED2d5909D88;
     address public constant MAINNET_MSTETH = 0x49446A0874197839D15395B908328a74ccc96Bc0;
+    address public constant MAINNET_USDT = 0xdAC17F958D2ee523a2206206994597C13D831ec7;
+    address public constant MAINNET_GHO = 0x40D16FC0246aD3160Ccc09B8D0D3A2cD28aE6C2f;
 
     address public constant MAINNET_RE7LRT = 0x84631c0d0081FDe56DeB72F6DE77abBbF6A9f93a;
     address public constant MAINNET_RE7RWBTC = 0x7F43fDe12A40dE708d908Fb3b9BFB8540d9Ce444;
@@ -190,6 +192,8 @@ library RumpelConfig {
             return getClaimRSUSDeYieldProtocolGuardConfigs();
         } else if (tagHash == keccak256(bytes("fluid-asset-blocklist"))) {
             return new ProtocolGuardConfig[](0);
+        } else if (tagHash == keccak256(bytes("stables-guard"))) {
+            return new ProtocolGuardConfig[](0);
         } else if (tagHash == keccak256(bytes("add-karak-pendle-sy-token"))) {
             return getAddKarakPendleSYProtocolGuardConfigs();
         } else if (tagHash == keccak256(bytes("lrt2-claiming"))) {
@@ -232,6 +236,8 @@ library RumpelConfig {
             return getClaimRSUSDeYieldTokenGuardConfigs();
         } else if (tagHash == keccak256(bytes("fluid-asset-blocklist"))) {
             return getInitialFluidAssetTokenGuardConfigs();
+        } else if (tagHash == keccak256(bytes("stables-guard"))) {
+            return getStablesTokenGuardConfigs();
         } else if (tagHash == keccak256(bytes("add-karak-pendle-sy-token"))) {
             return getAddKarakPendleSYTokenGuardConfigs();
         } else if (tagHash == keccak256(bytes("lrt2-claiming"))) {
@@ -271,6 +277,8 @@ library RumpelConfig {
             return new TokenModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("fluid-asset-blocklist"))) {
             return getInitialFluidAssetTokenModuleConfigs();
+        } else if (tagHash == keccak256(bytes("stables-guard"))) { 
+            return new TokenModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("add-karak-pendle-sy-token"))) {
             return new TokenModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("lrt2-claiming"))) {
@@ -306,6 +314,8 @@ library RumpelConfig {
             return new ProtocolModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("fluid-asset-blocklist"))) {
             return getInitialFluidAssetProtocolModuleConfigs();
+        } else if (tagHash == keccak256(bytes("stables-guard"))) {
+            return new ProtocolModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("add-karak-pendle-sy-token"))) {
             return new ProtocolModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("lrt2-claiming"))) {
@@ -904,6 +914,46 @@ library RumpelConfig {
 
         return configs;
     }
+    
+    function getStablesTokenGuardConfigs() internal pure returns (TokenGuardConfig[] memory) {
+        TokenGuardConfig[] memory configs = new TokenGuardConfig[](2);
+
+        configs[0] = TokenGuardConfig({
+            token: MAINNET_USDT,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.ON
+        });
+
+        configs[1] = TokenGuardConfig({
+            token: MAINNET_GHO,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.ON
+        });
+
+        return configs;
+    }
+
+    
+    function getAddKarakPendleSYProtocolGuardConfigs() internal pure returns (ProtocolGuardConfig[] memory) {
+        ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](1);
+
+        configs[0] = ProtocolGuardConfig({target: MAINNET_SY_KARAK_SUSDE_30JAN2025, allowedSelectors: new bytes4[](1)});
+        configs[0].allowedSelectors[0] = IStandardizedYield.redeem.selector;
+
+        return configs;
+    }
+
+    function getAddKarakPendleSYTokenGuardConfigs() internal pure returns (TokenGuardConfig[] memory) {
+        TokenGuardConfig[] memory configs = new TokenGuardConfig[](1);
+
+        configs[0] = TokenGuardConfig({
+            token: MAINNET_SY_KARAK_SUSDE_30JAN2025,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.ON
+        });
+
+        return configs;
+    }
 
     function getClaimLRT2ProtocolGuardConfigs() internal pure returns (ProtocolGuardConfig[] memory) {
         ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](1);
@@ -919,27 +969,6 @@ library RumpelConfig {
 
         configs[0] = TokenGuardConfig({
             token: MAINNET_LRT2,
-            transferAllowState: RumpelGuard.AllowListState.ON,
-            approveAllowState: RumpelGuard.AllowListState.ON
-        });
-
-        return configs;
-    }
-
-    function getAddKarakPendleSYProtocolGuardConfigs() internal pure returns (ProtocolGuardConfig[] memory) {
-        ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](1);
-
-        configs[0] = ProtocolGuardConfig({target: MAINNET_SY_KARAK_SUSDE_30JAN2025, allowedSelectors: new bytes4[](1)});
-        configs[0].allowedSelectors[0] = IStandardizedYield.redeem.selector;
-
-        return configs;
-    }
-
-    function getAddKarakPendleSYTokenGuardConfigs() internal pure returns (TokenGuardConfig[] memory) {
-        TokenGuardConfig[] memory configs = new TokenGuardConfig[](1);
-
-        configs[0] = TokenGuardConfig({
-            token: MAINNET_SY_KARAK_SUSDE_30JAN2025,
             transferAllowState: RumpelGuard.AllowListState.ON,
             approveAllowState: RumpelGuard.AllowListState.ON
         });
