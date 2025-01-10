@@ -44,6 +44,7 @@ library RumpelConfig {
     address public constant MAINNET_FLUID_VAULT_SUSDE_USDC = 0x3996464c0fCCa8183e13ea5E5e74375e2c8744Dd;
     address public constant MAINNET_FLUID_VAULT_SUSDE_USDT = 0xBc345229C1b52e4c30530C614BB487323BA38Da5;
     address public constant MAINNET_FLUID_VAULT_SUSDE_GHO = 0x2F3780e21cAba1bEdFB24E37C97917def304dFFA;
+    address public constant MAINNET_ETHERFI_LRT2_CLAIM = 0x6Db24Ee656843E3fE03eb8762a54D86186bA6B64;
 
     // Tokens
     address public constant MAINNET_RSUSDE = 0x82f5104b23FF2FA54C2345F821dAc9369e9E0B26;
@@ -57,6 +58,8 @@ library RumpelConfig {
     address public constant MAINNET_WEETH = 0xCd5fE23C85820F7B72D0926FC9b05b43E359b7ee;
     address public constant MAINNET_WEETHS = 0x917ceE801a67f933F2e6b33fC0cD1ED2d5909D88;
     address public constant MAINNET_MSTETH = 0x49446A0874197839D15395B908328a74ccc96Bc0;
+    address public constant MAINNET_USDT = 0xdAC17F958D2ee523a2206206994597C13D831ec7;
+    address public constant MAINNET_GHO = 0x40D16FC0246aD3160Ccc09B8D0D3A2cD28aE6C2f;
 
     address public constant MAINNET_RE7LRT = 0x84631c0d0081FDe56DeB72F6DE77abBbF6A9f93a;
     address public constant MAINNET_RE7RWBTC = 0x7F43fDe12A40dE708d908Fb3b9BFB8540d9Ce444;
@@ -87,6 +90,9 @@ library RumpelConfig {
     address public constant MAINNET_SY_KARAK_SUSDE_30JAN2025 = 0x1b641894e66aec7Bf5ab86517e8D81763Cc8e19E;
     address public constant MAINNET_SY_SUSDE_27MAR2025 = 0x3Ee118EFC826d30A29645eAf3b2EaaC9E8320185;
     address public constant MAINNET_SY_SUSDE_29MAY2025 = 0xE877B2A8a53763C8B0534a15e87da28f3aC1257e;
+
+    // Additional Reward Assets
+    address public constant MAINNET_LRT2 = 0x8F08B70456eb22f6109F57b8fafE862ED28E6040;
 
     function updateGuardAllowlist(RumpelGuard rumpelGuard, string memory tag) internal {
         setupGuardProtocols(rumpelGuard, tag);
@@ -190,8 +196,12 @@ library RumpelConfig {
             return getClaimRSUSDeYieldProtocolGuardConfigs();
         } else if (tagHash == keccak256(bytes("fluid-asset-blocklist"))) {
             return new ProtocolGuardConfig[](0);
+        } else if (tagHash == keccak256(bytes("stables-guard"))) {
+            return new ProtocolGuardConfig[](0);
         } else if (tagHash == keccak256(bytes("add-karak-pendle-sy-token"))) {
             return getAddKarakPendleSYProtocolGuardConfigs();
+        } else if (tagHash == keccak256(bytes("lrt2-claiming"))) {
+            return getClaimLRT2ProtocolGuardConfigs();
         } else if (tagHash == keccak256(bytes("add-march-may-2025-susde-yts"))) {
             return getMarchAndMay2025SusdeYTsProtocolGuardConfigs();
         }
@@ -232,11 +242,15 @@ library RumpelConfig {
             return getClaimRSUSDeYieldTokenGuardConfigs();
         } else if (tagHash == keccak256(bytes("fluid-asset-blocklist"))) {
             return getInitialFluidAssetTokenGuardConfigs();
+        } else if (tagHash == keccak256(bytes("stables-guard"))) {
+            return getStablesTokenGuardConfigs();
         } else if (tagHash == keccak256(bytes("add-karak-pendle-sy-token"))) {
             return getAddKarakPendleSYTokenGuardConfigs();
-        } else if (tagHash == keccak256(bytes("add-march-may-2025-susde-yts"))) {
+        } else if (tagHash == keccak256(bytes("lrt2-claiming"))) {
+            return getClaimLRT2AssetTokenGuardConfigs();
+        }  else if (tagHash == keccak256(bytes("add-march-may-2025-susde-yts"))) {
             return getMarchAndMay2025SusdeYTsTokenGuardConfigs();
-        }
+        } 
 
         revert("Unsupported tag");
     }
@@ -271,9 +285,13 @@ library RumpelConfig {
             return new TokenModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("fluid-asset-blocklist"))) {
             return getInitialFluidAssetTokenModuleConfigs();
+        } else if (tagHash == keccak256(bytes("stables-guard"))) { 
+            return new TokenModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("add-karak-pendle-sy-token"))) {
             return new TokenModuleConfig[](0);
-        } else if (tagHash == keccak256(bytes("add-march-may-2025-susde-yts"))) {
+        } else if (tagHash == keccak256(bytes("lrt2-claiming"))) {
+            return new TokenModuleConfig[](0);
+        }  else if (tagHash == keccak256(bytes("add-march-may-2025-susde-yts"))) {
             return new TokenModuleConfig[](0);
         }
 
@@ -307,7 +325,11 @@ library RumpelConfig {
             return new ProtocolModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("fluid-asset-blocklist"))) {
             return getInitialFluidAssetProtocolModuleConfigs();
+        } else if (tagHash == keccak256(bytes("stables-guard"))) {
+            return new ProtocolModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("add-karak-pendle-sy-token"))) {
+            return new ProtocolModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("lrt2-claiming"))) {
             return new ProtocolModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("add-march-may-2025-susde-yts"))) {
             return new ProtocolModuleConfig[](0);
@@ -906,6 +928,24 @@ library RumpelConfig {
         return configs;
     }
 
+    function getStablesTokenGuardConfigs() internal pure returns (TokenGuardConfig[] memory) {
+        TokenGuardConfig[] memory configs = new TokenGuardConfig[](2);
+
+        configs[0] = TokenGuardConfig({
+            token: MAINNET_USDT,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.ON
+        });
+
+        configs[1] = TokenGuardConfig({
+            token: MAINNET_GHO,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.ON
+        });
+
+        return configs;
+    }
+    
     function getAddKarakPendleSYProtocolGuardConfigs() internal pure returns (ProtocolGuardConfig[] memory) {
         ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](1);
 
@@ -927,13 +967,34 @@ library RumpelConfig {
         return configs;
     }
 
+    function getClaimLRT2ProtocolGuardConfigs() internal pure returns (ProtocolGuardConfig[] memory) {
+        ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](1);
+
+        configs[0] = ProtocolGuardConfig({target: MAINNET_ETHERFI_LRT2_CLAIM, allowedSelectors: new bytes4[](1)});
+        configs[0].allowedSelectors[0] = ILRT2Claim.claim.selector;
+
+        return configs;
+    }
+
+    function getClaimLRT2AssetTokenGuardConfigs() internal pure returns (TokenGuardConfig[] memory) {
+        TokenGuardConfig[] memory configs = new TokenGuardConfig[](1);
+
+        configs[0] = TokenGuardConfig({
+            token: MAINNET_LRT2,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.ON
+        });
+
+        return configs;
+    }
+
     function getMarchAndMay2025SusdeYTsProtocolGuardConfigs() internal pure returns (ProtocolGuardConfig[] memory) {
         ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](2);
 
         configs[0] = ProtocolGuardConfig({target: MAINNET_SY_SUSDE_27MAR2025, allowedSelectors: new bytes4[](1)});
         configs[0].allowedSelectors[0] = IStandardizedYield.redeem.selector;
 
-        configs[1] = ProtocolGuardConfig({target: MAINNET_YT_SUSDE_29MAY2025, allowedSelectors: new bytes4[](1)});
+        configs[1] = ProtocolGuardConfig({target: MAINNET_SY_SUSDE_29MAY2025, allowedSelectors: new bytes4[](1)});
         configs[1].allowedSelectors[0] = IStandardizedYield.redeem.selector;
 
         return configs;
@@ -967,7 +1028,6 @@ library RumpelConfig {
 
         return configs;
     }
-
 }
 
 interface IMorphoBundler {
@@ -1105,3 +1165,14 @@ interface IPYieldToken {}
 interface IPMarket {}
 
 interface IPSwapAggregator {}
+
+interface SwapDataExtra {}
+
+interface ILRT2Claim {
+    function claim(
+        address account,
+        uint256 cumulativeAmount,
+        bytes32 expectedMerkleRoot,
+        bytes32[] calldata merkleProof
+    ) external;
+}
