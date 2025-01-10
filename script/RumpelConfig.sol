@@ -60,6 +60,7 @@ library RumpelConfig {
     address public constant MAINNET_MSTETH = 0x49446A0874197839D15395B908328a74ccc96Bc0;
     address public constant MAINNET_USDT = 0xdAC17F958D2ee523a2206206994597C13D831ec7;
     address public constant MAINNET_GHO = 0x40D16FC0246aD3160Ccc09B8D0D3A2cD28aE6C2f;
+    address public constant MAINNET_KSUSDE = 0xDe5Bff0755F192C333B126A449FF944Ee2B69681;
 
     address public constant MAINNET_RE7LRT = 0x84631c0d0081FDe56DeB72F6DE77abBbF6A9f93a;
     address public constant MAINNET_RE7RWBTC = 0x7F43fDe12A40dE708d908Fb3b9BFB8540d9Ce444;
@@ -204,6 +205,8 @@ library RumpelConfig {
             return getClaimLRT2ProtocolGuardConfigs();
         } else if (tagHash == keccak256(bytes("add-march-may-2025-susde-yts"))) {
             return getMarchAndMay2025SusdeYTsProtocolGuardConfigs();
+        } else if (tagHash == keccak256(bytes("add-ksusde-transfer"))) {
+            return new ProtocolGuardConfig[](0);
         }
 
         revert("Unsupported tag");
@@ -250,7 +253,9 @@ library RumpelConfig {
             return getClaimLRT2AssetTokenGuardConfigs();
         }  else if (tagHash == keccak256(bytes("add-march-may-2025-susde-yts"))) {
             return getMarchAndMay2025SusdeYTsTokenGuardConfigs();
-        } 
+        } else if (tagHash == keccak256(bytes("add-ksusde-transfer"))) {
+            return getAddKsusdeTransferTokenGuardConfigs();
+        }
 
         revert("Unsupported tag");
     }
@@ -293,6 +298,8 @@ library RumpelConfig {
             return new TokenModuleConfig[](0);
         }  else if (tagHash == keccak256(bytes("add-march-may-2025-susde-yts"))) {
             return new TokenModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("add-ksusde-transfer"))) {
+            return new TokenModuleConfig[](0);
         }
 
         revert("Unsupported tag");
@@ -333,6 +340,8 @@ library RumpelConfig {
             return new ProtocolModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("add-march-may-2025-susde-yts"))) {
             return new ProtocolModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("add-ksusde-transfer"))) {
+           return new ProtocolModuleConfig[](0);
         }
 
         revert("Unsupported tag");
@@ -1026,6 +1035,18 @@ library RumpelConfig {
             approveAllowState: RumpelGuard.AllowListState.ON
         });
 
+        return configs;
+    }
+
+    function getAddKsusdeTransferTokenGuardConfigs() internal pure returns(TokenGuardConfig[] memory){
+        TokenGuardConfig[] memory configs = new TokenGuardConfig[](1);
+
+        configs[0] = TokenGuardConfig({
+            token: MAINNET_KSUSDE,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+        
         return configs;
     }
 }
