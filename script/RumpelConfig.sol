@@ -277,7 +277,7 @@ library RumpelConfig {
             return new TokenModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("fluid-asset-blocklist"))) {
             return getInitialFluidAssetTokenModuleConfigs();
-        } else if (tagHash == keccak256(bytes("stables-guard"))) { 
+        } else if (tagHash == keccak256(bytes("stables-guard"))) {
             return new TokenModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("add-karak-pendle-sy-token"))) {
             return new TokenModuleConfig[](0);
@@ -933,7 +933,7 @@ library RumpelConfig {
 
         return configs;
     }
-    
+
     function getAddKarakPendleSYProtocolGuardConfigs() internal pure returns (ProtocolGuardConfig[] memory) {
         ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](1);
 
@@ -972,6 +972,93 @@ library RumpelConfig {
             transferAllowState: RumpelGuard.AllowListState.ON,
             approveAllowState: RumpelGuard.AllowListState.ON
         });
+
+        return configs;
+    }
+
+    function getBlockListProtocolConfigs() internal pure returns (ProtocolModuleConfig[] memory) {
+        ProtocolModuleConfig[] memory configs = new ProtocolModuleConfig[](13);
+
+        // RSUSDE
+        configs[0] = ProtocolModuleConfig({target: MAINNET_RSUSDE, blockedSelectors: new bytes4[](2)});
+        configs[0].blockedSelectors[0] = IERC4626.deposit.selector;
+        configs[0].blockedSelectors[1] = IMellow.registerWithdrawal.selector;
+
+        // Zircuit Restaking Pool
+        configs[1] = ProtocolModuleConfig({target: MAINNET_ZIRCUIT_RESTAKING_POOL, blockedSelectors: new bytes4[](2)});
+        configs[1].blockedSelectors[0] = IZircuitRestakingPool.depositFor.selector;
+        configs[1].blockedSelectors[1] = IZircuitRestakingPool.withdraw.selector;
+
+        // Symbiotic wstETH Collateral
+        configs[2] =
+            ProtocolModuleConfig({target: MAINNET_SYMBIOTIC_WSTETH_COLLATERAL, blockedSelectors: new bytes4[](2)});
+        configs[2].blockedSelectors[0] = ISymbioticWstETHCollateral.deposit.selector;
+        configs[2].blockedSelectors[1] = ISymbioticWstETHCollateral.withdraw.selector;
+
+        // Symbiotic sUSDe Collateral
+        configs[3] =
+            ProtocolModuleConfig({target: MAINNET_SYMBIOTIC_SUSDE_COLLATERAL, blockedSelectors: new bytes4[](2)});
+        configs[3].blockedSelectors[0] = ISymbioticWstETHCollateral.deposit.selector;
+        configs[3].blockedSelectors[1] = ISymbioticWstETHCollateral.withdraw.selector;
+
+        // SUSDE
+        configs[4] = ProtocolModuleConfig({target: MAINNET_SUSDE, blockedSelectors: new bytes4[](7)});
+        configs[4].blockedSelectors[0] = ISUSDE.unstake.selector;
+        configs[4].blockedSelectors[1] = ISUSDE.cooldownAssets.selector;
+        configs[4].blockedSelectors[2] = ISUSDE.cooldownShares.selector;
+        configs[4].blockedSelectors[3] = IERC4626.deposit.selector;
+        configs[4].blockedSelectors[4] = IERC4626.mint.selector;
+        configs[4].blockedSelectors[5] = IERC4626.withdraw.selector;
+        configs[4].blockedSelectors[6] = IERC4626.redeem.selector;
+
+        // RSTETH
+        configs[5] = ProtocolModuleConfig({target: MAINNET_RSTETH, blockedSelectors: new bytes4[](2)});
+        configs[5].blockedSelectors[0] = IERC4626.deposit.selector;
+        configs[5].blockedSelectors[1] = IMellow.registerWithdrawal.selector;
+
+        // RE7LRT
+        configs[6] = ProtocolModuleConfig({target: MAINNET_RE7LRT, blockedSelectors: new bytes4[](2)});
+        configs[6].blockedSelectors[0] = IMellow.deposit.selector;
+        configs[6].blockedSelectors[1] = IMellow.registerWithdrawal.selector;
+
+        // RE7RWBTC
+        configs[7] = ProtocolModuleConfig({target: MAINNET_RE7RWBTC, blockedSelectors: new bytes4[](2)});
+        configs[7].blockedSelectors[0] = IMellow.deposit.selector;
+        configs[7].blockedSelectors[1] = IMellow.registerWithdrawal.selector;
+
+        // Morpho Base
+        configs[8] = ProtocolModuleConfig({target: MAINNET_MORPHO_BASE, blockedSelectors: new bytes4[](1)});
+        configs[8].blockedSelectors[0] = IMorphoBase.setAuthorization.selector;
+
+        // SY PENDLE sUSDe
+        configs[9] = ProtocolModuleConfig({target: MAINNET_SY_SUSDE, blockedSelectors: new bytes4[](1)});
+        configs[9].blockedSelectors[0] = IStandardizedYield.redeem.selector;
+
+        // SY PENDLE RSUSDe
+        configs[10] = ProtocolModuleConfig({target: MAINNET_SY_RSUSDE, blockedSelectors: new bytes4[](1)});
+        configs[10].blockedSelectors[0] = IStandardizedYield.redeem.selector;
+
+        // SY PENDLE Karak sUSDe 30JAN2025
+        configs[11] =
+            ProtocolModuleConfig({target: MAINNET_SY_KARAK_SUSDE_30JAN2025, blockedSelectors: new bytes4[](1)});
+        configs[11].blockedSelectors[0] = IStandardizedYield.redeem.selector;
+
+        return configs;
+    }
+
+    function getBlockListTokenConfigs() internal pure returns (TokenModuleConfig[] memory) {
+        TokenModuleConfig[] memory configs = new TokenModuleConfig[](11);
+
+        configs[0] = TokenModuleConfig({token: MAINNET_SUSDE, blockTransfer: true, blockApprove: true});
+        configs[1] = TokenModuleConfig({token: MAINNET_USDE, blockTransfer: true, blockApprove: true});
+        configs[2] = TokenModuleConfig({token: MAINNET_MSTETH, blockTransfer: true, blockApprove: true});
+        configs[3] = TokenModuleConfig({token: MAINNET_STETH, blockTransfer: true, blockApprove: true});
+        configs[4] = TokenModuleConfig({token: MAINNET_WBTC, blockTransfer: true, blockApprove: true});
+        configs[5] = TokenModuleConfig({token: MAINNET_SY_RSUSDE, blockTransfer: true, blockApprove: true});
+        configs[6] =
+            TokenModuleConfig({token: MAINNET_SY_KARAK_SUSDE_30JAN2025, blockTransfer: true, blockApprove: true});
+        configs[7] = TokenModuleConfig({token: MAINNET_USDT, blockTransfer: true, blockApprove: true});
+        configs[8] = TokenModuleConfig({token: MAINNET_GHO, blockTransfer: true, blockApprove: true});
 
         return configs;
     }
