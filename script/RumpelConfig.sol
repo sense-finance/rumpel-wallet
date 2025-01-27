@@ -58,8 +58,10 @@ library RumpelConfig {
     address public constant MAINNET_WEETH = 0xCd5fE23C85820F7B72D0926FC9b05b43E359b7ee;
     address public constant MAINNET_WEETHS = 0x917ceE801a67f933F2e6b33fC0cD1ED2d5909D88;
     address public constant MAINNET_MSTETH = 0x49446A0874197839D15395B908328a74ccc96Bc0;
+    address public constant MAINNET_STETH = 0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84;
     address public constant MAINNET_USDT = 0xdAC17F958D2ee523a2206206994597C13D831ec7;
     address public constant MAINNET_GHO = 0x40D16FC0246aD3160Ccc09B8D0D3A2cD28aE6C2f;
+    address public constant MAINNET_KSUSDE = 0xDe5Bff0755F192C333B126A449FF944Ee2B69681;
 
     address public constant MAINNET_RE7LRT = 0x84631c0d0081FDe56DeB72F6DE77abBbF6A9f93a;
     address public constant MAINNET_RE7RWBTC = 0x7F43fDe12A40dE708d908Fb3b9BFB8540d9Ce444;
@@ -77,6 +79,8 @@ library RumpelConfig {
     address public constant MAINNET_YT_KARAK_SUSDE_30JAN2025 = 0x27f6F2f5e87A383471C79296c64E4e82269877f7; // sy token added
     address public constant MAINNET_YT_CORN_LBTC_26DEC2024 = 0x1caE47aA3e10A77C55Ee32f8623D6B5ACC947344;
     address public constant MAINNET_YT_RSUSDE_27MAR2025 = 0x079F21309eB9cbD2a387972eB2168d57C8542e32; // sy token added
+    address public constant MAINNET_YT_SUSDE_27MAR2025 = 0x96512230bF0Fa4E20Cf02C3e8A7d983132cd2b9F;
+    address public constant MAINNET_YT_SUSDE_29MAY2025 = 0x1de6Ff19FDA7496DdC12f2161f6ad6427c52aBBe;
 
     address public constant MAINNET_AMPHRETH = 0x5fD13359Ba15A84B76f7F87568309040176167cd;
     address public constant MAINNET_SYMBIOTIC_LBTC = 0x9C0823D3A1172F9DdF672d438dec79c39a64f448;
@@ -198,6 +202,8 @@ library RumpelConfig {
             return getAddKarakPendleSYProtocolGuardConfigs();
         } else if (tagHash == keccak256(bytes("lrt2-claiming"))) {
             return getClaimLRT2ProtocolGuardConfigs();
+        } else if (tagHash == keccak256(bytes("second-pass-blocklist"))) {
+            return new ProtocolGuardConfig[](0);
         }
 
         revert("Unsupported tag");
@@ -242,6 +248,8 @@ library RumpelConfig {
             return getAddKarakPendleSYTokenGuardConfigs();
         } else if (tagHash == keccak256(bytes("lrt2-claiming"))) {
             return getClaimLRT2AssetTokenGuardConfigs();
+        } else if (tagHash == keccak256(bytes("second-pass-blocklist"))) {
+            return new TokenGuardConfig[](0);
         }
 
         revert("Unsupported tag");
@@ -283,6 +291,8 @@ library RumpelConfig {
             return new TokenModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("lrt2-claiming"))) {
             return new TokenModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("second-pass-blocklist"))) {
+            return getSecondPassBlocklistTokenConfigs();
         }
 
         revert("Unsupported tag");
@@ -321,6 +331,8 @@ library RumpelConfig {
             return new ProtocolModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("lrt2-claiming"))) {
             return new ProtocolModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("second-pass-blocklist"))) {
+            return getSecondPassBlocklistProtocolConfigs();
         }
 
         revert("Unsupported tag");
@@ -976,8 +988,8 @@ library RumpelConfig {
         return configs;
     }
 
-    function getBlockListProtocolConfigs() internal pure returns (ProtocolModuleConfig[] memory) {
-        ProtocolModuleConfig[] memory configs = new ProtocolModuleConfig[](13);
+    function getSecondPassBlocklistProtocolConfigs() internal pure returns (ProtocolModuleConfig[] memory) {
+        ProtocolModuleConfig[] memory configs = new ProtocolModuleConfig[](15);
 
         // RSUSDE
         configs[0] = ProtocolModuleConfig({target: MAINNET_RSUSDE, blockedSelectors: new bytes4[](2)});
@@ -1043,11 +1055,29 @@ library RumpelConfig {
             ProtocolModuleConfig({target: MAINNET_SY_KARAK_SUSDE_30JAN2025, blockedSelectors: new bytes4[](1)});
         configs[11].blockedSelectors[0] = IStandardizedYield.redeem.selector;
 
+        configs[12] = ProtocolModuleConfig({target: MAINNET_ETHENA_LP_STAKING, blockedSelectors: new bytes4[](3)});
+        configs[12].blockedSelectors[0] = IEthenaLpStaking.stake.selector;
+        configs[12].blockedSelectors[1] = IEthenaLpStaking.unstake.selector;
+        configs[12].blockedSelectors[2] = IEthenaLpStaking.withdraw.selector;
+
+        // Karak Vault Supervisor
+        configs[13] = ProtocolModuleConfig({target: MAINNET_KARAK_VAULT_SUPERVISOR, blockedSelectors: new bytes4[](4)});
+        configs[13].blockedSelectors[0] = IKarakVaultSupervisor.deposit.selector;
+        configs[13].blockedSelectors[1] = IKarakVaultSupervisor.gimmieShares.selector;
+        configs[13].blockedSelectors[2] = IKarakVaultSupervisor.returnShares.selector;
+        configs[13].blockedSelectors[3] = IKarakVaultSupervisor.depositAndGimmie.selector;
+
+        // Karak Delegation Supervisor
+        configs[14] =
+            ProtocolModuleConfig({target: MAINNET_KARAK_DELEGATION_SUPERVISOR, blockedSelectors: new bytes4[](2)});
+        configs[14].blockedSelectors[0] = bytes4(0x92dca407); // startWithdraw(tuple[] withdrawalRequests)
+        configs[14].blockedSelectors[1] = bytes4(0x86e9a1f7); // finishWithdraw(tuple[] startedWithdrawals)
+
         return configs;
     }
 
-    function getBlockListTokenConfigs() internal pure returns (TokenModuleConfig[] memory) {
-        TokenModuleConfig[] memory configs = new TokenModuleConfig[](11);
+    function getSecondPassBlocklistTokenConfigs() internal pure returns (TokenModuleConfig[] memory) {
+        TokenModuleConfig[] memory configs = new TokenModuleConfig[](12);
 
         configs[0] = TokenModuleConfig({token: MAINNET_SUSDE, blockTransfer: true, blockApprove: true});
         configs[1] = TokenModuleConfig({token: MAINNET_USDE, blockTransfer: true, blockApprove: true});
@@ -1059,6 +1089,9 @@ library RumpelConfig {
             TokenModuleConfig({token: MAINNET_SY_KARAK_SUSDE_30JAN2025, blockTransfer: true, blockApprove: true});
         configs[7] = TokenModuleConfig({token: MAINNET_USDT, blockTransfer: true, blockApprove: true});
         configs[8] = TokenModuleConfig({token: MAINNET_GHO, blockTransfer: true, blockApprove: true});
+        configs[9] = TokenModuleConfig({token: MAINNET_YT_RSUSDE_27MAR2025, blockTransfer: true, blockApprove: false});
+        configs[10] = TokenModuleConfig({token: MAINNET_YT_SUSDE_29MAY2025, blockTransfer: true, blockApprove: false});
+        configs[11] = TokenModuleConfig({token: MAINNET_KUSDE, blockTransfer: true, blockApprove: false});
 
         return configs;
     }
