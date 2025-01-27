@@ -1197,3 +1197,4 @@ interface ILRT2Claim {
         bytes32[] calldata merkleProof
     ) external;
 }
+
