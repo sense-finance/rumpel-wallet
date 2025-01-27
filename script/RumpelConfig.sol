@@ -124,13 +124,6 @@ library RumpelConfig {
         }
     }
 
-    function setGuardSelectorState(
-        RumpelGuard rumpelGuard,
-        address target,
-        bytes4 selector,
-        RumpelGuard.AllowListState state
-    ) internal {}
-
     function setupGuardTokens(RumpelGuard rumpelGuard, string memory tag) internal {
         TokenGuardConfig[] memory tokens = getGuardTokenConfigs(tag);
         for (uint256 i = 0; i < tokens.length; i++) {
@@ -1081,7 +1074,7 @@ library RumpelConfig {
         configs[0] = ProtocolGuardConfig({target: MAINNET_ETHERFI_LRT2_CLAIM, selectorStates: new SelectorState[](1)});
         configs[0].selectorStates[0] =
             SelectorState({selector: ILRT2Claim.claim.selector, state: RumpelGuard.AllowListState.OFF});
-            return configs;
+        return configs;
     }
 
     function getRemoveLRT2AssetTokenGuardConfigs() internal pure returns (TokenGuardConfig[] memory) {
