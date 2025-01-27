@@ -2,6 +2,8 @@
 src = "src"
 out = "out"
 libs = ["lib"]
+optimize = true
+optimizer_runs = 100
 
 [fuzz]
 runs = 10
