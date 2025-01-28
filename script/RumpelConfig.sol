@@ -1092,11 +1092,13 @@ library RumpelConfig {
     function getMarchAndMay2025SusdeYTsProtocolGuardConfigs() internal pure returns (ProtocolGuardConfig[] memory) {
         ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](2);
 
-        configs[0] = ProtocolGuardConfig({target: MAINNET_SY_SUSDE_27MAR2025, allowedSelectors: new bytes4[](1)});
-        configs[0].allowedSelectors[0] = IStandardizedYield.redeem.selector;
+        configs[0] = ProtocolGuardConfig({target: MAINNET_SY_SUSDE_27MAR2025, selectorStates: new SelectorState[](1)});
+        configs[0].selectorStates[0] =
+            SelectorState({selector: IStandardizedYield.redeem.selector, state: RumpelGuard.AllowListState.ON});
 
-        configs[1] = ProtocolGuardConfig({target: MAINNET_SY_SUSDE_29MAY2025, allowedSelectors: new bytes4[](1)});
-        configs[1].allowedSelectors[0] = IStandardizedYield.redeem.selector;
+        configs[1] = ProtocolGuardConfig({target: MAINNET_SY_SUSDE_29MAY2025, selectorStates: new SelectorState[](1)});
+        configs[1].selectorStates[0] =
+            SelectorState({selector: IStandardizedYield.redeem.selector, state: RumpelGuard.AllowListState.ON});
 
         return configs;
     }
