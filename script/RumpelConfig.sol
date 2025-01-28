@@ -120,6 +120,10 @@ library RumpelConfig {
                 RumpelGuard.AllowListState desiredState = config.selectorStates[j].state;
                 RumpelGuard.AllowListState currentState = rumpelGuard.allowedCalls(target, selector);
 
+                if (currentState == RumpelGuard.AllowListState.OFF && desiredState == RumpelGuard.AllowListState.OFF) {
+                    revert("cannot go from OFF to PERMANENTLY_ON");
+                }
+
                 if (currentState == desiredState) {
                     console.log("Selector already set");
                 } else {
@@ -133,10 +137,28 @@ library RumpelConfig {
         TokenGuardConfig[] memory tokens = getGuardTokenConfigs(tag);
         for (uint256 i = 0; i < tokens.length; i++) {
             TokenGuardConfig memory config = tokens[i];
-            if (config.transferAllowState != rumpelGuard.allowedCalls(config.token, ERC20.transfer.selector)) {
+            RumpelGuard.AllowListState currentTransferAllowState =
+                rumpelGuard.allowedCalls(config.token, ERC20.transfer.selector);
+            RumpelGuard.AllowListState currentApproveAllowState =
+                rumpelGuard.allowedCalls(config.token, ERC20.approve.selector);
+
+            if (
+                currentTransferAllowState == RumpelGuard.AllowListState.OFF
+                    && config.transferAllowState == RumpelGuard.AllowListState.OFF
+            ) {
+                revert("cannot go from OFF to PERMANENTLY_ON");
+            }
+            if (
+                currentApproveAllowState == RumpelGuard.AllowListState.OFF
+                    && config.approveAllowState == RumpelGuard.AllowListState.OFF
+            ) {
+                revert("cannot go from OFF to PERMANENTLY_ON");
+            }
+
+            if (config.transferAllowState != currentTransferAllowState) {
                 rumpelGuard.setCallAllowed(config.token, ERC20.transfer.selector, config.transferAllowState);
             }
-            if (config.approveAllowState != rumpelGuard.allowedCalls(config.token, ERC20.approve.selector)) {
+            if (config.approveAllowState != currentApproveAllowState) {
                 rumpelGuard.setCallAllowed(config.token, ERC20.approve.selector, config.approveAllowState);
             }
         }
@@ -1179,13 +1201,13 @@ library RumpelConfig {
         configs[0] = TokenGuardConfig({
             token: MAINNET_YT_SUSDE_27MAR2025,
             transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
-            approveAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON
+            approveAllowState: RumpelGuard.AllowListState.OFF
         });
 
         configs[1] = TokenGuardConfig({
             token: MAINNET_YT_SUSDE_29MAY2025,
             transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
-            approveAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON
+            approveAllowState: RumpelGuard.AllowListState.OFF
         });
 
         return configs;
