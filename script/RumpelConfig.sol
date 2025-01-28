@@ -120,7 +120,10 @@ library RumpelConfig {
                 RumpelGuard.AllowListState desiredState = config.selectorStates[j].state;
                 RumpelGuard.AllowListState currentState = rumpelGuard.allowedCalls(target, selector);
 
-                if (currentState == RumpelGuard.AllowListState.OFF && desiredState == RumpelGuard.AllowListState.OFF) {
+                if (
+                    currentState == RumpelGuard.AllowListState.OFF
+                        && desiredState == RumpelGuard.AllowListState.PERMANENTLY_ON
+                ) {
                     revert("cannot go from OFF to PERMANENTLY_ON");
                 }
 
@@ -144,13 +147,13 @@ library RumpelConfig {
 
             if (
                 currentTransferAllowState == RumpelGuard.AllowListState.OFF
-                    && config.transferAllowState == RumpelGuard.AllowListState.OFF
+                    && config.transferAllowState == RumpelGuard.AllowListState.PERMANENTLY_ON
             ) {
                 revert("cannot go from OFF to PERMANENTLY_ON");
             }
             if (
                 currentApproveAllowState == RumpelGuard.AllowListState.OFF
-                    && config.approveAllowState == RumpelGuard.AllowListState.OFF
+                    && config.approveAllowState == RumpelGuard.AllowListState.PERMANENTLY_ON
             ) {
                 revert("cannot go from OFF to PERMANENTLY_ON");
             }
