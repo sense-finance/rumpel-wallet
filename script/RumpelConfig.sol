@@ -78,6 +78,8 @@ library RumpelConfig {
     address public constant MAINNET_YT_CORN_LBTC_26DEC2024 = 0x1caE47aA3e10A77C55Ee32f8623D6B5ACC947344;
     address public constant MAINNET_YT_RSUSDE_27MAR2025 = 0x079F21309eB9cbD2a387972eB2168d57C8542e32; // sy token added
 
+    address public constant MAINNET_PENDLE_YT_USDE_27MAR2025 = 0x4A8036EFA1307F1cA82d932C0895faa18dB0c9eE;
+
     address public constant MAINNET_AMPHRETH = 0x5fD13359Ba15A84B76f7F87568309040176167cd;
     address public constant MAINNET_SYMBIOTIC_LBTC = 0x9C0823D3A1172F9DdF672d438dec79c39a64f448;
 
@@ -198,6 +200,8 @@ library RumpelConfig {
             return getAddKarakPendleSYProtocolGuardConfigs();
         } else if (tagHash == keccak256(bytes("lrt2-claiming"))) {
             return getClaimLRT2ProtocolGuardConfigs();
+        } else if (tagHash == keccak256(bytes("pendle-usde-yts"))) {
+            return new ProtocolGuardConfig[](0);
         }
 
         revert("Unsupported tag");
@@ -242,6 +246,8 @@ library RumpelConfig {
             return getAddKarakPendleSYTokenGuardConfigs();
         } else if (tagHash == keccak256(bytes("lrt2-claiming"))) {
             return getClaimLRT2AssetTokenGuardConfigs();
+        } else if (tagHash == keccak256(bytes("pendle-usde-yts"))) {
+            return getPendleUSDEYTsTokenGuardConfigs();
         }
 
         revert("Unsupported tag");
@@ -283,6 +289,8 @@ library RumpelConfig {
             return new TokenModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("lrt2-claiming"))) {
             return new TokenModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("pendle-usde-yts"))) {
+            return new TokenModuleConfig[](0);
         }
 
         revert("Unsupported tag");
@@ -320,6 +328,8 @@ library RumpelConfig {
         } else if (tagHash == keccak256(bytes("add-karak-pendle-sy-token"))) {
             return new ProtocolModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("lrt2-claiming"))) {
+            return new ProtocolModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("pendle-usde-yts"))) {
             return new ProtocolModuleConfig[](0);
         }
 
@@ -948,6 +958,18 @@ library RumpelConfig {
 
         configs[0] = TokenGuardConfig({
             token: MAINNET_SY_KARAK_SUSDE_30JAN2025,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.ON
+        });
+
+        return configs;
+    }
+
+    function getPendleUSDEYTsTokenGuardConfigs() internal pure returns (TokenGuardConfig[] memory) {
+        TokenGuardConfig[] memory configs = new TokenGuardConfig[](1);
+
+        configs[0] = TokenGuardConfig({
+            token: MAINNET_PENDLE_YT_USDE_27MAR2025,
             transferAllowState: RumpelGuard.AllowListState.ON,
             approveAllowState: RumpelGuard.AllowListState.ON
         });
