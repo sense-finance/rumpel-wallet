@@ -60,6 +60,7 @@ library RumpelConfig {
     address public constant MAINNET_MSTETH = 0x49446A0874197839D15395B908328a74ccc96Bc0;
     address public constant MAINNET_USDT = 0xdAC17F958D2ee523a2206206994597C13D831ec7;
     address public constant MAINNET_GHO = 0x40D16FC0246aD3160Ccc09B8D0D3A2cD28aE6C2f;
+    address public constant MAINNET_KSUSDE = 0xDe5Bff0755F192C333B126A449FF944Ee2B69681;
 
     address public constant MAINNET_RE7LRT = 0x84631c0d0081FDe56DeB72F6DE77abBbF6A9f93a;
     address public constant MAINNET_RE7RWBTC = 0x7F43fDe12A40dE708d908Fb3b9BFB8540d9Ce444;
@@ -77,6 +78,8 @@ library RumpelConfig {
     address public constant MAINNET_YT_KARAK_SUSDE_30JAN2025 = 0x27f6F2f5e87A383471C79296c64E4e82269877f7; // sy token added
     address public constant MAINNET_YT_CORN_LBTC_26DEC2024 = 0x1caE47aA3e10A77C55Ee32f8623D6B5ACC947344;
     address public constant MAINNET_YT_RSUSDE_27MAR2025 = 0x079F21309eB9cbD2a387972eB2168d57C8542e32; // sy token added
+    address public constant MAINNET_YT_SUSDE_27MAR2025 = 0x96512230bF0Fa4E20Cf02C3e8A7d983132cd2b9F;
+    address public constant MAINNET_YT_SUSDE_29MAY2025 = 0x1de6Ff19FDA7496DdC12f2161f6ad6427c52aBBe;
 
     address public constant MAINNET_AMPHRETH = 0x5fD13359Ba15A84B76f7F87568309040176167cd;
     address public constant MAINNET_SYMBIOTIC_LBTC = 0x9C0823D3A1172F9DdF672d438dec79c39a64f448;
@@ -86,6 +89,8 @@ library RumpelConfig {
     address public constant MAINNET_PENDLE_ROUTERV4 = 0x888888888889758F76e7103c6CbF23ABbF58F946;
     address public constant MAINNET_SY_RSUSDE = 0xBCD9522EEf626dD0363347BDE6cAB105c2C7797e;
     address public constant MAINNET_SY_KARAK_SUSDE_30JAN2025 = 0x1b641894e66aec7Bf5ab86517e8D81763Cc8e19E;
+    address public constant MAINNET_SY_SUSDE_27MAR2025 = 0x3Ee118EFC826d30A29645eAf3b2EaaC9E8320185;
+    address public constant MAINNET_SY_SUSDE_29MAY2025 = 0xE877B2A8a53763C8B0534a15e87da28f3aC1257e;
 
     // Additional Reward Assets
     address public constant MAINNET_LRT2 = 0x8F08B70456eb22f6109F57b8fafE862ED28E6040;
@@ -198,6 +203,10 @@ library RumpelConfig {
             return getAddKarakPendleSYProtocolGuardConfigs();
         } else if (tagHash == keccak256(bytes("lrt2-claiming"))) {
             return getClaimLRT2ProtocolGuardConfigs();
+        } else if (tagHash == keccak256(bytes("add-march-may-2025-susde-yts"))) {
+            return getMarchAndMay2025SusdeYTsProtocolGuardConfigs();
+        } else if (tagHash == keccak256(bytes("add-ksusde-transfer"))) {
+            return new ProtocolGuardConfig[](0);
         }
 
         revert("Unsupported tag");
@@ -242,6 +251,10 @@ library RumpelConfig {
             return getAddKarakPendleSYTokenGuardConfigs();
         } else if (tagHash == keccak256(bytes("lrt2-claiming"))) {
             return getClaimLRT2AssetTokenGuardConfigs();
+        }  else if (tagHash == keccak256(bytes("add-march-may-2025-susde-yts"))) {
+            return getMarchAndMay2025SusdeYTsTokenGuardConfigs();
+        } else if (tagHash == keccak256(bytes("add-ksusde-transfer"))) {
+            return getAddKsusdeTransferTokenGuardConfigs();
         }
 
         revert("Unsupported tag");
@@ -283,6 +296,10 @@ library RumpelConfig {
             return new TokenModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("lrt2-claiming"))) {
             return new TokenModuleConfig[](0);
+        }  else if (tagHash == keccak256(bytes("add-march-may-2025-susde-yts"))) {
+            return new TokenModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("add-ksusde-transfer"))) {
+            return new TokenModuleConfig[](0);
         }
 
         revert("Unsupported tag");
@@ -321,6 +338,10 @@ library RumpelConfig {
             return new ProtocolModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("lrt2-claiming"))) {
             return new ProtocolModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("add-march-may-2025-susde-yts"))) {
+            return new ProtocolModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("add-ksusde-transfer"))) {
+           return new ProtocolModuleConfig[](0);
         }
 
         revert("Unsupported tag");
@@ -975,6 +996,59 @@ library RumpelConfig {
 
         return configs;
     }
+
+    function getMarchAndMay2025SusdeYTsProtocolGuardConfigs() internal pure returns (ProtocolGuardConfig[] memory) {
+        ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](2);
+
+        configs[0] = ProtocolGuardConfig({target: MAINNET_SY_SUSDE_27MAR2025, allowedSelectors: new bytes4[](1)});
+        configs[0].allowedSelectors[0] = IStandardizedYield.redeem.selector;
+
+        configs[1] = ProtocolGuardConfig({target: MAINNET_SY_SUSDE_29MAY2025, allowedSelectors: new bytes4[](1)});
+        configs[1].allowedSelectors[0] = IStandardizedYield.redeem.selector;
+
+        return configs;
+    }
+
+    function getMarchAndMay2025SusdeYTsTokenGuardConfigs() internal pure returns(TokenGuardConfig[] memory) {
+        TokenGuardConfig[] memory configs = new TokenGuardConfig[](4);
+
+        configs[0] = TokenGuardConfig({
+            token: MAINNET_YT_SUSDE_27MAR2025,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+       configs[1] = TokenGuardConfig({
+            token: MAINNET_YT_SUSDE_29MAY2025,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+
+        configs[2] = TokenGuardConfig({
+            token: MAINNET_SY_SUSDE_27MAR2025,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.ON
+        });
+        
+        configs[3] = TokenGuardConfig({
+            token: MAINNET_SY_SUSDE_29MAY2025,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.ON
+        });
+
+        return configs;
+    }
+
+    function getAddKsusdeTransferTokenGuardConfigs() internal pure returns(TokenGuardConfig[] memory){
+        TokenGuardConfig[] memory configs = new TokenGuardConfig[](1);
+
+        configs[0] = TokenGuardConfig({
+            token: MAINNET_KSUSDE,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+        
+        return configs;
+    }
 }
 
 interface IMorphoBundler {
@@ -1123,3 +1197,4 @@ interface ILRT2Claim {
         bytes32[] calldata merkleProof
     ) external;
 }
+
