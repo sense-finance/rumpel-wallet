@@ -223,6 +223,8 @@ library RumpelConfig {
             return new ProtocolGuardConfig[](0);
         } else if (tagHash == keccak256(bytes("remove-lrt2-claiming"))) {
             return getRemoveLRT2ProtocolGuardConfigs();
+        } else if (tagHash == keccak256(bytes("perm-allow-march-may-2025-susde-yts"))) {
+            return new ProtocolGuardConfig[](0);
         }
 
         revert("Unsupported tag");
@@ -273,6 +275,8 @@ library RumpelConfig {
             return getAddKsusdeTransferTokenGuardConfigs();
         } else if (tagHash == keccak256(bytes("remove-lrt2-claiming"))) {
             return getRemoveLRT2AssetTokenGuardConfigs();
+        } else if (tagHash == keccak256(bytes("perm-allow-march-may-2025-susde-yts"))) {
+            return getPermAllowMarchAndMay2025SusdeYTsTokenGuardConfigs();
         }
 
         revert("Unsupported tag");
@@ -320,6 +324,8 @@ library RumpelConfig {
             return new TokenModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("remove-lrt2-claiming"))) {
             return new TokenModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("perm-allow-march-may-2025-susde-yts"))) {
+            return getMarchAndMay20252025SusdeYTsTokenModuleConfigs();
         }
 
         revert("Unsupported tag");
@@ -363,6 +369,8 @@ library RumpelConfig {
         } else if (tagHash == keccak256(bytes("add-ksusde-transfer"))) {
             return new ProtocolModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("remove-lrt2-claiming"))) {
+            return new ProtocolModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("perm-allow-march-may-2025-susde-yts"))) {
             return new ProtocolModuleConfig[](0);
         }
 
@@ -1161,6 +1169,33 @@ library RumpelConfig {
             transferAllowState: RumpelGuard.AllowListState.OFF,
             approveAllowState: RumpelGuard.AllowListState.OFF
         });
+
+        return configs;
+    }
+
+    function getPermAllowMarchAndMay2025SusdeYTsTokenGuardConfigs() internal pure returns (TokenGuardConfig[] memory) {
+        TokenGuardConfig[] memory configs = new TokenGuardConfig[](2);
+
+        configs[0] = TokenGuardConfig({
+            token: MAINNET_YT_SUSDE_27MAR2025,
+            transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
+            approveAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON
+        });
+
+        configs[1] = TokenGuardConfig({
+            token: MAINNET_YT_SUSDE_29MAY2025,
+            transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
+            approveAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON
+        });
+
+        return configs;
+    }
+
+    function getMarchAndMay20252025SusdeYTsTokenModuleConfigs() internal pure returns (TokenModuleConfig[] memory) {
+        TokenModuleConfig[] memory configs = new TokenModuleConfig[](3);
+
+        configs[0] = TokenModuleConfig({token: MAINNET_YT_SUSDE_27MAR2025, blockTransfer: true, blockApprove: true});
+        configs[1] = TokenModuleConfig({token: MAINNET_YT_SUSDE_29MAY2025, blockTransfer: true, blockApprove: true});
 
         return configs;
     }
