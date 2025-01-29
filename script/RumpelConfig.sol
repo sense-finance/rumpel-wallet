@@ -6,9 +6,14 @@ import {RumpelModule} from "../src/RumpelModule.sol";
 import {ERC20} from "solmate/tokens/ERC20.sol";
 import {console} from "forge-std/console.sol";
 
+struct SelectorState {
+    bytes4 selector;
+    RumpelGuard.AllowListState state;
+}
+
 struct ProtocolGuardConfig {
     address target;
-    bytes4[] allowedSelectors;
+    SelectorState[] selectorStates;
 }
 
 struct TokenGuardConfig {
@@ -109,8 +114,17 @@ library RumpelConfig {
         ProtocolGuardConfig[] memory protocols = getGuardProtocolConfigs(tag);
         for (uint256 i = 0; i < protocols.length; i++) {
             ProtocolGuardConfig memory config = protocols[i];
-            for (uint256 j = 0; j < config.allowedSelectors.length; j++) {
-                rumpelGuard.setCallAllowed(config.target, config.allowedSelectors[j], RumpelGuard.AllowListState.ON);
+            for (uint256 j = 0; j < config.selectorStates.length; j++) {
+                address target = config.target;
+                bytes4 selector = config.selectorStates[j].selector;
+                RumpelGuard.AllowListState desiredState = config.selectorStates[j].state;
+                RumpelGuard.AllowListState currentState = rumpelGuard.allowedCalls(target, selector);
+
+                if (currentState == desiredState) {
+                    console.log("Selector already set");
+                } else {
+                    rumpelGuard.setCallAllowed(target, selector, desiredState);
+                }
             }
         }
     }
@@ -207,6 +221,8 @@ library RumpelConfig {
             return getMarchAndMay2025SusdeYTsProtocolGuardConfigs();
         } else if (tagHash == keccak256(bytes("add-ksusde-transfer"))) {
             return new ProtocolGuardConfig[](0);
+        } else if (tagHash == keccak256(bytes("remove-lrt2-claiming"))) {
+            return getRemoveLRT2ProtocolGuardConfigs();
         }
 
         revert("Unsupported tag");
@@ -251,10 +267,12 @@ library RumpelConfig {
             return getAddKarakPendleSYTokenGuardConfigs();
         } else if (tagHash == keccak256(bytes("lrt2-claiming"))) {
             return getClaimLRT2AssetTokenGuardConfigs();
-        }  else if (tagHash == keccak256(bytes("add-march-may-2025-susde-yts"))) {
+        } else if (tagHash == keccak256(bytes("add-march-may-2025-susde-yts"))) {
             return getMarchAndMay2025SusdeYTsTokenGuardConfigs();
         } else if (tagHash == keccak256(bytes("add-ksusde-transfer"))) {
             return getAddKsusdeTransferTokenGuardConfigs();
+        } else if (tagHash == keccak256(bytes("remove-lrt2-claiming"))) {
+            return getRemoveLRT2AssetTokenGuardConfigs();
         }
 
         revert("Unsupported tag");
@@ -290,15 +308,17 @@ library RumpelConfig {
             return new TokenModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("fluid-asset-blocklist"))) {
             return getInitialFluidAssetTokenModuleConfigs();
-        } else if (tagHash == keccak256(bytes("stables-guard"))) { 
+        } else if (tagHash == keccak256(bytes("stables-guard"))) {
             return new TokenModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("add-karak-pendle-sy-token"))) {
             return new TokenModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("lrt2-claiming"))) {
             return new TokenModuleConfig[](0);
-        }  else if (tagHash == keccak256(bytes("add-march-may-2025-susde-yts"))) {
+        } else if (tagHash == keccak256(bytes("add-march-may-2025-susde-yts"))) {
             return new TokenModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("add-ksusde-transfer"))) {
+            return new TokenModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("remove-lrt2-claiming"))) {
             return new TokenModuleConfig[](0);
         }
 
@@ -341,7 +361,9 @@ library RumpelConfig {
         } else if (tagHash == keccak256(bytes("add-march-may-2025-susde-yts"))) {
             return new ProtocolModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("add-ksusde-transfer"))) {
-           return new ProtocolModuleConfig[](0);
+            return new ProtocolModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("remove-lrt2-claiming"))) {
+            return new ProtocolModuleConfig[](0);
         }
 
         revert("Unsupported tag");
@@ -352,65 +374,101 @@ library RumpelConfig {
         ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](10);
 
         // Morpho Bundler (supply, withdraw, borrow, repay)
-        configs[0] = ProtocolGuardConfig({target: MAINNET_MORPHO_BUNDLER, allowedSelectors: new bytes4[](1)});
-        configs[0].allowedSelectors[0] = IMorphoBundler.multicall.selector;
+        configs[0] = ProtocolGuardConfig({target: MAINNET_MORPHO_BUNDLER, selectorStates: new SelectorState[](1)});
+        configs[0].selectorStates[0] =
+            SelectorState({selector: IMorphoBundler.multicall.selector, state: RumpelGuard.AllowListState.ON});
 
         // Zircuit Restaking Pool
-        configs[1] = ProtocolGuardConfig({target: MAINNET_ZIRCUIT_RESTAKING_POOL, allowedSelectors: new bytes4[](2)});
-        configs[1].allowedSelectors[0] = IZircuitRestakingPool.depositFor.selector;
-        configs[1].allowedSelectors[1] = IZircuitRestakingPool.withdraw.selector;
+        configs[1] =
+            ProtocolGuardConfig({target: MAINNET_ZIRCUIT_RESTAKING_POOL, selectorStates: new SelectorState[](2)});
+        configs[1].selectorStates[0] =
+            SelectorState({selector: IZircuitRestakingPool.depositFor.selector, state: RumpelGuard.AllowListState.ON});
+        configs[1].selectorStates[1] =
+            SelectorState({selector: IZircuitRestakingPool.withdraw.selector, state: RumpelGuard.AllowListState.ON});
 
         // Symbiotic WstETH Collateral
         configs[2] =
-            ProtocolGuardConfig({target: MAINNET_SYMBIOTIC_WSTETH_COLLATERAL, allowedSelectors: new bytes4[](2)});
-        configs[2].allowedSelectors[0] = ISymbioticWstETHCollateral.deposit.selector;
-        configs[2].allowedSelectors[1] = ISymbioticWstETHCollateral.withdraw.selector;
+            ProtocolGuardConfig({target: MAINNET_SYMBIOTIC_WSTETH_COLLATERAL, selectorStates: new SelectorState[](2)});
+        configs[2].selectorStates[0] =
+            SelectorState({selector: ISymbioticWstETHCollateral.deposit.selector, state: RumpelGuard.AllowListState.ON});
+        configs[2].selectorStates[1] = SelectorState({
+            selector: ISymbioticWstETHCollateral.withdraw.selector,
+            state: RumpelGuard.AllowListState.ON
+        });
 
         // Symbiotic SUSDe Collateral
         configs[3] =
-            ProtocolGuardConfig({target: MAINNET_SYMBIOTIC_SUSDE_COLLATERAL, allowedSelectors: new bytes4[](2)});
-        configs[3].allowedSelectors[0] = ISymbioticWstETHCollateral.deposit.selector;
-        configs[3].allowedSelectors[1] = ISymbioticWstETHCollateral.withdraw.selector;
+            ProtocolGuardConfig({target: MAINNET_SYMBIOTIC_SUSDE_COLLATERAL, selectorStates: new SelectorState[](2)});
+        configs[3].selectorStates[0] =
+            SelectorState({selector: ISymbioticWstETHCollateral.deposit.selector, state: RumpelGuard.AllowListState.ON});
+        configs[3].selectorStates[1] = SelectorState({
+            selector: ISymbioticWstETHCollateral.withdraw.selector,
+            state: RumpelGuard.AllowListState.ON
+        });
 
         // Karak Vault Supervisor
-        configs[4] = ProtocolGuardConfig({target: MAINNET_KARAK_VAULT_SUPERVISOR, allowedSelectors: new bytes4[](4)});
-        configs[4].allowedSelectors[0] = IKarakVaultSupervisor.deposit.selector;
-        configs[4].allowedSelectors[1] = IKarakVaultSupervisor.gimmieShares.selector;
-        configs[4].allowedSelectors[2] = IKarakVaultSupervisor.returnShares.selector;
-        configs[4].allowedSelectors[3] = IKarakVaultSupervisor.depositAndGimmie.selector;
+        configs[4] =
+            ProtocolGuardConfig({target: MAINNET_KARAK_VAULT_SUPERVISOR, selectorStates: new SelectorState[](4)});
+        configs[4].selectorStates[0] =
+            SelectorState({selector: IKarakVaultSupervisor.deposit.selector, state: RumpelGuard.AllowListState.ON});
+        configs[4].selectorStates[1] =
+            SelectorState({selector: IKarakVaultSupervisor.gimmieShares.selector, state: RumpelGuard.AllowListState.ON});
+        configs[4].selectorStates[2] =
+            SelectorState({selector: IKarakVaultSupervisor.returnShares.selector, state: RumpelGuard.AllowListState.ON});
+        configs[4].selectorStates[3] = SelectorState({
+            selector: IKarakVaultSupervisor.depositAndGimmie.selector,
+            state: RumpelGuard.AllowListState.ON
+        });
 
         // Karak Delegation Supervisor
         configs[5] =
-            ProtocolGuardConfig({target: MAINNET_KARAK_DELEGATION_SUPERVISOR, allowedSelectors: new bytes4[](2)});
-        configs[5].allowedSelectors[0] = bytes4(0x92dca407); // startWithdraw(tuple[] withdrawalRequests)
-        configs[5].allowedSelectors[1] = bytes4(0x86e9a1f7); // finishWithdraw(tuple[] startedWithdrawals)
+            ProtocolGuardConfig({target: MAINNET_KARAK_DELEGATION_SUPERVISOR, selectorStates: new SelectorState[](2)});
+        configs[5].selectorStates[0] =
+            SelectorState({selector: bytes4(0x92dca407), state: RumpelGuard.AllowListState.ON}); // bytes4(0x92dca407) = startWithdraw(tuple[] withdrawalRequests)
+        configs[5].selectorStates[1] =
+            SelectorState({selector: bytes4(0x86e9a1f7), state: RumpelGuard.AllowListState.ON}); // bytes4(0x86e9a1f7) = finishWithdraw(tuple[] startedWithdrawals)
 
         // Mellow Ethena LRT Vault sUSDe
-        configs[6] = ProtocolGuardConfig({target: MAINNET_RSUSDE, allowedSelectors: new bytes4[](2)});
-        configs[6].allowedSelectors[0] = IMellow.deposit.selector;
-        configs[6].allowedSelectors[1] = IMellow.registerWithdrawal.selector;
+        configs[6] = ProtocolGuardConfig({target: MAINNET_RSUSDE, selectorStates: new SelectorState[](2)});
+        configs[6].selectorStates[0] =
+            SelectorState({selector: IMellow.deposit.selector, state: RumpelGuard.AllowListState.ON});
+        configs[6].selectorStates[1] =
+            SelectorState({selector: IMellow.registerWithdrawal.selector, state: RumpelGuard.AllowListState.ON});
 
         // KELP Airdrop Gain Vault
-        configs[7] = ProtocolGuardConfig({target: MAINNET_AGETH, allowedSelectors: new bytes4[](4)});
-        configs[7].allowedSelectors[0] = IERC4626.deposit.selector;
-        configs[7].allowedSelectors[1] = IERC4626.mint.selector;
-        configs[7].allowedSelectors[2] = IERC4626.withdraw.selector;
-        configs[7].allowedSelectors[3] = IERC4626.redeem.selector;
+        configs[7] = ProtocolGuardConfig({target: MAINNET_AGETH, selectorStates: new SelectorState[](4)});
+        configs[7].selectorStates[0] =
+            SelectorState({selector: IERC4626.deposit.selector, state: RumpelGuard.AllowListState.ON});
+        configs[7].selectorStates[1] =
+            SelectorState({selector: IERC4626.mint.selector, state: RumpelGuard.AllowListState.ON});
+        configs[7].selectorStates[2] =
+            SelectorState({selector: IERC4626.withdraw.selector, state: RumpelGuard.AllowListState.ON});
+        configs[7].selectorStates[3] =
+            SelectorState({selector: IERC4626.redeem.selector, state: RumpelGuard.AllowListState.ON});
 
         // Ethena USDe staking
-        configs[8] = ProtocolGuardConfig({target: MAINNET_SUSDE, allowedSelectors: new bytes4[](7)});
-        configs[8].allowedSelectors[0] = ISUSDE.unstake.selector;
-        configs[8].allowedSelectors[1] = ISUSDE.cooldownAssets.selector;
-        configs[8].allowedSelectors[2] = ISUSDE.cooldownShares.selector;
-        configs[8].allowedSelectors[3] = IERC4626.deposit.selector;
-        configs[8].allowedSelectors[4] = IERC4626.mint.selector;
-        configs[8].allowedSelectors[5] = IERC4626.withdraw.selector;
-        configs[8].allowedSelectors[6] = IERC4626.redeem.selector;
+        configs[8] = ProtocolGuardConfig({target: MAINNET_SUSDE, selectorStates: new SelectorState[](7)});
+        configs[8].selectorStates[0] =
+            SelectorState({selector: ISUSDE.unstake.selector, state: RumpelGuard.AllowListState.ON});
+        configs[8].selectorStates[1] =
+            SelectorState({selector: ISUSDE.cooldownAssets.selector, state: RumpelGuard.AllowListState.ON});
+        configs[8].selectorStates[2] =
+            SelectorState({selector: ISUSDE.cooldownShares.selector, state: RumpelGuard.AllowListState.ON});
+        configs[8].selectorStates[3] =
+            SelectorState({selector: IERC4626.deposit.selector, state: RumpelGuard.AllowListState.ON});
+        configs[8].selectorStates[4] =
+            SelectorState({selector: IERC4626.mint.selector, state: RumpelGuard.AllowListState.ON});
+        configs[8].selectorStates[5] =
+            SelectorState({selector: IERC4626.withdraw.selector, state: RumpelGuard.AllowListState.ON});
+        configs[8].selectorStates[6] =
+            SelectorState({selector: IERC4626.redeem.selector, state: RumpelGuard.AllowListState.ON});
 
         // Ethena USDe locking
-        configs[9] = ProtocolGuardConfig({target: MAINNET_ETHENA_LP_STAKING, allowedSelectors: new bytes4[](2)});
-        configs[9].allowedSelectors[0] = IEthenaLpStaking.stake.selector;
-        configs[9].allowedSelectors[1] = IEthenaLpStaking.unstake.selector;
+        configs[9] = ProtocolGuardConfig({target: MAINNET_ETHENA_LP_STAKING, selectorStates: new SelectorState[](2)});
+        configs[9].selectorStates[0] =
+            SelectorState({selector: IEthenaLpStaking.stake.selector, state: RumpelGuard.AllowListState.ON});
+        configs[9].selectorStates[1] =
+            SelectorState({selector: IEthenaLpStaking.unstake.selector, state: RumpelGuard.AllowListState.ON});
 
         return configs;
     }
@@ -482,14 +540,18 @@ library RumpelConfig {
         ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](2);
 
         // Mellow LRT Vault re7LRT
-        configs[0] = ProtocolGuardConfig({target: MAINNET_RE7LRT, allowedSelectors: new bytes4[](2)});
-        configs[0].allowedSelectors[0] = IMellow.deposit.selector;
-        configs[0].allowedSelectors[1] = IMellow.registerWithdrawal.selector;
+        configs[0] = ProtocolGuardConfig({target: MAINNET_RE7LRT, selectorStates: new SelectorState[](2)});
+        configs[0].selectorStates[0] =
+            SelectorState({selector: IMellow.deposit.selector, state: RumpelGuard.AllowListState.ON});
+        configs[0].selectorStates[1] =
+            SelectorState({selector: IMellow.registerWithdrawal.selector, state: RumpelGuard.AllowListState.ON});
 
         // Mellow WBTC Vault re7RWBTC
-        configs[1] = ProtocolGuardConfig({target: MAINNET_RE7RWBTC, allowedSelectors: new bytes4[](2)});
-        configs[1].allowedSelectors[0] = IMellow.deposit.selector;
-        configs[1].allowedSelectors[1] = IMellow.registerWithdrawal.selector;
+        configs[1] = ProtocolGuardConfig({target: MAINNET_RE7RWBTC, selectorStates: new SelectorState[](2)});
+        configs[1].selectorStates[0] =
+            SelectorState({selector: IMellow.deposit.selector, state: RumpelGuard.AllowListState.ON});
+        configs[1].selectorStates[1] =
+            SelectorState({selector: IMellow.registerWithdrawal.selector, state: RumpelGuard.AllowListState.ON});
 
         return configs;
     }
@@ -724,8 +786,9 @@ library RumpelConfig {
     function getMorphoGuardSetAuthProtocolConfigs() internal pure returns (ProtocolGuardConfig[] memory) {
         ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](1);
 
-        configs[0] = ProtocolGuardConfig({target: MAINNET_MORPHO_BASE, allowedSelectors: new bytes4[](1)});
-        configs[0].allowedSelectors[0] = IMorphoBase.setAuthorization.selector;
+        configs[0] = ProtocolGuardConfig({target: MAINNET_MORPHO_BASE, selectorStates: new SelectorState[](1)});
+        configs[0].selectorStates[0] =
+            SelectorState({selector: IMorphoBase.setAuthorization.selector, state: RumpelGuard.AllowListState.ON});
 
         return configs;
     }
@@ -733,11 +796,16 @@ library RumpelConfig {
     function getFluidLoopWeETHAndWstEthConfigs() internal pure returns (ProtocolGuardConfig[] memory) {
         ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](2);
 
-        configs[0] = ProtocolGuardConfig({target: MAINNET_FLUID_VAULT_WEETH_WSTETH, allowedSelectors: new bytes4[](1)});
-        configs[0].allowedSelectors[0] = IFluidVaultT1.operate.selector;
+        configs[0] =
+            ProtocolGuardConfig({target: MAINNET_FLUID_VAULT_WEETH_WSTETH, selectorStates: new SelectorState[](1)});
+        configs[0].selectorStates[0] =
+            SelectorState({selector: IFluidVaultT1.operate.selector, state: RumpelGuard.AllowListState.ON});
 
-        configs[1] = ProtocolGuardConfig({target: MAINNET_FLUID_VAULT_FACTORY, allowedSelectors: new bytes4[](1)});
-        configs[1].allowedSelectors[0] = IFluidVaultFactory.safeTransferFrom.selector;
+        configs[1] = ProtocolGuardConfig({target: MAINNET_FLUID_VAULT_FACTORY, selectorStates: new SelectorState[](1)});
+        configs[1].selectorStates[0] = SelectorState({
+            selector: IFluidVaultFactory.safeTransferFrom.selector,
+            state: RumpelGuard.AllowListState.ON
+        });
 
         return configs;
     }
@@ -745,11 +813,15 @@ library RumpelConfig {
     function getFluidNftTransferCongfigs() internal pure returns (ProtocolGuardConfig[] memory) {
         ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](2);
 
-        configs[0] = ProtocolGuardConfig({target: MAINNET_FLUID_VAULT_FACTORY, allowedSelectors: new bytes4[](1)});
-        configs[0].allowedSelectors[0] = IFluidVaultFactory.transferFrom.selector;
+        configs[0] = ProtocolGuardConfig({target: MAINNET_FLUID_VAULT_FACTORY, selectorStates: new SelectorState[](1)});
+        configs[0].selectorStates[0] =
+            SelectorState({selector: IFluidVaultFactory.transferFrom.selector, state: RumpelGuard.AllowListState.ON});
 
-        configs[1] = ProtocolGuardConfig({target: MAINNET_FLUID_VAULT_FACTORY, allowedSelectors: new bytes4[](1)});
-        configs[1].allowedSelectors[0] = IFluidVaultFactory_.safeTransferFrom.selector;
+        configs[1] = ProtocolGuardConfig({target: MAINNET_FLUID_VAULT_FACTORY, selectorStates: new SelectorState[](1)});
+        configs[1].selectorStates[0] = SelectorState({
+            selector: IFluidVaultFactory_.safeTransferFrom.selector,
+            state: RumpelGuard.AllowListState.ON
+        });
 
         return configs;
     }
@@ -757,8 +829,10 @@ library RumpelConfig {
     function getFluidLoopWeETHsAndWstEthConfigs() internal pure returns (ProtocolGuardConfig[] memory) {
         ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](2);
 
-        configs[0] = ProtocolGuardConfig({target: MAINNET_FLUID_VAULT_WEETHS_WSTETH, allowedSelectors: new bytes4[](1)});
-        configs[0].allowedSelectors[0] = IFluidVaultT1.operate.selector;
+        configs[0] =
+            ProtocolGuardConfig({target: MAINNET_FLUID_VAULT_WEETHS_WSTETH, selectorStates: new SelectorState[](1)});
+        configs[0].selectorStates[0] =
+            SelectorState({selector: IFluidVaultT1.operate.selector, state: RumpelGuard.AllowListState.ON});
 
         return configs;
     }
@@ -766,14 +840,20 @@ library RumpelConfig {
     function getFluidSusdeAndYTsProtocolGuardConfigs() internal pure returns (ProtocolGuardConfig[] memory) {
         ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](3);
 
-        configs[0] = ProtocolGuardConfig({target: MAINNET_FLUID_VAULT_SUSDE_USDC, allowedSelectors: new bytes4[](1)});
-        configs[0].allowedSelectors[0] = IFluidVaultT1.operate.selector;
+        configs[0] =
+            ProtocolGuardConfig({target: MAINNET_FLUID_VAULT_SUSDE_USDC, selectorStates: new SelectorState[](1)});
+        configs[0].selectorStates[0] =
+            SelectorState({selector: IFluidVaultT1.operate.selector, state: RumpelGuard.AllowListState.ON});
 
-        configs[1] = ProtocolGuardConfig({target: MAINNET_FLUID_VAULT_SUSDE_USDT, allowedSelectors: new bytes4[](1)});
-        configs[1].allowedSelectors[0] = IFluidVaultT1.operate.selector;
+        configs[1] =
+            ProtocolGuardConfig({target: MAINNET_FLUID_VAULT_SUSDE_USDT, selectorStates: new SelectorState[](1)});
+        configs[1].selectorStates[0] =
+            SelectorState({selector: IFluidVaultT1.operate.selector, state: RumpelGuard.AllowListState.ON});
 
-        configs[2] = ProtocolGuardConfig({target: MAINNET_FLUID_VAULT_SUSDE_GHO, allowedSelectors: new bytes4[](1)});
-        configs[2].allowedSelectors[0] = IFluidVaultT1.operate.selector;
+        configs[2] =
+            ProtocolGuardConfig({target: MAINNET_FLUID_VAULT_SUSDE_GHO, selectorStates: new SelectorState[](1)});
+        configs[2].selectorStates[0] =
+            SelectorState({selector: IFluidVaultT1.operate.selector, state: RumpelGuard.AllowListState.ON});
 
         return configs;
     }
@@ -814,11 +894,15 @@ library RumpelConfig {
     function getClaimYTYieldProtocolGuardConfigs() internal pure returns (ProtocolGuardConfig[] memory) {
         ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](2);
 
-        configs[0] = ProtocolGuardConfig({target: MAINNET_PENDLE_ROUTERV4, allowedSelectors: new bytes4[](1)});
-        configs[0].allowedSelectors[0] = IPendleRouterV4.redeemDueInterestAndRewards.selector;
+        configs[0] = ProtocolGuardConfig({target: MAINNET_PENDLE_ROUTERV4, selectorStates: new SelectorState[](1)});
+        configs[0].selectorStates[0] = SelectorState({
+            selector: IPendleRouterV4.redeemDueInterestAndRewards.selector,
+            state: RumpelGuard.AllowListState.ON
+        });
 
-        configs[1] = ProtocolGuardConfig({target: MAINNET_SY_SUSDE, allowedSelectors: new bytes4[](1)});
-        configs[1].allowedSelectors[0] = IStandardizedYield.redeem.selector;
+        configs[1] = ProtocolGuardConfig({target: MAINNET_SY_SUSDE, selectorStates: new SelectorState[](1)});
+        configs[1].selectorStates[0] =
+            SelectorState({selector: IStandardizedYield.redeem.selector, state: RumpelGuard.AllowListState.ON});
 
         return configs;
     }
@@ -826,8 +910,11 @@ library RumpelConfig {
     function getAlternativeYTYieldClaimingProtocolGuardConfigs() internal pure returns (ProtocolGuardConfig[] memory) {
         ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](1);
 
-        configs[0] = ProtocolGuardConfig({target: MAINNET_PENDLE_ROUTERV4, allowedSelectors: new bytes4[](1)});
-        configs[0].allowedSelectors[0] = IPendleRouterV4.redeemDueInterestAndRewardsV2.selector;
+        configs[0] = ProtocolGuardConfig({target: MAINNET_PENDLE_ROUTERV4, selectorStates: new SelectorState[](1)});
+        configs[0].selectorStates[0] = SelectorState({
+            selector: IPendleRouterV4.redeemDueInterestAndRewardsV2.selector,
+            state: RumpelGuard.AllowListState.ON
+        });
 
         return configs;
     }
@@ -847,8 +934,9 @@ library RumpelConfig {
     function getEthenaStakingLPWithdrawProtocolGuardConfigs() internal pure returns (ProtocolGuardConfig[] memory) {
         ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](1);
 
-        configs[0] = ProtocolGuardConfig({target: MAINNET_ETHENA_LP_STAKING, allowedSelectors: new bytes4[](1)});
-        configs[0].allowedSelectors[0] = IEthenaLpStaking.withdraw.selector;
+        configs[0] = ProtocolGuardConfig({target: MAINNET_ETHENA_LP_STAKING, selectorStates: new SelectorState[](1)});
+        configs[0].selectorStates[0] =
+            SelectorState({selector: IEthenaLpStaking.withdraw.selector, state: RumpelGuard.AllowListState.ON});
 
         return configs;
     }
@@ -856,8 +944,9 @@ library RumpelConfig {
     function getClaimRSUSDeYieldProtocolGuardConfigs() internal pure returns (ProtocolGuardConfig[] memory) {
         ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](1);
 
-        configs[0] = ProtocolGuardConfig({target: MAINNET_SY_RSUSDE, allowedSelectors: new bytes4[](1)});
-        configs[0].allowedSelectors[0] = IStandardizedYield.redeem.selector;
+        configs[0] = ProtocolGuardConfig({target: MAINNET_SY_RSUSDE, selectorStates: new SelectorState[](1)});
+        configs[0].selectorStates[0] =
+            SelectorState({selector: IStandardizedYield.redeem.selector, state: RumpelGuard.AllowListState.ON});
 
         return configs;
     }
@@ -954,12 +1043,14 @@ library RumpelConfig {
 
         return configs;
     }
-    
+
     function getAddKarakPendleSYProtocolGuardConfigs() internal pure returns (ProtocolGuardConfig[] memory) {
         ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](1);
 
-        configs[0] = ProtocolGuardConfig({target: MAINNET_SY_KARAK_SUSDE_30JAN2025, allowedSelectors: new bytes4[](1)});
-        configs[0].allowedSelectors[0] = IStandardizedYield.redeem.selector;
+        configs[0] =
+            ProtocolGuardConfig({target: MAINNET_SY_KARAK_SUSDE_30JAN2025, selectorStates: new SelectorState[](1)});
+        configs[0].selectorStates[0] =
+            SelectorState({selector: IStandardizedYield.redeem.selector, state: RumpelGuard.AllowListState.ON});
 
         return configs;
     }
@@ -979,8 +1070,9 @@ library RumpelConfig {
     function getClaimLRT2ProtocolGuardConfigs() internal pure returns (ProtocolGuardConfig[] memory) {
         ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](1);
 
-        configs[0] = ProtocolGuardConfig({target: MAINNET_ETHERFI_LRT2_CLAIM, allowedSelectors: new bytes4[](1)});
-        configs[0].allowedSelectors[0] = ILRT2Claim.claim.selector;
+        configs[0] = ProtocolGuardConfig({target: MAINNET_ETHERFI_LRT2_CLAIM, selectorStates: new SelectorState[](1)});
+        configs[0].selectorStates[0] =
+            SelectorState({selector: ILRT2Claim.claim.selector, state: RumpelGuard.AllowListState.ON});
 
         return configs;
     }
@@ -1000,16 +1092,18 @@ library RumpelConfig {
     function getMarchAndMay2025SusdeYTsProtocolGuardConfigs() internal pure returns (ProtocolGuardConfig[] memory) {
         ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](2);
 
-        configs[0] = ProtocolGuardConfig({target: MAINNET_SY_SUSDE_27MAR2025, allowedSelectors: new bytes4[](1)});
-        configs[0].allowedSelectors[0] = IStandardizedYield.redeem.selector;
+        configs[0] = ProtocolGuardConfig({target: MAINNET_SY_SUSDE_27MAR2025, selectorStates: new SelectorState[](1)});
+        configs[0].selectorStates[0] =
+            SelectorState({selector: IStandardizedYield.redeem.selector, state: RumpelGuard.AllowListState.ON});
 
-        configs[1] = ProtocolGuardConfig({target: MAINNET_SY_SUSDE_29MAY2025, allowedSelectors: new bytes4[](1)});
-        configs[1].allowedSelectors[0] = IStandardizedYield.redeem.selector;
+        configs[1] = ProtocolGuardConfig({target: MAINNET_SY_SUSDE_29MAY2025, selectorStates: new SelectorState[](1)});
+        configs[1].selectorStates[0] =
+            SelectorState({selector: IStandardizedYield.redeem.selector, state: RumpelGuard.AllowListState.ON});
 
         return configs;
     }
 
-    function getMarchAndMay2025SusdeYTsTokenGuardConfigs() internal pure returns(TokenGuardConfig[] memory) {
+    function getMarchAndMay2025SusdeYTsTokenGuardConfigs() internal pure returns (TokenGuardConfig[] memory) {
         TokenGuardConfig[] memory configs = new TokenGuardConfig[](4);
 
         configs[0] = TokenGuardConfig({
@@ -1017,7 +1111,7 @@ library RumpelConfig {
             transferAllowState: RumpelGuard.AllowListState.ON,
             approveAllowState: RumpelGuard.AllowListState.OFF
         });
-       configs[1] = TokenGuardConfig({
+        configs[1] = TokenGuardConfig({
             token: MAINNET_YT_SUSDE_29MAY2025,
             transferAllowState: RumpelGuard.AllowListState.ON,
             approveAllowState: RumpelGuard.AllowListState.OFF
@@ -1028,7 +1122,7 @@ library RumpelConfig {
             transferAllowState: RumpelGuard.AllowListState.ON,
             approveAllowState: RumpelGuard.AllowListState.ON
         });
-        
+
         configs[3] = TokenGuardConfig({
             token: MAINNET_SY_SUSDE_29MAY2025,
             transferAllowState: RumpelGuard.AllowListState.ON,
@@ -1038,7 +1132,7 @@ library RumpelConfig {
         return configs;
     }
 
-    function getAddKsusdeTransferTokenGuardConfigs() internal pure returns(TokenGuardConfig[] memory){
+    function getAddKsusdeTransferTokenGuardConfigs() internal pure returns (TokenGuardConfig[] memory) {
         TokenGuardConfig[] memory configs = new TokenGuardConfig[](1);
 
         configs[0] = TokenGuardConfig({
@@ -1046,7 +1140,28 @@ library RumpelConfig {
             transferAllowState: RumpelGuard.AllowListState.ON,
             approveAllowState: RumpelGuard.AllowListState.OFF
         });
-        
+
+        return configs;
+    }
+
+    function getRemoveLRT2ProtocolGuardConfigs() internal pure returns (ProtocolGuardConfig[] memory) {
+        ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](1);
+
+        configs[0] = ProtocolGuardConfig({target: MAINNET_ETHERFI_LRT2_CLAIM, selectorStates: new SelectorState[](1)});
+        configs[0].selectorStates[0] =
+            SelectorState({selector: ILRT2Claim.claim.selector, state: RumpelGuard.AllowListState.OFF});
+        return configs;
+    }
+
+    function getRemoveLRT2AssetTokenGuardConfigs() internal pure returns (TokenGuardConfig[] memory) {
+        TokenGuardConfig[] memory configs = new TokenGuardConfig[](1);
+
+        configs[0] = TokenGuardConfig({
+            token: MAINNET_LRT2,
+            transferAllowState: RumpelGuard.AllowListState.OFF,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+
         return configs;
     }
 }
@@ -1197,4 +1312,3 @@ interface ILRT2Claim {
         bytes32[] calldata merkleProof
     ) external;
 }
-
