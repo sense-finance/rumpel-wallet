@@ -120,6 +120,13 @@ library RumpelConfig {
                 RumpelGuard.AllowListState desiredState = config.selectorStates[j].state;
                 RumpelGuard.AllowListState currentState = rumpelGuard.allowedCalls(target, selector);
 
+                if (
+                    currentState == RumpelGuard.AllowListState.OFF
+                        && desiredState == RumpelGuard.AllowListState.PERMANENTLY_ON
+                ) {
+                    revert("cannot go from OFF to PERMANENTLY_ON");
+                }
+
                 if (currentState == desiredState) {
                     console.log("Selector already set");
                 } else {
@@ -133,10 +140,28 @@ library RumpelConfig {
         TokenGuardConfig[] memory tokens = getGuardTokenConfigs(tag);
         for (uint256 i = 0; i < tokens.length; i++) {
             TokenGuardConfig memory config = tokens[i];
-            if (config.transferAllowState != rumpelGuard.allowedCalls(config.token, ERC20.transfer.selector)) {
+            RumpelGuard.AllowListState currentTransferAllowState =
+                rumpelGuard.allowedCalls(config.token, ERC20.transfer.selector);
+            RumpelGuard.AllowListState currentApproveAllowState =
+                rumpelGuard.allowedCalls(config.token, ERC20.approve.selector);
+
+            if (
+                currentTransferAllowState == RumpelGuard.AllowListState.OFF
+                    && config.transferAllowState == RumpelGuard.AllowListState.PERMANENTLY_ON
+            ) {
+                revert("cannot go from OFF to PERMANENTLY_ON");
+            }
+            if (
+                currentApproveAllowState == RumpelGuard.AllowListState.OFF
+                    && config.approveAllowState == RumpelGuard.AllowListState.PERMANENTLY_ON
+            ) {
+                revert("cannot go from OFF to PERMANENTLY_ON");
+            }
+
+            if (config.transferAllowState != currentTransferAllowState) {
                 rumpelGuard.setCallAllowed(config.token, ERC20.transfer.selector, config.transferAllowState);
             }
-            if (config.approveAllowState != rumpelGuard.allowedCalls(config.token, ERC20.approve.selector)) {
+            if (config.approveAllowState != currentApproveAllowState) {
                 rumpelGuard.setCallAllowed(config.token, ERC20.approve.selector, config.approveAllowState);
             }
         }
@@ -223,6 +248,8 @@ library RumpelConfig {
             return new ProtocolGuardConfig[](0);
         } else if (tagHash == keccak256(bytes("remove-lrt2-claiming"))) {
             return getRemoveLRT2ProtocolGuardConfigs();
+        } else if (tagHash == keccak256(bytes("perm-allow-march-may-2025-susde-yts"))) {
+            return new ProtocolGuardConfig[](0);
         }
 
         revert("Unsupported tag");
@@ -273,6 +300,8 @@ library RumpelConfig {
             return getAddKsusdeTransferTokenGuardConfigs();
         } else if (tagHash == keccak256(bytes("remove-lrt2-claiming"))) {
             return getRemoveLRT2AssetTokenGuardConfigs();
+        } else if (tagHash == keccak256(bytes("perm-allow-march-may-2025-susde-yts"))) {
+            return getPermAllowMarchAndMay2025SusdeYTsTokenGuardConfigs();
         }
 
         revert("Unsupported tag");
@@ -320,6 +349,8 @@ library RumpelConfig {
             return new TokenModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("remove-lrt2-claiming"))) {
             return new TokenModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("perm-allow-march-may-2025-susde-yts"))) {
+            return getMarchAndMay20252025SusdeYTsTokenModuleConfigs();
         }
 
         revert("Unsupported tag");
@@ -363,6 +394,8 @@ library RumpelConfig {
         } else if (tagHash == keccak256(bytes("add-ksusde-transfer"))) {
             return new ProtocolModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("remove-lrt2-claiming"))) {
+            return new ProtocolModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("perm-allow-march-may-2025-susde-yts"))) {
             return new ProtocolModuleConfig[](0);
         }
 
@@ -1161,6 +1194,33 @@ library RumpelConfig {
             transferAllowState: RumpelGuard.AllowListState.OFF,
             approveAllowState: RumpelGuard.AllowListState.OFF
         });
+
+        return configs;
+    }
+
+    function getPermAllowMarchAndMay2025SusdeYTsTokenGuardConfigs() internal pure returns (TokenGuardConfig[] memory) {
+        TokenGuardConfig[] memory configs = new TokenGuardConfig[](2);
+
+        configs[0] = TokenGuardConfig({
+            token: MAINNET_YT_SUSDE_27MAR2025,
+            transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+
+        configs[1] = TokenGuardConfig({
+            token: MAINNET_YT_SUSDE_29MAY2025,
+            transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+
+        return configs;
+    }
+
+    function getMarchAndMay20252025SusdeYTsTokenModuleConfigs() internal pure returns (TokenModuleConfig[] memory) {
+        TokenModuleConfig[] memory configs = new TokenModuleConfig[](3);
+
+        configs[0] = TokenModuleConfig({token: MAINNET_YT_SUSDE_27MAR2025, blockTransfer: true, blockApprove: true});
+        configs[1] = TokenModuleConfig({token: MAINNET_YT_SUSDE_29MAY2025, blockTransfer: true, blockApprove: true});
 
         return configs;
     }
