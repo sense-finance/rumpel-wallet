@@ -86,6 +86,8 @@ library RumpelConfig {
     address public constant MAINNET_YT_SUSDE_27MAR2025 = 0x96512230bF0Fa4E20Cf02C3e8A7d983132cd2b9F;
     address public constant MAINNET_YT_SUSDE_29MAY2025 = 0x1de6Ff19FDA7496DdC12f2161f6ad6427c52aBBe;
 
+    address public constant MAINNET_PENDLE_YT_USDE_27MAR2025 = 0x4A8036EFA1307F1cA82d932C0895faa18dB0c9eE;
+
     address public constant MAINNET_AMPHRETH = 0x5fD13359Ba15A84B76f7F87568309040176167cd;
     address public constant MAINNET_SYMBIOTIC_LBTC = 0x9C0823D3A1172F9DdF672d438dec79c39a64f448;
 
@@ -250,6 +252,8 @@ library RumpelConfig {
             return getRemoveLRT2ProtocolGuardConfigs();
         } else if (tagHash == keccak256(bytes("perm-allow-march-may-2025-susde-yts"))) {
             return new ProtocolGuardConfig[](0);
+        } else if (tagHash == keccak256(bytes("pendle-usde-yts"))) {
+            return new ProtocolGuardConfig[](0);
         }
 
         revert("Unsupported tag");
@@ -302,6 +306,8 @@ library RumpelConfig {
             return getRemoveLRT2AssetTokenGuardConfigs();
         } else if (tagHash == keccak256(bytes("perm-allow-march-may-2025-susde-yts"))) {
             return getPermAllowMarchAndMay2025SusdeYTsTokenGuardConfigs();
+        } else if (tagHash == keccak256(bytes("pendle-usde-yts"))) {
+            return getPendleUSDEYTsTokenGuardConfigs();
         }
 
         revert("Unsupported tag");
@@ -351,6 +357,8 @@ library RumpelConfig {
             return new TokenModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("perm-allow-march-may-2025-susde-yts"))) {
             return getMarchAndMay20252025SusdeYTsTokenModuleConfigs();
+        } else if (tagHash == keccak256(bytes("pendle-usde-yts"))) {
+            return new TokenModuleConfig[](0);
         }
 
         revert("Unsupported tag");
@@ -396,6 +404,8 @@ library RumpelConfig {
         } else if (tagHash == keccak256(bytes("remove-lrt2-claiming"))) {
             return new ProtocolModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("perm-allow-march-may-2025-susde-yts"))) {
+           return new ProtocolModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("pendle-usde-yts"))) {
             return new ProtocolModuleConfig[](0);
         }
 
@@ -1095,6 +1105,18 @@ library RumpelConfig {
             token: MAINNET_SY_KARAK_SUSDE_30JAN2025,
             transferAllowState: RumpelGuard.AllowListState.ON,
             approveAllowState: RumpelGuard.AllowListState.ON
+        });
+
+        return configs;
+    }
+
+    function getPendleUSDEYTsTokenGuardConfigs() internal pure returns (TokenGuardConfig[] memory) {
+        TokenGuardConfig[] memory configs = new TokenGuardConfig[](1);
+
+        configs[0] = TokenGuardConfig({
+            token: MAINNET_PENDLE_YT_USDE_27MAR2025,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
         });
 
         return configs;

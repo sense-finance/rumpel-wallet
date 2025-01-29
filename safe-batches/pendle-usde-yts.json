@@ -1,0 +1,20 @@
+{
+  "version": "1.0",
+  "chainId": "1",
+  "createdAt": 1738169504927,
+  "meta": {
+    "name": "Transactions Batch",
+    "description": "pendle-usde-yts",
+    "txBuilderVersion": "1.10.0",
+    "createdFromSafeAddress": "0x9D89745fD63Af482ce93a9AdB8B0BbDbb98D3e06",
+    "createdFromOwnerAddress": "",
+    "checksum": "0x889c99d1f63864e3b2c57f8d94f8ae39cb2a124830051cd4af1b81dca39f757b"
+  },
+  "transactions": [
+    {
+      "to": "0x9000fef2846a5253fd2c6ed5241de0fddb404302",
+      "value": "0x0",
+      "data": "0x5534fa0c0000000000000000000000004a8036efa1307f1ca82d932c0895faa18db0c9eea9059cbb000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001"
+    }
+  ]
+}
