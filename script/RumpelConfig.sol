@@ -1258,7 +1258,7 @@ library RumpelConfig {
     }
 
     function getSecondPassBlocklistProtocolConfigs() internal pure returns (ProtocolModuleConfig[] memory) {
-        ProtocolModuleConfig[] memory configs = new ProtocolModuleConfig[](15);
+        ProtocolModuleConfig[] memory configs = new ProtocolModuleConfig[](16);
 
         // RSUSDE
         configs[0] = ProtocolModuleConfig({target: MAINNET_RSUSDE, blockedSelectors: new bytes4[](2)});
@@ -1341,6 +1341,13 @@ library RumpelConfig {
             ProtocolModuleConfig({target: MAINNET_KARAK_DELEGATION_SUPERVISOR, blockedSelectors: new bytes4[](2)});
         configs[14].blockedSelectors[0] = bytes4(0x92dca407); // startWithdraw(tuple[] withdrawalRequests)
         configs[14].blockedSelectors[1] = bytes4(0x86e9a1f7); // finishWithdraw(tuple[] startedWithdrawals)
+
+        // Karak Vault Supervisor
+        configs[15] = ProtocolModuleConfig({target: MAINNET_AGETH, blockedSelectors: new bytes4[](4)});
+        configs[15].blockedSelectors[0] = IERC4626.deposit.selector;
+        configs[15].blockedSelectors[1] = IERC4626.mint.selector;
+        configs[15].blockedSelectors[2] = IERC4626.withdraw.selector;
+        configs[15].blockedSelectors[3] = IERC4626.redeem.selector;
 
         return configs;
     }
