@@ -126,6 +126,8 @@ library RumpelConfig {
                     currentState == RumpelGuard.AllowListState.OFF
                         && desiredState == RumpelGuard.AllowListState.PERMANENTLY_ON
                 ) {
+                    console.log("cannot go from OFF to PERMANENTLY_ON", target);
+                    console.logBytes4(selector);
                     revert("cannot go from OFF to PERMANENTLY_ON");
                 }
 
@@ -255,7 +257,7 @@ library RumpelConfig {
         } else if (tagHash == keccak256(bytes("pendle-usde-yts"))) {
             return new ProtocolGuardConfig[](0);
         } else if (tagHash == keccak256(bytes("second-pass-blocklist"))) {
-            return new ProtocolGuardConfig[](0);
+            return getSecondPassPermAllowProtocolConfigs();
         }
 
         revert("Unsupported tag");
@@ -311,7 +313,7 @@ library RumpelConfig {
         } else if (tagHash == keccak256(bytes("pendle-usde-yts"))) {
             return getPendleUSDEYTsTokenGuardConfigs();
         } else if (tagHash == keccak256(bytes("second-pass-blocklist"))) {
-            return new TokenGuardConfig[](0);
+            return getSecondPassPermAllowTokenConfigs();
         }
 
         revert("Unsupported tag");
@@ -1356,6 +1358,219 @@ library RumpelConfig {
             TokenModuleConfig({token: MAINNET_SY_KARAK_SUSDE_30JAN2025, blockTransfer: true, blockApprove: true});
         configs[7] = TokenModuleConfig({token: MAINNET_USDT, blockTransfer: true, blockApprove: true});
         configs[8] = TokenModuleConfig({token: MAINNET_GHO, blockTransfer: true, blockApprove: true});
+
+        return configs;
+    }
+
+    function getSecondPassPermAllowProtocolConfigs() internal pure returns (ProtocolGuardConfig[] memory) {
+        ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](15);
+
+        // RSUSDE
+        configs[0] = ProtocolGuardConfig({target: MAINNET_RSUSDE, selectorStates: new SelectorState[](1)});
+        configs[0].selectorStates[0] = SelectorState({
+            selector: IMellow.registerWithdrawal.selector,
+            state: RumpelGuard.AllowListState.PERMANENTLY_ON
+        });
+
+        // Zircuit Restaking Pool
+        configs[1] =
+            ProtocolGuardConfig({target: MAINNET_ZIRCUIT_RESTAKING_POOL, selectorStates: new SelectorState[](2)});
+        configs[1].selectorStates[0] = SelectorState({
+            selector: IZircuitRestakingPool.depositFor.selector,
+            state: RumpelGuard.AllowListState.PERMANENTLY_ON
+        });
+        configs[1].selectorStates[1] = SelectorState({
+            selector: IZircuitRestakingPool.withdraw.selector,
+            state: RumpelGuard.AllowListState.PERMANENTLY_ON
+        });
+
+        // Symbiotic wstETH Collateral
+        configs[2] =
+            ProtocolGuardConfig({target: MAINNET_SYMBIOTIC_WSTETH_COLLATERAL, selectorStates: new SelectorState[](2)});
+        configs[2].selectorStates[0] = SelectorState({
+            selector: ISymbioticWstETHCollateral.deposit.selector,
+            state: RumpelGuard.AllowListState.PERMANENTLY_ON
+        });
+        configs[2].selectorStates[1] = SelectorState({
+            selector: ISymbioticWstETHCollateral.withdraw.selector,
+            state: RumpelGuard.AllowListState.PERMANENTLY_ON
+        });
+
+        // Symbiotic sUSDe Collateral
+        configs[3] =
+            ProtocolGuardConfig({target: MAINNET_SYMBIOTIC_SUSDE_COLLATERAL, selectorStates: new SelectorState[](2)});
+        configs[3].selectorStates[0] = SelectorState({
+            selector: ISymbioticWstETHCollateral.deposit.selector,
+            state: RumpelGuard.AllowListState.PERMANENTLY_ON
+        });
+        configs[3].selectorStates[1] = SelectorState({
+            selector: ISymbioticWstETHCollateral.withdraw.selector,
+            state: RumpelGuard.AllowListState.PERMANENTLY_ON
+        });
+
+        // SUSDE
+        configs[4] = ProtocolGuardConfig({target: MAINNET_SUSDE, selectorStates: new SelectorState[](7)});
+        configs[4].selectorStates[0] =
+            SelectorState({selector: ISUSDE.unstake.selector, state: RumpelGuard.AllowListState.PERMANENTLY_ON});
+        configs[4].selectorStates[1] =
+            SelectorState({selector: ISUSDE.cooldownAssets.selector, state: RumpelGuard.AllowListState.PERMANENTLY_ON});
+        configs[4].selectorStates[2] =
+            SelectorState({selector: ISUSDE.cooldownShares.selector, state: RumpelGuard.AllowListState.PERMANENTLY_ON});
+        configs[4].selectorStates[3] =
+            SelectorState({selector: IERC4626.deposit.selector, state: RumpelGuard.AllowListState.PERMANENTLY_ON});
+        configs[4].selectorStates[4] =
+            SelectorState({selector: IERC4626.mint.selector, state: RumpelGuard.AllowListState.PERMANENTLY_ON});
+        configs[4].selectorStates[5] =
+            SelectorState({selector: IERC4626.withdraw.selector, state: RumpelGuard.AllowListState.PERMANENTLY_ON});
+        configs[4].selectorStates[6] =
+            SelectorState({selector: IERC4626.redeem.selector, state: RumpelGuard.AllowListState.PERMANENTLY_ON});
+
+        // RSTETH
+        configs[5] = ProtocolGuardConfig({target: MAINNET_RSTETH, selectorStates: new SelectorState[](1)});
+        configs[5].selectorStates[0] = SelectorState({
+            selector: IMellow.registerWithdrawal.selector,
+            state: RumpelGuard.AllowListState.PERMANENTLY_ON
+        });
+
+        // RE7LRT
+        configs[6] = ProtocolGuardConfig({target: MAINNET_RE7LRT, selectorStates: new SelectorState[](2)});
+        configs[6].selectorStates[0] =
+            SelectorState({selector: IMellow.deposit.selector, state: RumpelGuard.AllowListState.PERMANENTLY_ON});
+        configs[6].selectorStates[1] = SelectorState({
+            selector: IMellow.registerWithdrawal.selector,
+            state: RumpelGuard.AllowListState.PERMANENTLY_ON
+        });
+
+        // RE7RWBTC
+        configs[7] = ProtocolGuardConfig({target: MAINNET_RE7RWBTC, selectorStates: new SelectorState[](2)});
+        configs[7].selectorStates[0] =
+            SelectorState({selector: IMellow.deposit.selector, state: RumpelGuard.AllowListState.PERMANENTLY_ON});
+        configs[7].selectorStates[1] = SelectorState({
+            selector: IMellow.registerWithdrawal.selector,
+            state: RumpelGuard.AllowListState.PERMANENTLY_ON
+        });
+
+        // Morpho Base
+        configs[8] = ProtocolGuardConfig({target: MAINNET_MORPHO_BASE, selectorStates: new SelectorState[](1)});
+        configs[8].selectorStates[0] = SelectorState({
+            selector: IMorphoBase.setAuthorization.selector,
+            state: RumpelGuard.AllowListState.PERMANENTLY_ON
+        });
+
+        // SY PENDLE sUSDe
+        configs[9] = ProtocolGuardConfig({target: MAINNET_SY_SUSDE, selectorStates: new SelectorState[](1)});
+        configs[9].selectorStates[0] = SelectorState({
+            selector: IStandardizedYield.redeem.selector,
+            state: RumpelGuard.AllowListState.PERMANENTLY_ON
+        });
+
+        // SY PENDLE RSUSDe
+        configs[10] = ProtocolGuardConfig({target: MAINNET_SY_RSUSDE, selectorStates: new SelectorState[](1)});
+        configs[10].selectorStates[0] = SelectorState({
+            selector: IStandardizedYield.redeem.selector,
+            state: RumpelGuard.AllowListState.PERMANENTLY_ON
+        });
+
+        // SY PENDLE Karak sUSDe 30JAN2025
+        configs[11] =
+            ProtocolGuardConfig({target: MAINNET_SY_KARAK_SUSDE_30JAN2025, selectorStates: new SelectorState[](1)});
+        configs[11].selectorStates[0] = SelectorState({
+            selector: IStandardizedYield.redeem.selector,
+            state: RumpelGuard.AllowListState.PERMANENTLY_ON
+        });
+
+        // Ethena LP Staking
+        configs[12] = ProtocolGuardConfig({target: MAINNET_ETHENA_LP_STAKING, selectorStates: new SelectorState[](3)});
+        configs[12].selectorStates[0] =
+            SelectorState({selector: IEthenaLpStaking.stake.selector, state: RumpelGuard.AllowListState.PERMANENTLY_ON});
+        configs[12].selectorStates[1] = SelectorState({
+            selector: IEthenaLpStaking.unstake.selector,
+            state: RumpelGuard.AllowListState.PERMANENTLY_ON
+        });
+        configs[12].selectorStates[2] = SelectorState({
+            selector: IEthenaLpStaking.withdraw.selector,
+            state: RumpelGuard.AllowListState.PERMANENTLY_ON
+        });
+
+        // Karak Vault Supervisor
+        configs[13] =
+            ProtocolGuardConfig({target: MAINNET_KARAK_VAULT_SUPERVISOR, selectorStates: new SelectorState[](4)});
+        configs[13].selectorStates[0] = SelectorState({
+            selector: IKarakVaultSupervisor.deposit.selector,
+            state: RumpelGuard.AllowListState.PERMANENTLY_ON
+        });
+        configs[13].selectorStates[1] = SelectorState({
+            selector: IKarakVaultSupervisor.gimmieShares.selector,
+            state: RumpelGuard.AllowListState.PERMANENTLY_ON
+        });
+        configs[13].selectorStates[2] = SelectorState({
+            selector: IKarakVaultSupervisor.returnShares.selector,
+            state: RumpelGuard.AllowListState.PERMANENTLY_ON
+        });
+        configs[13].selectorStates[3] = SelectorState({
+            selector: IKarakVaultSupervisor.depositAndGimmie.selector,
+            state: RumpelGuard.AllowListState.PERMANENTLY_ON
+        });
+
+        // Karak Delegation Supervisor
+        configs[14] =
+            ProtocolGuardConfig({target: MAINNET_KARAK_DELEGATION_SUPERVISOR, selectorStates: new SelectorState[](2)});
+        configs[14].selectorStates[0] =
+            SelectorState({selector: bytes4(0x92dca407), state: RumpelGuard.AllowListState.PERMANENTLY_ON}); // startWithdraw(tuple[] withdrawalRequests)
+        configs[14].selectorStates[1] =
+            SelectorState({selector: bytes4(0x86e9a1f7), state: RumpelGuard.AllowListState.PERMANENTLY_ON}); // finishWithdraw(tuple[] startedWithdrawals)
+
+        return configs;
+    }
+
+    function getSecondPassPermAllowTokenConfigs() internal pure returns (TokenGuardConfig[] memory) {
+        TokenGuardConfig[] memory configs = new TokenGuardConfig[](9);
+
+        configs[0] = TokenGuardConfig({
+            token: MAINNET_SUSDE,
+            transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
+            approveAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON
+        });
+        configs[1] = TokenGuardConfig({
+            token: MAINNET_USDE,
+            transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
+            approveAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON
+        });
+        configs[2] = TokenGuardConfig({
+            token: MAINNET_MSTETH,
+            transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
+            approveAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON
+        });
+        configs[3] = TokenGuardConfig({
+            token: MAINNET_STETH,
+            transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
+            approveAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON
+        });
+        configs[4] = TokenGuardConfig({
+            token: MAINNET_WBTC,
+            transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
+            approveAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON
+        });
+        configs[5] = TokenGuardConfig({
+            token: MAINNET_SY_RSUSDE,
+            transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
+            approveAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON
+        });
+        configs[6] = TokenGuardConfig({
+            token: MAINNET_SY_KARAK_SUSDE_30JAN2025,
+            transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
+            approveAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON
+        });
+        configs[7] = TokenGuardConfig({
+            token: MAINNET_USDT,
+            transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
+            approveAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON
+        });
+        configs[8] = TokenGuardConfig({
+            token: MAINNET_GHO,
+            transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
+            approveAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON
+        });
 
         return configs;
     }
