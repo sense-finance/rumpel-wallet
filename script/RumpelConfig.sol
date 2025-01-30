@@ -1363,7 +1363,7 @@ library RumpelConfig {
     }
 
     function getSecondPassPermAllowProtocolConfigs() internal pure returns (ProtocolGuardConfig[] memory) {
-        ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](15);
+        ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](14);
 
         // RSUSDE
         configs[0] = ProtocolGuardConfig({target: MAINNET_RSUSDE, selectorStates: new SelectorState[](1)});
@@ -1464,67 +1464,60 @@ library RumpelConfig {
             state: RumpelGuard.AllowListState.PERMANENTLY_ON
         });
 
-        // SY PENDLE RSUSDe
-        configs[10] = ProtocolGuardConfig({target: MAINNET_SY_RSUSDE, selectorStates: new SelectorState[](1)});
+        // SY PENDLE Karak sUSDe 30JAN2025
+        configs[10] =
+            ProtocolGuardConfig({target: MAINNET_SY_KARAK_SUSDE_30JAN2025, selectorStates: new SelectorState[](1)});
         configs[10].selectorStates[0] = SelectorState({
             selector: IStandardizedYield.redeem.selector,
             state: RumpelGuard.AllowListState.PERMANENTLY_ON
         });
 
-        // SY PENDLE Karak sUSDe 30JAN2025
-        configs[11] =
-            ProtocolGuardConfig({target: MAINNET_SY_KARAK_SUSDE_30JAN2025, selectorStates: new SelectorState[](1)});
-        configs[11].selectorStates[0] = SelectorState({
-            selector: IStandardizedYield.redeem.selector,
-            state: RumpelGuard.AllowListState.PERMANENTLY_ON
-        });
-
         // Ethena LP Staking
-        configs[12] = ProtocolGuardConfig({target: MAINNET_ETHENA_LP_STAKING, selectorStates: new SelectorState[](3)});
-        configs[12].selectorStates[0] =
+        configs[11] = ProtocolGuardConfig({target: MAINNET_ETHENA_LP_STAKING, selectorStates: new SelectorState[](3)});
+        configs[11].selectorStates[0] =
             SelectorState({selector: IEthenaLpStaking.stake.selector, state: RumpelGuard.AllowListState.PERMANENTLY_ON});
-        configs[12].selectorStates[1] = SelectorState({
+        configs[11].selectorStates[1] = SelectorState({
             selector: IEthenaLpStaking.unstake.selector,
             state: RumpelGuard.AllowListState.PERMANENTLY_ON
         });
-        configs[12].selectorStates[2] = SelectorState({
+        configs[11].selectorStates[2] = SelectorState({
             selector: IEthenaLpStaking.withdraw.selector,
             state: RumpelGuard.AllowListState.PERMANENTLY_ON
         });
 
         // Karak Vault Supervisor
-        configs[13] =
+        configs[12] =
             ProtocolGuardConfig({target: MAINNET_KARAK_VAULT_SUPERVISOR, selectorStates: new SelectorState[](4)});
-        configs[13].selectorStates[0] = SelectorState({
+        configs[12].selectorStates[0] = SelectorState({
             selector: IKarakVaultSupervisor.deposit.selector,
             state: RumpelGuard.AllowListState.PERMANENTLY_ON
         });
-        configs[13].selectorStates[1] = SelectorState({
+        configs[12].selectorStates[1] = SelectorState({
             selector: IKarakVaultSupervisor.gimmieShares.selector,
             state: RumpelGuard.AllowListState.PERMANENTLY_ON
         });
-        configs[13].selectorStates[2] = SelectorState({
+        configs[12].selectorStates[2] = SelectorState({
             selector: IKarakVaultSupervisor.returnShares.selector,
             state: RumpelGuard.AllowListState.PERMANENTLY_ON
         });
-        configs[13].selectorStates[3] = SelectorState({
+        configs[12].selectorStates[3] = SelectorState({
             selector: IKarakVaultSupervisor.depositAndGimmie.selector,
             state: RumpelGuard.AllowListState.PERMANENTLY_ON
         });
 
         // Karak Delegation Supervisor
-        configs[14] =
+        configs[13] =
             ProtocolGuardConfig({target: MAINNET_KARAK_DELEGATION_SUPERVISOR, selectorStates: new SelectorState[](2)});
-        configs[14].selectorStates[0] =
+        configs[13].selectorStates[0] =
             SelectorState({selector: bytes4(0x92dca407), state: RumpelGuard.AllowListState.PERMANENTLY_ON}); // startWithdraw(tuple[] withdrawalRequests)
-        configs[14].selectorStates[1] =
+        configs[13].selectorStates[1] =
             SelectorState({selector: bytes4(0x86e9a1f7), state: RumpelGuard.AllowListState.PERMANENTLY_ON}); // finishWithdraw(tuple[] startedWithdrawals)
 
         return configs;
     }
 
     function getSecondPassPermAllowTokenConfigs() internal pure returns (TokenGuardConfig[] memory) {
-        TokenGuardConfig[] memory configs = new TokenGuardConfig[](9);
+        TokenGuardConfig[] memory configs = new TokenGuardConfig[](8);
 
         configs[0] = TokenGuardConfig({
             token: MAINNET_SUSDE,
@@ -1552,21 +1545,16 @@ library RumpelConfig {
             approveAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON
         });
         configs[5] = TokenGuardConfig({
-            token: MAINNET_SY_RSUSDE,
-            transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
-            approveAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON
-        });
-        configs[6] = TokenGuardConfig({
             token: MAINNET_SY_KARAK_SUSDE_30JAN2025,
             transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
             approveAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON
         });
-        configs[7] = TokenGuardConfig({
+        configs[6] = TokenGuardConfig({
             token: MAINNET_USDT,
             transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
             approveAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON
         });
-        configs[8] = TokenGuardConfig({
+        configs[7] = TokenGuardConfig({
             token: MAINNET_GHO,
             transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
             approveAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON
