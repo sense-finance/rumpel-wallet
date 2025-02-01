@@ -4,6 +4,7 @@ pragma solidity =0.8.24;
 import {RumpelGuard} from "../src/RumpelGuard.sol";
 import {RumpelModule} from "../src/RumpelModule.sol";
 import {ERC20} from "solmate/tokens/ERC20.sol";
+import {ISafe} from "../src/interfaces/external/ISafe.sol";
 import {console} from "forge-std/console.sol";
 
 struct SelectorState {
@@ -1349,15 +1350,15 @@ library RumpelConfig {
     }
 
     function getSecondPassBlocklistTokenConfigs() internal pure returns (TokenModuleConfig[] memory) {
-        TokenModuleConfig[] memory configs = new TokenModuleConfig[](9);
+        TokenModuleConfig[] memory configs = new TokenModuleConfig[](7);
 
         configs[0] = TokenModuleConfig({token: MAINNET_SUSDE, blockTransfer: true, blockApprove: true});
         configs[1] = TokenModuleConfig({token: MAINNET_USDE, blockTransfer: true, blockApprove: true});
         configs[2] = TokenModuleConfig({token: MAINNET_MSTETH, blockTransfer: true, blockApprove: true});
         configs[3] = TokenModuleConfig({token: MAINNET_STETH, blockTransfer: true, blockApprove: true});
         configs[4] = TokenModuleConfig({token: MAINNET_WBTC, blockTransfer: true, blockApprove: true});
-        configs[7] = TokenModuleConfig({token: MAINNET_USDT, blockTransfer: true, blockApprove: true});
-        configs[8] = TokenModuleConfig({token: MAINNET_GHO, blockTransfer: true, blockApprove: true});
+        configs[5] = TokenModuleConfig({token: MAINNET_USDT, blockTransfer: true, blockApprove: true});
+        configs[6] = TokenModuleConfig({token: MAINNET_GHO, blockTransfer: true, blockApprove: true});
 
         return configs;
     }
