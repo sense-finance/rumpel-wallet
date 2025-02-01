@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 pragma solidity =0.8.24;
 
+import {Test} from "forge-std/Test.sol";
+
 import {RumpelGuard} from "../src/RumpelGuard.sol";
 import {RumpelModule} from "../src/RumpelModule.sol";
 import {InitializationScript} from "../src/InitializationScript.sol";
