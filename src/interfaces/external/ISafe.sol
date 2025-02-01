@@ -76,6 +76,10 @@ interface ISafe {
 
     function addOwnerWithThreshold(address owner, uint256 _threshold) external;
 
+    function removeOwner(address prevOwner, address owner, uint256 _threshold) external;
+
+    function swapOwner(address prevOwner, address oldOwner, address newOwner) external;
+
     // Fallback handler functions
 
     function isValidSignature(bytes32 _dataHash, bytes calldata _signature) external view returns (bytes4);

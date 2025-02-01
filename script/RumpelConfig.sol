@@ -3,6 +3,7 @@ pragma solidity =0.8.24;
 
 import {RumpelGuard} from "../src/RumpelGuard.sol";
 import {RumpelModule} from "../src/RumpelModule.sol";
+import {ISafe} from "../src/interfaces/external/ISafe.sol";
 import {ERC20} from "solmate/tokens/ERC20.sol";
 import {console} from "forge-std/console.sol";
 
@@ -254,6 +255,8 @@ library RumpelConfig {
             return new ProtocolGuardConfig[](0);
         } else if (tagHash == keccak256(bytes("pendle-usde-yts"))) {
             return new ProtocolGuardConfig[](0);
+        } else if (tagHash == keccak256(bytes("enable-swap-owner"))) {
+            return getEnableSwapOwnerProtocolGuard();
         }
 
         revert("Unsupported tag");
@@ -308,6 +311,8 @@ library RumpelConfig {
             return getPermAllowMarchAndMay2025SusdeYTsTokenGuardConfigs();
         } else if (tagHash == keccak256(bytes("pendle-usde-yts"))) {
             return getPendleUSDEYTsTokenGuardConfigs();
+        } else if (tagHash == keccak256(bytes("enable-swap-owner"))) {
+            return new TokenGuardConfig[](0);
         }
 
         revert("Unsupported tag");
@@ -359,6 +364,8 @@ library RumpelConfig {
             return getMarchAndMay20252025SusdeYTsTokenModuleConfigs();
         } else if (tagHash == keccak256(bytes("pendle-usde-yts"))) {
             return new TokenModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("enable-swap-owner"))) {
+            return new TokenModuleConfig[](0);
         }
 
         revert("Unsupported tag");
@@ -404,8 +411,10 @@ library RumpelConfig {
         } else if (tagHash == keccak256(bytes("remove-lrt2-claiming"))) {
             return new ProtocolModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("perm-allow-march-may-2025-susde-yts"))) {
-           return new ProtocolModuleConfig[](0);
+            return new ProtocolModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("pendle-usde-yts"))) {
+            return new ProtocolModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("enable-swap-owner"))) {
             return new ProtocolModuleConfig[](0);
         }
 
@@ -1243,6 +1252,16 @@ library RumpelConfig {
 
         configs[0] = TokenModuleConfig({token: MAINNET_YT_SUSDE_27MAR2025, blockTransfer: true, blockApprove: true});
         configs[1] = TokenModuleConfig({token: MAINNET_YT_SUSDE_29MAY2025, blockTransfer: true, blockApprove: true});
+
+        return configs;
+    }
+
+    function getEnableSwapOwnerProtocolGuard() internal pure returns (ProtocolGuardConfig[] memory) {
+        ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](1);
+
+        configs[0] = ProtocolGuardConfig({target: address(0), selectorStates: new SelectorState[](1)});
+        configs[0].selectorStates[0] =
+            SelectorState({selector: ISafe.swapOwner.selector, state: RumpelGuard.AllowListState.ON});
 
         return configs;
     }
