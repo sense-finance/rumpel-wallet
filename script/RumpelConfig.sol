@@ -4,6 +4,7 @@ pragma solidity =0.8.24;
 import {RumpelGuard} from "../src/RumpelGuard.sol";
 import {RumpelModule} from "../src/RumpelModule.sol";
 import {ERC20} from "solmate/tokens/ERC20.sol";
+import {ISafe} from "../src/interfaces/external/ISafe.sol";
 import {console} from "forge-std/console.sol";
 
 struct SelectorState {
@@ -63,6 +64,7 @@ library RumpelConfig {
     address public constant MAINNET_WEETH = 0xCd5fE23C85820F7B72D0926FC9b05b43E359b7ee;
     address public constant MAINNET_WEETHS = 0x917ceE801a67f933F2e6b33fC0cD1ED2d5909D88;
     address public constant MAINNET_MSTETH = 0x49446A0874197839D15395B908328a74ccc96Bc0;
+    address public constant MAINNET_STETH = 0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84;
     address public constant MAINNET_USDT = 0xdAC17F958D2ee523a2206206994597C13D831ec7;
     address public constant MAINNET_GHO = 0x40D16FC0246aD3160Ccc09B8D0D3A2cD28aE6C2f;
     address public constant MAINNET_KSUSDE = 0xDe5Bff0755F192C333B126A449FF944Ee2B69681;
@@ -85,7 +87,6 @@ library RumpelConfig {
     address public constant MAINNET_YT_RSUSDE_27MAR2025 = 0x079F21309eB9cbD2a387972eB2168d57C8542e32; // sy token added
     address public constant MAINNET_YT_SUSDE_27MAR2025 = 0x96512230bF0Fa4E20Cf02C3e8A7d983132cd2b9F;
     address public constant MAINNET_YT_SUSDE_29MAY2025 = 0x1de6Ff19FDA7496DdC12f2161f6ad6427c52aBBe;
-
     address public constant MAINNET_PENDLE_YT_USDE_27MAR2025 = 0x4A8036EFA1307F1cA82d932C0895faa18dB0c9eE;
 
     address public constant MAINNET_AMPHRETH = 0x5fD13359Ba15A84B76f7F87568309040176167cd;
@@ -126,6 +127,8 @@ library RumpelConfig {
                     currentState == RumpelGuard.AllowListState.OFF
                         && desiredState == RumpelGuard.AllowListState.PERMANENTLY_ON
                 ) {
+                    console.log("cannot go from OFF to PERMANENTLY_ON", target);
+                    console.logBytes4(selector);
                     revert("cannot go from OFF to PERMANENTLY_ON");
                 }
 
@@ -177,14 +180,14 @@ library RumpelConfig {
                 if (rumpelModule.blockedModuleCalls(config.token, ERC20.transfer.selector) != true) {
                     rumpelModule.addBlockedModuleCall(config.token, ERC20.transfer.selector);
                 } else {
-                    console.log("Transfer already blocked");
+                    console.log("Transfer already blocked", config.token);
                 }
             }
             if (config.blockApprove) {
                 if (rumpelModule.blockedModuleCalls(config.token, ERC20.approve.selector) != true) {
                     rumpelModule.addBlockedModuleCall(config.token, ERC20.approve.selector);
                 } else {
-                    console.log("Approve already blocked");
+                    console.log("Approve already blocked", config.token);
                 }
             }
         }
@@ -254,6 +257,8 @@ library RumpelConfig {
             return new ProtocolGuardConfig[](0);
         } else if (tagHash == keccak256(bytes("pendle-usde-yts"))) {
             return new ProtocolGuardConfig[](0);
+        } else if (tagHash == keccak256(bytes("second-pass-blocklist"))) {
+            return getSecondPassPermAllowProtocolConfigs();
         }
 
         revert("Unsupported tag");
@@ -308,6 +313,8 @@ library RumpelConfig {
             return getPermAllowMarchAndMay2025SusdeYTsTokenGuardConfigs();
         } else if (tagHash == keccak256(bytes("pendle-usde-yts"))) {
             return getPendleUSDEYTsTokenGuardConfigs();
+        } else if (tagHash == keccak256(bytes("second-pass-blocklist"))) {
+            return getSecondPassPermAllowTokenConfigs();
         }
 
         revert("Unsupported tag");
@@ -356,9 +363,11 @@ library RumpelConfig {
         } else if (tagHash == keccak256(bytes("remove-lrt2-claiming"))) {
             return new TokenModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("perm-allow-march-may-2025-susde-yts"))) {
-            return getMarchAndMay20252025SusdeYTsTokenModuleConfigs();
+            return getMarchAndMay2025SusdeYTsTokenModuleConfigs();
         } else if (tagHash == keccak256(bytes("pendle-usde-yts"))) {
             return new TokenModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("second-pass-blocklist"))) {
+            return getSecondPassBlocklistTokenConfigs();
         }
 
         revert("Unsupported tag");
@@ -404,9 +413,11 @@ library RumpelConfig {
         } else if (tagHash == keccak256(bytes("remove-lrt2-claiming"))) {
             return new ProtocolModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("perm-allow-march-may-2025-susde-yts"))) {
-           return new ProtocolModuleConfig[](0);
+            return new ProtocolModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("pendle-usde-yts"))) {
             return new ProtocolModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("second-pass-blocklist"))) {
+            return getSecondPassBlocklistProtocolConfigs();
         }
 
         revert("Unsupported tag");
@@ -1238,11 +1249,340 @@ library RumpelConfig {
         return configs;
     }
 
-    function getMarchAndMay20252025SusdeYTsTokenModuleConfigs() internal pure returns (TokenModuleConfig[] memory) {
-        TokenModuleConfig[] memory configs = new TokenModuleConfig[](3);
+    function getMarchAndMay2025SusdeYTsTokenModuleConfigs() internal pure returns (TokenModuleConfig[] memory) {
+        TokenModuleConfig[] memory configs = new TokenModuleConfig[](2);
 
         configs[0] = TokenModuleConfig({token: MAINNET_YT_SUSDE_27MAR2025, blockTransfer: true, blockApprove: true});
         configs[1] = TokenModuleConfig({token: MAINNET_YT_SUSDE_29MAY2025, blockTransfer: true, blockApprove: true});
+
+        return configs;
+    }
+
+    function getSecondPassBlocklistProtocolConfigs() internal pure returns (ProtocolModuleConfig[] memory) {
+        ProtocolModuleConfig[] memory configs = new ProtocolModuleConfig[](15);
+
+        // RSUSDE
+        configs[0] = ProtocolModuleConfig({target: MAINNET_RSUSDE, blockedSelectors: new bytes4[](2)});
+        configs[0].blockedSelectors[0] = IMellow.deposit.selector;
+        configs[0].blockedSelectors[1] = IMellow.registerWithdrawal.selector;
+
+        // Zircuit Restaking Pool
+        configs[1] = ProtocolModuleConfig({target: MAINNET_ZIRCUIT_RESTAKING_POOL, blockedSelectors: new bytes4[](2)});
+        configs[1].blockedSelectors[0] = IZircuitRestakingPool.depositFor.selector;
+        configs[1].blockedSelectors[1] = IZircuitRestakingPool.withdraw.selector;
+
+        // Symbiotic wstETH Collateral
+        configs[2] =
+            ProtocolModuleConfig({target: MAINNET_SYMBIOTIC_WSTETH_COLLATERAL, blockedSelectors: new bytes4[](2)});
+        configs[2].blockedSelectors[0] = ISymbioticWstETHCollateral.deposit.selector;
+        configs[2].blockedSelectors[1] = ISymbioticWstETHCollateral.withdraw.selector;
+
+        // Symbiotic sUSDe Collateral
+        configs[3] =
+            ProtocolModuleConfig({target: MAINNET_SYMBIOTIC_SUSDE_COLLATERAL, blockedSelectors: new bytes4[](2)});
+        configs[3].blockedSelectors[0] = ISymbioticWstETHCollateral.deposit.selector;
+        configs[3].blockedSelectors[1] = ISymbioticWstETHCollateral.withdraw.selector;
+
+        // SUSDE
+        configs[4] = ProtocolModuleConfig({target: MAINNET_SUSDE, blockedSelectors: new bytes4[](7)});
+        configs[4].blockedSelectors[0] = ISUSDE.unstake.selector;
+        configs[4].blockedSelectors[1] = ISUSDE.cooldownAssets.selector;
+        configs[4].blockedSelectors[2] = ISUSDE.cooldownShares.selector;
+        configs[4].blockedSelectors[3] = IERC4626.deposit.selector;
+        configs[4].blockedSelectors[4] = IERC4626.mint.selector;
+        configs[4].blockedSelectors[5] = IERC4626.withdraw.selector;
+        configs[4].blockedSelectors[6] = IERC4626.redeem.selector;
+
+        // RSTETH
+        configs[5] = ProtocolModuleConfig({target: MAINNET_RSTETH, blockedSelectors: new bytes4[](2)});
+        configs[5].blockedSelectors[0] = IMellow.deposit.selector;
+        configs[5].blockedSelectors[1] = IMellow.registerWithdrawal.selector;
+
+        // RE7LRT
+        configs[6] = ProtocolModuleConfig({target: MAINNET_RE7LRT, blockedSelectors: new bytes4[](2)});
+        configs[6].blockedSelectors[0] = IMellow.deposit.selector;
+        configs[6].blockedSelectors[1] = IMellow.registerWithdrawal.selector;
+
+        // RE7RWBTC
+        configs[7] = ProtocolModuleConfig({target: MAINNET_RE7RWBTC, blockedSelectors: new bytes4[](2)});
+        configs[7].blockedSelectors[0] = IMellow.deposit.selector;
+        configs[7].blockedSelectors[1] = IMellow.registerWithdrawal.selector;
+
+        // Morpho Base
+        configs[8] = ProtocolModuleConfig({target: MAINNET_MORPHO_BASE, blockedSelectors: new bytes4[](1)});
+        configs[8].blockedSelectors[0] = IMorphoBase.setAuthorization.selector;
+
+        // SY PENDLE RSUSDe
+        configs[9] = ProtocolModuleConfig({target: MAINNET_SY_RSUSDE, blockedSelectors: new bytes4[](1)});
+        configs[9].blockedSelectors[0] = IStandardizedYield.redeem.selector;
+
+        // SY PENDLE Karak sUSDe 30JAN2025
+        configs[10] =
+            ProtocolModuleConfig({target: MAINNET_SY_KARAK_SUSDE_30JAN2025, blockedSelectors: new bytes4[](1)});
+        configs[10].blockedSelectors[0] = IStandardizedYield.redeem.selector;
+
+        configs[11] = ProtocolModuleConfig({target: MAINNET_ETHENA_LP_STAKING, blockedSelectors: new bytes4[](3)});
+        configs[11].blockedSelectors[0] = IEthenaLpStaking.stake.selector;
+        configs[11].blockedSelectors[1] = IEthenaLpStaking.unstake.selector;
+        configs[11].blockedSelectors[2] = IEthenaLpStaking.withdraw.selector;
+
+        // Karak Vault Supervisor
+        configs[12] = ProtocolModuleConfig({target: MAINNET_KARAK_VAULT_SUPERVISOR, blockedSelectors: new bytes4[](4)});
+        configs[12].blockedSelectors[0] = IKarakVaultSupervisor.deposit.selector;
+        configs[12].blockedSelectors[1] = IKarakVaultSupervisor.gimmieShares.selector;
+        configs[12].blockedSelectors[2] = IKarakVaultSupervisor.returnShares.selector;
+        configs[12].blockedSelectors[3] = IKarakVaultSupervisor.depositAndGimmie.selector;
+
+        // Karak Delegation Supervisor
+        configs[13] =
+            ProtocolModuleConfig({target: MAINNET_KARAK_DELEGATION_SUPERVISOR, blockedSelectors: new bytes4[](2)});
+        configs[13].blockedSelectors[0] = bytes4(0x92dca407); // startWithdraw(tuple[] withdrawalRequests)
+        configs[13].blockedSelectors[1] = bytes4(0x86e9a1f7); // finishWithdraw(tuple[] startedWithdrawals)
+
+        // AGETH
+        configs[14] = ProtocolModuleConfig({target: MAINNET_AGETH, blockedSelectors: new bytes4[](4)});
+        configs[14].blockedSelectors[0] = IERC4626.deposit.selector;
+        configs[14].blockedSelectors[1] = IERC4626.mint.selector;
+        configs[14].blockedSelectors[2] = IERC4626.withdraw.selector;
+        configs[14].blockedSelectors[3] = IERC4626.redeem.selector;
+
+        return configs;
+    }
+
+    function getSecondPassBlocklistTokenConfigs() internal pure returns (TokenModuleConfig[] memory) {
+        TokenModuleConfig[] memory configs = new TokenModuleConfig[](7);
+
+        configs[0] = TokenModuleConfig({token: MAINNET_SUSDE, blockTransfer: true, blockApprove: true});
+        configs[1] = TokenModuleConfig({token: MAINNET_USDE, blockTransfer: true, blockApprove: true});
+        configs[2] = TokenModuleConfig({token: MAINNET_MSTETH, blockTransfer: true, blockApprove: true});
+        configs[3] = TokenModuleConfig({token: MAINNET_STETH, blockTransfer: true, blockApprove: true});
+        configs[4] = TokenModuleConfig({token: MAINNET_WBTC, blockTransfer: true, blockApprove: true});
+        configs[5] = TokenModuleConfig({token: MAINNET_USDT, blockTransfer: true, blockApprove: true});
+        configs[6] = TokenModuleConfig({token: MAINNET_GHO, blockTransfer: true, blockApprove: true});
+
+        return configs;
+    }
+
+    function getSecondPassPermAllowProtocolConfigs() internal pure returns (ProtocolGuardConfig[] memory) {
+        ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](18);
+
+        // RSUSDE
+        configs[0] = ProtocolGuardConfig({target: MAINNET_RSUSDE, selectorStates: new SelectorState[](2)});
+        configs[0].selectorStates[0] =
+            SelectorState({selector: IMellow.deposit.selector, state: RumpelGuard.AllowListState.PERMANENTLY_ON});
+        configs[0].selectorStates[1] = SelectorState({
+            selector: IMellow.registerWithdrawal.selector,
+            state: RumpelGuard.AllowListState.PERMANENTLY_ON
+        });
+
+        // Zircuit Restaking Pool
+        configs[1] =
+            ProtocolGuardConfig({target: MAINNET_ZIRCUIT_RESTAKING_POOL, selectorStates: new SelectorState[](2)});
+        configs[1].selectorStates[0] = SelectorState({
+            selector: IZircuitRestakingPool.depositFor.selector,
+            state: RumpelGuard.AllowListState.PERMANENTLY_ON
+        });
+        configs[1].selectorStates[1] = SelectorState({
+            selector: IZircuitRestakingPool.withdraw.selector,
+            state: RumpelGuard.AllowListState.PERMANENTLY_ON
+        });
+
+        // Symbiotic wstETH Collateral
+        configs[2] =
+            ProtocolGuardConfig({target: MAINNET_SYMBIOTIC_WSTETH_COLLATERAL, selectorStates: new SelectorState[](2)});
+        configs[2].selectorStates[0] = SelectorState({
+            selector: ISymbioticWstETHCollateral.deposit.selector,
+            state: RumpelGuard.AllowListState.PERMANENTLY_ON
+        });
+        configs[2].selectorStates[1] = SelectorState({
+            selector: ISymbioticWstETHCollateral.withdraw.selector,
+            state: RumpelGuard.AllowListState.PERMANENTLY_ON
+        });
+
+        // Symbiotic sUSDe Collateral
+        configs[3] =
+            ProtocolGuardConfig({target: MAINNET_SYMBIOTIC_SUSDE_COLLATERAL, selectorStates: new SelectorState[](2)});
+        configs[3].selectorStates[0] = SelectorState({
+            selector: ISymbioticWstETHCollateral.deposit.selector,
+            state: RumpelGuard.AllowListState.PERMANENTLY_ON
+        });
+        configs[3].selectorStates[1] = SelectorState({
+            selector: ISymbioticWstETHCollateral.withdraw.selector,
+            state: RumpelGuard.AllowListState.PERMANENTLY_ON
+        });
+
+        // SUSDE
+        configs[4] = ProtocolGuardConfig({target: MAINNET_SUSDE, selectorStates: new SelectorState[](7)});
+        configs[4].selectorStates[0] =
+            SelectorState({selector: ISUSDE.unstake.selector, state: RumpelGuard.AllowListState.PERMANENTLY_ON});
+        configs[4].selectorStates[1] =
+            SelectorState({selector: ISUSDE.cooldownAssets.selector, state: RumpelGuard.AllowListState.PERMANENTLY_ON});
+        configs[4].selectorStates[2] =
+            SelectorState({selector: ISUSDE.cooldownShares.selector, state: RumpelGuard.AllowListState.PERMANENTLY_ON});
+        configs[4].selectorStates[3] =
+            SelectorState({selector: IERC4626.deposit.selector, state: RumpelGuard.AllowListState.PERMANENTLY_ON});
+        configs[4].selectorStates[4] =
+            SelectorState({selector: IERC4626.mint.selector, state: RumpelGuard.AllowListState.PERMANENTLY_ON});
+        configs[4].selectorStates[5] =
+            SelectorState({selector: IERC4626.withdraw.selector, state: RumpelGuard.AllowListState.PERMANENTLY_ON});
+        configs[4].selectorStates[6] =
+            SelectorState({selector: IERC4626.redeem.selector, state: RumpelGuard.AllowListState.PERMANENTLY_ON});
+
+        // RSTETH
+        configs[5] = ProtocolGuardConfig({target: MAINNET_RSTETH, selectorStates: new SelectorState[](2)});
+        configs[5].selectorStates[0] =
+            SelectorState({selector: IMellow.deposit.selector, state: RumpelGuard.AllowListState.PERMANENTLY_ON});
+        configs[5].selectorStates[1] = SelectorState({
+            selector: IMellow.registerWithdrawal.selector,
+            state: RumpelGuard.AllowListState.PERMANENTLY_ON
+        });
+
+        // RE7LRT
+        configs[6] = ProtocolGuardConfig({target: MAINNET_RE7LRT, selectorStates: new SelectorState[](2)});
+        configs[6].selectorStates[0] =
+            SelectorState({selector: IMellow.deposit.selector, state: RumpelGuard.AllowListState.PERMANENTLY_ON});
+        configs[6].selectorStates[1] = SelectorState({
+            selector: IMellow.registerWithdrawal.selector,
+            state: RumpelGuard.AllowListState.PERMANENTLY_ON
+        });
+
+        // RE7RWBTC
+        configs[7] = ProtocolGuardConfig({target: MAINNET_RE7RWBTC, selectorStates: new SelectorState[](2)});
+        configs[7].selectorStates[0] =
+            SelectorState({selector: IMellow.deposit.selector, state: RumpelGuard.AllowListState.PERMANENTLY_ON});
+        configs[7].selectorStates[1] = SelectorState({
+            selector: IMellow.registerWithdrawal.selector,
+            state: RumpelGuard.AllowListState.PERMANENTLY_ON
+        });
+
+        // Morpho Base
+        configs[8] = ProtocolGuardConfig({target: MAINNET_MORPHO_BASE, selectorStates: new SelectorState[](1)});
+        configs[8].selectorStates[0] = SelectorState({
+            selector: IMorphoBase.setAuthorization.selector,
+            state: RumpelGuard.AllowListState.PERMANENTLY_ON
+        });
+
+        // SY PENDLE Karak sUSDe 30JAN2025
+        configs[9] =
+            ProtocolGuardConfig({target: MAINNET_SY_KARAK_SUSDE_30JAN2025, selectorStates: new SelectorState[](1)});
+        configs[9].selectorStates[0] = SelectorState({
+            selector: IStandardizedYield.redeem.selector,
+            state: RumpelGuard.AllowListState.PERMANENTLY_ON
+        });
+
+        // Ethena LP Staking
+        configs[10] = ProtocolGuardConfig({target: MAINNET_ETHENA_LP_STAKING, selectorStates: new SelectorState[](3)});
+        configs[10].selectorStates[0] =
+            SelectorState({selector: IEthenaLpStaking.stake.selector, state: RumpelGuard.AllowListState.PERMANENTLY_ON});
+        configs[10].selectorStates[1] = SelectorState({
+            selector: IEthenaLpStaking.unstake.selector,
+            state: RumpelGuard.AllowListState.PERMANENTLY_ON
+        });
+        configs[10].selectorStates[2] = SelectorState({
+            selector: IEthenaLpStaking.withdraw.selector,
+            state: RumpelGuard.AllowListState.PERMANENTLY_ON
+        });
+
+        // Karak Vault Supervisor
+        configs[11] =
+            ProtocolGuardConfig({target: MAINNET_KARAK_VAULT_SUPERVISOR, selectorStates: new SelectorState[](4)});
+        configs[11].selectorStates[0] = SelectorState({
+            selector: IKarakVaultSupervisor.deposit.selector,
+            state: RumpelGuard.AllowListState.PERMANENTLY_ON
+        });
+        configs[11].selectorStates[1] = SelectorState({
+            selector: IKarakVaultSupervisor.gimmieShares.selector,
+            state: RumpelGuard.AllowListState.PERMANENTLY_ON
+        });
+        configs[11].selectorStates[2] = SelectorState({
+            selector: IKarakVaultSupervisor.returnShares.selector,
+            state: RumpelGuard.AllowListState.PERMANENTLY_ON
+        });
+        configs[11].selectorStates[3] = SelectorState({
+            selector: IKarakVaultSupervisor.depositAndGimmie.selector,
+            state: RumpelGuard.AllowListState.PERMANENTLY_ON
+        });
+
+        // Karak Delegation Supervisor
+        configs[12] =
+            ProtocolGuardConfig({target: MAINNET_KARAK_DELEGATION_SUPERVISOR, selectorStates: new SelectorState[](2)});
+        configs[12].selectorStates[0] =
+            SelectorState({selector: bytes4(0x92dca407), state: RumpelGuard.AllowListState.PERMANENTLY_ON}); // startWithdraw(tuple[] withdrawalRequests)
+        configs[12].selectorStates[1] =
+            SelectorState({selector: bytes4(0x86e9a1f7), state: RumpelGuard.AllowListState.PERMANENTLY_ON}); // finishWithdraw(tuple[] startedWithdrawals)
+
+        // Fluid vaults ---
+        configs[13] =
+            ProtocolGuardConfig({target: MAINNET_FLUID_VAULT_WEETH_WSTETH, selectorStates: new SelectorState[](1)});
+        configs[13].selectorStates[0] =
+            SelectorState({selector: IFluidVaultT1.operate.selector, state: RumpelGuard.AllowListState.PERMANENTLY_ON});
+
+        configs[14] =
+            ProtocolGuardConfig({target: MAINNET_FLUID_VAULT_WEETHS_WSTETH, selectorStates: new SelectorState[](1)});
+        configs[14].selectorStates[0] =
+            SelectorState({selector: IFluidVaultT1.operate.selector, state: RumpelGuard.AllowListState.PERMANENTLY_ON});
+
+        configs[15] =
+            ProtocolGuardConfig({target: MAINNET_FLUID_VAULT_SUSDE_USDC, selectorStates: new SelectorState[](1)});
+        configs[15].selectorStates[0] =
+            SelectorState({selector: IFluidVaultT1.operate.selector, state: RumpelGuard.AllowListState.PERMANENTLY_ON});
+
+        configs[16] =
+            ProtocolGuardConfig({target: MAINNET_FLUID_VAULT_SUSDE_USDT, selectorStates: new SelectorState[](1)});
+        configs[16].selectorStates[0] =
+            SelectorState({selector: IFluidVaultT1.operate.selector, state: RumpelGuard.AllowListState.PERMANENTLY_ON});
+
+        configs[17] =
+            ProtocolGuardConfig({target: MAINNET_FLUID_VAULT_SUSDE_GHO, selectorStates: new SelectorState[](1)});
+        configs[17].selectorStates[0] =
+            SelectorState({selector: IFluidVaultT1.operate.selector, state: RumpelGuard.AllowListState.PERMANENTLY_ON});
+
+        return configs;
+    }
+
+    function getSecondPassPermAllowTokenConfigs() internal pure returns (TokenGuardConfig[] memory) {
+        TokenGuardConfig[] memory configs = new TokenGuardConfig[](8);
+
+        configs[0] = TokenGuardConfig({
+            token: MAINNET_SUSDE,
+            transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
+            approveAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON
+        });
+        configs[1] = TokenGuardConfig({
+            token: MAINNET_USDE,
+            transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
+            approveAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON
+        });
+        configs[2] = TokenGuardConfig({
+            token: MAINNET_MSTETH,
+            transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
+            approveAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON
+        });
+        configs[3] = TokenGuardConfig({
+            token: MAINNET_STETH,
+            transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
+            approveAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON
+        });
+        configs[4] = TokenGuardConfig({
+            token: MAINNET_WBTC,
+            transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
+            approveAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON
+        });
+        configs[5] = TokenGuardConfig({
+            token: MAINNET_SY_KARAK_SUSDE_30JAN2025,
+            transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
+            approveAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON
+        });
+        configs[6] = TokenGuardConfig({
+            token: MAINNET_USDT,
+            transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
+            approveAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON
+        });
+        configs[7] = TokenGuardConfig({
+            token: MAINNET_GHO,
+            transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
+            approveAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON
+        });
 
         return configs;
     }
