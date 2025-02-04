@@ -5,7 +5,8 @@
   "scripts": {
     "broadcast-to-safe": "bun run broadcast-to-safe-json.ts",
     "build-broadcast-script": "bun build broadcast-to-safe-json.ts --compile --outfile ../export-txs-for-safe",
-    "print-current-state": "bun run print-current-state.ts"
+    "print-current-state": "bun run print-current-state.ts",
+    "print-script-state": "bun run print-current-state.ts -- --scriptResults=true"
   },
   "devDependencies": {
     "@types/bun": "latest"

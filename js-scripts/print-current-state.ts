@@ -6,14 +6,15 @@ import fs from "fs";
 // Load .env from the parent directory
 dotenv.config({ path: path.resolve(__dirname, "../.env") });
 
-
 const rpc = process.env.MAINNET_RPC_URL;
-console.log(`rpc: ${rpc}`)
-
-const provider = new ethers.JsonRpcProvider();
+const provider = new ethers.JsonRpcProvider(rpc);
 
 const configPath = path.resolve(__dirname, "../script/RumpelConfig.sol");
 const configCode = fs.readFileSync(configPath, "utf8");
+
+const scriptResultPath = path.resolve(__dirname, "../broadcast/RumpelWalletFactory.s.sol/1/dry-run/updateGuardAndModuleLists-latest.json");
+const scriptResults = JSON.parse(fs.readFileSync(scriptResultPath, 'utf8'));
+
 const contractNameRegex = /address\s+public\s+constant\s+(\w+)\s*=\s*(0x[a-fA-F0-9]{40})\s*;/g;
 const functionRegex = /function\s+([^\s(]+)\s*\(([^)]*)\)/g;
 
@@ -21,8 +22,6 @@ const addressToVariableMap: Record<string, string> = {};
 let match;
 while ((match = contractNameRegex.exec(configCode)) !== null) {
     const [_, variableName, address] = match;
-    console.log(variableName);
-    console.log(address);
     addressToVariableMap[address.toLowerCase()] = variableName;
 }
 
@@ -64,11 +63,6 @@ const printCurrentState = async() => {
 
   const setCallAllowedTopic = guardInterface.getEvent("SetCallAllowed")?.topicHash || null;
 
-  // const setModuleCallBlocked = {
-  //   moduleAddress,
-  //   topics: [moduleInterface.getEvent("SetModuleCallBlocked")?.topicHash]
-  // }
-
   const guardAllowedLogs = await provider.getLogs({address: guardAddress, topics: [setCallAllowedTopic], fromBlock, toBlock })
   guardAllowedLogs.forEach(log => {
     const contract = addressToVariableMap["0x"+log.topics[1].slice(26, 66)] || "0x"+log.topics[1].slice(26, 66);
@@ -79,6 +73,28 @@ const printCurrentState = async() => {
     }
     currentState[contract][functionName] = state;
   });
+
+  const args = process.argv.slice(2);
+  let useScriptResults = false;
+  args.forEach(arg => {
+    const [name, value] = arg.split('=');
+    if(name=="--scriptResults" && value == "true"){
+      useScriptResults = true;
+    }
+  });
+
+  if(useScriptResults)
+  for(const transaction of scriptResults.transactions){
+    if (transaction.function == "setCallAllowed(address,bytes4,uint8)"){
+      const contract = addressToVariableMap[transaction.arguments[0].toLowerCase()] || transaction.arguments[0].toLowerCase();
+      const functionName = functionSelectorToFunction[transaction.arguments[1]] || transaction.arguments[1];
+      const state = BigInt(transaction.arguments[2]);
+      if(!currentState[contract]){
+        currentState[contract] = {}
+      }
+      currentState[contract][functionName] = state;
+    }
+  }
 
   console.log("contract,name,state");
   let i = 0;
