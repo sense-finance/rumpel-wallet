@@ -91,6 +91,29 @@ library RumpelConfig {
     address public constant MAINNET_AMPHRETH = 0x5fD13359Ba15A84B76f7F87568309040176167cd;
     address public constant MAINNET_SYMBIOTIC_LBTC = 0x9C0823D3A1172F9DdF672d438dec79c39a64f448;
 
+    address public constant MAINNET_TBTC = 0x18084fbA666a33d37592fA2633fD49a74DD93a88;
+    address public constant MAINNET_UNIBTC = 0x004E9C3EF86bc1ca1f0bB5C7662861Ee93350568;
+    address public constant MAINNET_IBTC = 0x20157DBAbb84e3BBFE68C349d0d44E48AE7B5AD2;
+    
+    address public constant MAINNET_MELLOW_DVSTETH = 0x5E362eb2c0706Bd1d134689eC75176018385430B;
+    address public constant MAINNET_MELLOW_RENZO_PZETH = 0x8c9532a60E0E7C6BbD2B2c1303F63aCE1c3E9811;
+    address public constant MAINNET_MELLOW_RSENA = 0xc65433845ecD16688eda196497FA9130d6C47Bd8;
+    address public constant MAINNET_MELLOW_AMPHRBTC = 0x64047dD3288276d70A4F8B5Df54668c8403f877F;
+    address public constant MAINNET_MELLOW_STEAKLRT = 0xBEEF69Ac7870777598A04B2bd4771c71212E6aBc;
+    address public constant MAINNET_MELLOW_HYVEX = 0x24183535a24CF0272841B05047A26e200fFAB696;
+    address public constant MAINNET_MELLOW_RE7RTBTC = 0x3a828C183b3F382d030136C824844Ea30145b4c7;
+    address public constant MAINNET_MELLOW_IFSETH = 0x49cd586dd9BA227Be9654C735A659a1dB08232a9;
+    address public constant MAINNET_MELLOW_CP0XLRT = 0xB908c9FE885369643adB5FBA4407d52bD726c72d;
+    address public constant MAINNET_MELLOW_URLRT = 0x4f3Cc6359364004b245ad5bE36E6ad4e805dC961;
+    address public constant MAINNET_MELLOW_COETH = 0xd6E09a5e6D719d1c881579C9C8670a210437931b;
+    address public constant MAINNET_MELLOW_HCETH = 0x375A8eE22280076610cA2B4348d37cB1bEEBeba0;
+    address public constant MAINNET_MELLOW_ISETH = 0xcC36e5272c422BEE9A8144cD2493Ac472082eBaD;
+    address public constant MAINNET_MELLOW_SIBTC = 0xE4357bDAE017726eE5E83Db3443bcd269BbF125d;
+    address public constant MAINNET_MELLOW_LUGAETH = 0x82dc3260f599f4fC4307209A1122B6eAa007163b;
+    address public constant MAINNET_MELLOW_ROETH = 0x7b31F008c48EFb65da78eA0f255EE424af855249;
+    address public constant MAINNET_MELLOW_RSUNIBTC = 0x08F39b3d75712148dacDB2669C3EAcc7F1152547;
+
+
     // YT Yield Claiming
     address public constant MAINNET_SY_SUSDE = 0xD288755556c235afFfb6316702719C32bD8706e8;
     address public constant MAINNET_PENDLE_ROUTERV4 = 0x888888888889758F76e7103c6CbF23ABbF58F946;
@@ -256,6 +279,8 @@ library RumpelConfig {
             return new ProtocolGuardConfig[](0);
         } else if (tagHash == keccak256(bytes("enable-swap-owner"))) {
             return getEnableSwapOwnerProtocolGuard();
+        } else if (tagHash == keccak256(bytes("add-mellow-vaults"))) {
+            return getMellowVaultsGuardProtocolConfigs();
         }
 
         revert("Unsupported tag");
@@ -312,6 +337,8 @@ library RumpelConfig {
             return getPendleUSDEYTsTokenGuardConfigs();
         } else if (tagHash == keccak256(bytes("enable-swap-owner"))) {
             return new TokenGuardConfig[](0);
+        } else if (tagHash == keccak256(bytes("add-mellow-vaults"))) {
+            return getMellowVaultsGuardTokenConfigs();
         }
 
         revert("Unsupported tag");
@@ -365,6 +392,8 @@ library RumpelConfig {
             return new TokenModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("enable-swap-owner"))) {
             return new TokenModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("add-mellow-vaults"))) {
+            return new TokenModuleConfig[](0);
         }
 
         revert("Unsupported tag");
@@ -414,6 +443,8 @@ library RumpelConfig {
         } else if (tagHash == keccak256(bytes("pendle-usde-yts"))) {
             return new ProtocolModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("enable-swap-owner"))) {
+            return new ProtocolModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("add-mellow-vaults"))) {
             return new ProtocolModuleConfig[](0);
         }
 
@@ -634,6 +665,239 @@ library RumpelConfig {
 
         configs[0] = TokenModuleConfig({token: MAINNET_RE7LRT, blockTransfer: true, blockApprove: true});
         configs[1] = TokenModuleConfig({token: MAINNET_RE7RWBTC, blockTransfer: true, blockApprove: true});
+
+        return configs;
+    }
+
+    // Mellow Vaults ----
+    function getMellowVaultsGuardProtocolConfigs() internal pure returns (ProtocolGuardConfig[] memory) {
+        ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](17);
+
+        // Mellow Simple Lido DV
+        configs[0] = ProtocolGuardConfig({target: MAINNET_MELLOW_DVSTETH, selectorStates: new SelectorState[](2)});
+        configs[0].selectorStates[0] =
+            SelectorState({selector: IMellow.deposit.selector, state: RumpelGuard.AllowListState.ON});
+        configs[0].selectorStates[1] =
+            SelectorState({selector: IMellow.registerWithdrawal.selector, state: RumpelGuard.AllowListState.ON});
+
+        // Mellow pzETH
+        configs[1] = ProtocolGuardConfig({target: MAINNET_MELLOW_RENZO_PZETH, selectorStates: new SelectorState[](2)});
+        configs[1].selectorStates[0] =
+            SelectorState({selector: IMellow.deposit.selector, state: RumpelGuard.AllowListState.ON});
+        configs[1].selectorStates[1] =
+            SelectorState({selector: IMellow.registerWithdrawal.selector, state: RumpelGuard.AllowListState.ON});
+
+        // Mellow rsENA
+        configs[2] = ProtocolGuardConfig({target: MAINNET_MELLOW_RSENA, selectorStates: new SelectorState[](2)});
+        configs[2].selectorStates[0] =
+            SelectorState({selector: IMellow.deposit.selector, state: RumpelGuard.AllowListState.ON});
+        configs[2].selectorStates[1] =
+            SelectorState({selector: IMellow.registerWithdrawal.selector, state: RumpelGuard.AllowListState.ON});
+
+        // Mellow amphrBTC
+        configs[3] = ProtocolGuardConfig({target: MAINNET_MELLOW_AMPHRBTC, selectorStates: new SelectorState[](2)});
+        configs[3].selectorStates[0] =
+            SelectorState({selector: IMellow.deposit.selector, state: RumpelGuard.AllowListState.ON});
+        configs[3].selectorStates[1] =
+            SelectorState({selector: IMellow.registerWithdrawal.selector, state: RumpelGuard.AllowListState.ON});
+
+        // Mellow steakLRT
+        configs[4] = ProtocolGuardConfig({target: MAINNET_MELLOW_STEAKLRT, selectorStates: new SelectorState[](2)});
+        configs[4].selectorStates[0] =
+            SelectorState({selector: IMellow.deposit.selector, state: RumpelGuard.AllowListState.ON});
+        configs[4].selectorStates[1] =
+            SelectorState({selector: IMellow.registerWithdrawal.selector, state: RumpelGuard.AllowListState.ON});
+
+        // Mellow HYVEX
+        configs[5] = ProtocolGuardConfig({target: MAINNET_MELLOW_HYVEX, selectorStates: new SelectorState[](2)});
+        configs[5].selectorStates[0] =
+            SelectorState({selector: IMellow.deposit.selector, state: RumpelGuard.AllowListState.ON});
+        configs[5].selectorStates[1] =
+            SelectorState({selector: IMellow.registerWithdrawal.selector, state: RumpelGuard.AllowListState.ON});
+        
+        // Mellow Re7rtBTC
+        configs[6] = ProtocolGuardConfig({target: MAINNET_MELLOW_RE7RTBTC, selectorStates: new SelectorState[](2)});
+        configs[6].selectorStates[0] =
+            SelectorState({selector: IMellow.deposit.selector, state: RumpelGuard.AllowListState.ON});
+        configs[6].selectorStates[1] =
+            SelectorState({selector: IMellow.registerWithdrawal.selector, state: RumpelGuard.AllowListState.ON});
+
+        // Mellow ifsETH
+        configs[7] = ProtocolGuardConfig({target: MAINNET_MELLOW_IFSETH, selectorStates: new SelectorState[](2)});
+        configs[7].selectorStates[0] =
+            SelectorState({selector: IMellow.deposit.selector, state: RumpelGuard.AllowListState.ON});
+        configs[7].selectorStates[1] =
+            SelectorState({selector: IMellow.registerWithdrawal.selector, state: RumpelGuard.AllowListState.ON});
+
+        // Mellow cp0xLRT
+        configs[8] = ProtocolGuardConfig({target: MAINNET_MELLOW_CP0XLRT, selectorStates: new SelectorState[](2)});
+        configs[8].selectorStates[0] =
+            SelectorState({selector: IMellow.deposit.selector, state: RumpelGuard.AllowListState.ON});
+        configs[8].selectorStates[1] =
+            SelectorState({selector: IMellow.registerWithdrawal.selector, state: RumpelGuard.AllowListState.ON});
+
+        // Mellow urLRT
+        configs[9] = ProtocolGuardConfig({target: MAINNET_MELLOW_URLRT, selectorStates: new SelectorState[](2)});
+        configs[9].selectorStates[0] =
+            SelectorState({selector: IMellow.deposit.selector, state: RumpelGuard.AllowListState.ON});
+        configs[9].selectorStates[1] =
+            SelectorState({selector: IMellow.registerWithdrawal.selector, state: RumpelGuard.AllowListState.ON});
+
+        // Mellow coETH
+        configs[10] = ProtocolGuardConfig({target: MAINNET_MELLOW_COETH, selectorStates: new SelectorState[](2)});
+        configs[10].selectorStates[0] =
+            SelectorState({selector: IMellow.deposit.selector, state: RumpelGuard.AllowListState.ON});
+        configs[10].selectorStates[1] =
+            SelectorState({selector: IMellow.registerWithdrawal.selector, state: RumpelGuard.AllowListState.ON});
+
+        // Mellow hcETH
+        configs[11] = ProtocolGuardConfig({target: MAINNET_MELLOW_HCETH, selectorStates: new SelectorState[](2)});
+        configs[11].selectorStates[0] =
+            SelectorState({selector: IMellow.deposit.selector, state: RumpelGuard.AllowListState.ON});
+        configs[11].selectorStates[1] =
+            SelectorState({selector: IMellow.registerWithdrawal.selector, state: RumpelGuard.AllowListState.ON});
+
+        // Mellow isETH
+        configs[12] = ProtocolGuardConfig({target: MAINNET_MELLOW_ISETH, selectorStates: new SelectorState[](2)});
+        configs[12].selectorStates[0] =
+            SelectorState({selector: IMellow.deposit.selector, state: RumpelGuard.AllowListState.ON});
+        configs[12].selectorStates[1] =
+            SelectorState({selector: IMellow.registerWithdrawal.selector, state: RumpelGuard.AllowListState.ON});
+
+        // Mellow siBTC
+        configs[13] = ProtocolGuardConfig({target: MAINNET_MELLOW_SIBTC, selectorStates: new SelectorState[](2)});
+        configs[13].selectorStates[0] =
+            SelectorState({selector: IMellow.deposit.selector, state: RumpelGuard.AllowListState.ON});
+        configs[13].selectorStates[1] =
+            SelectorState({selector: IMellow.registerWithdrawal.selector, state: RumpelGuard.AllowListState.ON});
+
+        // Mellow LUGAETH
+        configs[14] = ProtocolGuardConfig({target: MAINNET_MELLOW_LUGAETH, selectorStates: new SelectorState[](2)});
+        configs[14].selectorStates[0] =
+            SelectorState({selector: IMellow.deposit.selector, state: RumpelGuard.AllowListState.ON});
+        configs[14].selectorStates[1] =
+            SelectorState({selector: IMellow.registerWithdrawal.selector, state: RumpelGuard.AllowListState.ON});
+
+        // Mellow roETH
+        configs[15] = ProtocolGuardConfig({target: MAINNET_MELLOW_ROETH, selectorStates: new SelectorState[](2)});
+        configs[15].selectorStates[0] =
+            SelectorState({selector: IMellow.deposit.selector, state: RumpelGuard.AllowListState.ON});
+        configs[15].selectorStates[1] =
+            SelectorState({selector: IMellow.registerWithdrawal.selector, state: RumpelGuard.AllowListState.ON});
+
+        // Mellow rsuniBTC
+        configs[16] = ProtocolGuardConfig({target: MAINNET_MELLOW_RSUNIBTC, selectorStates: new SelectorState[](2)});
+        configs[16].selectorStates[0] =
+            SelectorState({selector: IMellow.deposit.selector, state: RumpelGuard.AllowListState.ON});
+        configs[16].selectorStates[1] =
+            SelectorState({selector: IMellow.registerWithdrawal.selector, state: RumpelGuard.AllowListState.ON});
+
+        return configs;
+    }
+
+    function getMellowVaultsGuardTokenConfigs() internal pure returns (TokenGuardConfig[] memory) {
+        TokenGuardConfig[] memory configs = new TokenGuardConfig[](21);
+
+        configs[0] = TokenGuardConfig({
+            token: MAINNET_MELLOW_DVSTETH,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+        configs[1] = TokenGuardConfig({
+            token: MAINNET_MELLOW_RENZO_PZETH,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+        configs[2] = TokenGuardConfig({
+            token: MAINNET_MELLOW_RSENA,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+        configs[3] = TokenGuardConfig({
+            token: MAINNET_MELLOW_AMPHRBTC,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+        configs[4] = TokenGuardConfig({
+            token: MAINNET_MELLOW_STEAKLRT,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+        configs[5] = TokenGuardConfig({
+            token: MAINNET_MELLOW_HYVEX,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+        configs[6] = TokenGuardConfig({
+            token: MAINNET_MELLOW_RE7RTBTC,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+        configs[7] = TokenGuardConfig({
+            token: MAINNET_MELLOW_IFSETH,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+        configs[8] = TokenGuardConfig({
+            token: MAINNET_MELLOW_CP0XLRT,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+        configs[9] = TokenGuardConfig({
+            token: MAINNET_MELLOW_URLRT,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+        configs[10] = TokenGuardConfig({
+            token: MAINNET_MELLOW_COETH,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+        configs[11] = TokenGuardConfig({
+            token: MAINNET_MELLOW_HCETH,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+        configs[12] = TokenGuardConfig({
+            token: MAINNET_MELLOW_ISETH,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+        configs[13] = TokenGuardConfig({
+            token: MAINNET_MELLOW_SIBTC,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+        configs[14] = TokenGuardConfig({
+            token: MAINNET_MELLOW_LUGAETH,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+        configs[15] = TokenGuardConfig({
+            token: MAINNET_MELLOW_ROETH,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+        configs[16] = TokenGuardConfig({
+            token: MAINNET_MELLOW_RSUNIBTC,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+        configs[17] = TokenGuardConfig({
+            token: MAINNET_TBTC,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.ON
+        });
+        configs[18] = TokenGuardConfig({
+            token: MAINNET_UNIBTC,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.ON
+        });
+        configs[19] = TokenGuardConfig({
+            token: MAINNET_IBTC,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.ON
+        });
 
         return configs;
     }
