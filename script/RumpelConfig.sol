@@ -1243,17 +1243,22 @@ library RumpelConfig {
     }
 
     function getInitialResolvStrategyProtocolGuardConfigs() internal pure returns (ProtocolGuardConfig[] memory) {
-        ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](1);
+        ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](2);
 
-        configs[0] = ProtocolGuardConfig({target: MAINNET_SY_WSTUSR_26MAR2025, selectorStates: new SelectorState[](1)});
+        configs[0] =
+            ProtocolGuardConfig({target: MAINNET_EULER_VAULT_CONNECTOR, selectorStates: new SelectorState[](1)});
         configs[0].selectorStates[0] =
+            SelectorState({selector: IEthereumVaultConnector.batch.selector, state: RumpelGuard.AllowListState.ON});
+
+        configs[1] = ProtocolGuardConfig({target: MAINNET_SY_WSTUSR_26MAR2025, selectorStates: new SelectorState[](1)});
+        configs[1].selectorStates[0] =
             SelectorState({selector: IStandardizedYield.redeem.selector, state: RumpelGuard.AllowListState.ON});
 
         return configs;
     }
 
     function getInitialResolvStrategyTokenGuardConfigs() internal pure returns (TokenGuardConfig[] memory) {
-        TokenGuardConfig[] memory configs = new TokenGuardConfig[](5);
+        TokenGuardConfig[] memory configs = new TokenGuardConfig[](6);
 
         configs[0] = TokenGuardConfig({
             token: MAINNET_USR,
@@ -1283,6 +1288,12 @@ library RumpelConfig {
             token: MAINNET_YT_WSTUSR_26MAR2025,
             transferAllowState: RumpelGuard.AllowListState.ON,
             approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+
+        configs[5] = TokenGuardConfig({
+            token: MAINNET_SY_WSTUSR_26MAR2025,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.ON
         });
 
         return configs;
