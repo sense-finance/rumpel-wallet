@@ -3,7 +3,6 @@ pragma solidity =0.8.24;
 
 import {RumpelGuard} from "../src/RumpelGuard.sol";
 import {RumpelModule} from "../src/RumpelModule.sol";
-import {ISafe} from "../src/interfaces/external/ISafe.sol";
 import {ERC20} from "solmate/tokens/ERC20.sol";
 import {console} from "forge-std/console.sol";
 
@@ -1261,7 +1260,7 @@ library RumpelConfig {
 
         configs[0] = ProtocolGuardConfig({target: address(0), selectorStates: new SelectorState[](1)});
         configs[0].selectorStates[0] =
-            SelectorState({selector: ISafe.swapOwner.selector, state: RumpelGuard.AllowListState.ON});
+            SelectorState({selector: Safe.swapOwner.selector, state: RumpelGuard.AllowListState.ON});
 
         return configs;
     }
@@ -1412,4 +1411,8 @@ interface ILRT2Claim {
         bytes32 expectedMerkleRoot,
         bytes32[] calldata merkleProof
     ) external;
+}
+
+interface Safe {
+    function swapOwner(address prevOwner, address oldOwner, address newOwner) external;
 }
