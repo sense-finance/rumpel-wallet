@@ -254,6 +254,8 @@ library RumpelConfig {
             return new ProtocolGuardConfig[](0);
         } else if (tagHash == keccak256(bytes("pendle-usde-yts"))) {
             return new ProtocolGuardConfig[](0);
+        } else if (tagHash == keccak256(bytes("enable-swap-owner"))) {
+            return getEnableSwapOwnerProtocolGuard();
         }
 
         revert("Unsupported tag");
@@ -308,6 +310,8 @@ library RumpelConfig {
             return getPermAllowMarchAndMay2025SusdeYTsTokenGuardConfigs();
         } else if (tagHash == keccak256(bytes("pendle-usde-yts"))) {
             return getPendleUSDEYTsTokenGuardConfigs();
+        } else if (tagHash == keccak256(bytes("enable-swap-owner"))) {
+            return new TokenGuardConfig[](0);
         }
 
         revert("Unsupported tag");
@@ -359,6 +363,8 @@ library RumpelConfig {
             return getMarchAndMay20252025SusdeYTsTokenModuleConfigs();
         } else if (tagHash == keccak256(bytes("pendle-usde-yts"))) {
             return new TokenModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("enable-swap-owner"))) {
+            return new TokenModuleConfig[](0);
         }
 
         revert("Unsupported tag");
@@ -404,8 +410,10 @@ library RumpelConfig {
         } else if (tagHash == keccak256(bytes("remove-lrt2-claiming"))) {
             return new ProtocolModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("perm-allow-march-may-2025-susde-yts"))) {
-           return new ProtocolModuleConfig[](0);
+            return new ProtocolModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("pendle-usde-yts"))) {
+            return new ProtocolModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("enable-swap-owner"))) {
             return new ProtocolModuleConfig[](0);
         }
 
@@ -1246,6 +1254,16 @@ library RumpelConfig {
 
         return configs;
     }
+
+    function getEnableSwapOwnerProtocolGuard() internal pure returns (ProtocolGuardConfig[] memory) {
+        ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](1);
+
+        configs[0] = ProtocolGuardConfig({target: address(0), selectorStates: new SelectorState[](1)});
+        configs[0].selectorStates[0] =
+            SelectorState({selector: Safe.swapOwner.selector, state: RumpelGuard.AllowListState.ON});
+
+        return configs;
+    }
 }
 
 interface IMorphoBundler {
@@ -1393,4 +1411,8 @@ interface ILRT2Claim {
         bytes32 expectedMerkleRoot,
         bytes32[] calldata merkleProof
     ) external;
+}
+
+interface Safe {
+    function swapOwner(address prevOwner, address oldOwner, address newOwner) external;
 }
