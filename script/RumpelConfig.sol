@@ -50,6 +50,7 @@ library RumpelConfig {
     address public constant MAINNET_FLUID_VAULT_SUSDE_USDT = 0xBc345229C1b52e4c30530C614BB487323BA38Da5;
     address public constant MAINNET_FLUID_VAULT_SUSDE_GHO = 0x2F3780e21cAba1bEdFB24E37C97917def304dFFA;
     address public constant MAINNET_ETHERFI_LRT2_CLAIM = 0x6Db24Ee656843E3fE03eb8762a54D86186bA6B64;
+    address public constant MAINNET_EULER_VAULT_CONNECTOR = 0x0C9a3dd6b8F28529d72d7f9cE918D493519EE383;
 
     // Tokens
     address public constant MAINNET_RSUSDE = 0x82f5104b23FF2FA54C2345F821dAc9369e9E0B26;
@@ -71,6 +72,11 @@ library RumpelConfig {
     address public constant MAINNET_RE7RWBTC = 0x7F43fDe12A40dE708d908Fb3b9BFB8540d9Ce444;
     address public constant MAINNET_WBTC = 0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599;
 
+    address public constant MAINNET_USR = 0x66a1E37c9b0eAddca17d3662D6c05F4DECf3e110;
+    address public constant MAINNET_RLP = 0x4956b52aE2fF65D74CA2d61207523288e4528f96;
+    address public constant MAINNET_STUSR = 0x6c8984bc7DBBeDAf4F6b2FD766f16eBB7d10AAb4;
+    address public constant MAINNET_WSTUSR = 0x1202F5C7b4B9E47a1A484E8B270be34dbbC75055;
+
     address public constant MAINNET_YTEBTC_26DEC2024 = 0xeB993B610b68F2631f70CA1cf4Fe651dB81f368e;
     address public constant MAINNET_YT_WEETHK_26DEC2024 = 0x7B64b99A1fd80b6c012E354a14ADb352b5916CE1;
     address public constant MAINNET_YT_AGETH_26DEC2024 = 0x3568f1d2e8058F6D99Daa17051Cb4a2930C83978;
@@ -85,6 +91,7 @@ library RumpelConfig {
     address public constant MAINNET_YT_RSUSDE_27MAR2025 = 0x079F21309eB9cbD2a387972eB2168d57C8542e32; // sy token added
     address public constant MAINNET_YT_SUSDE_27MAR2025 = 0x96512230bF0Fa4E20Cf02C3e8A7d983132cd2b9F;
     address public constant MAINNET_YT_SUSDE_29MAY2025 = 0x1de6Ff19FDA7496DdC12f2161f6ad6427c52aBBe;
+    address public constant MAINNET_YT_WSTUSR_26MAR2025 = 0xe0e034AfF49755e80b15594ce3A16d74d1a09b2F;
 
     address public constant MAINNET_PENDLE_YT_USDE_27MAR2025 = 0x4A8036EFA1307F1cA82d932C0895faa18dB0c9eE;
 
@@ -98,6 +105,7 @@ library RumpelConfig {
     address public constant MAINNET_SY_KARAK_SUSDE_30JAN2025 = 0x1b641894e66aec7Bf5ab86517e8D81763Cc8e19E;
     address public constant MAINNET_SY_SUSDE_27MAR2025 = 0x3Ee118EFC826d30A29645eAf3b2EaaC9E8320185;
     address public constant MAINNET_SY_SUSDE_29MAY2025 = 0xE877B2A8a53763C8B0534a15e87da28f3aC1257e;
+    address public constant MAINNET_SY_WSTUSR_26MAR2025 = 0x6c78661c00D797C9c7fCBE4BCacbD9612A61C07f;
 
     // Additional Reward Assets
     address public constant MAINNET_LRT2 = 0x8F08B70456eb22f6109F57b8fafE862ED28E6040;
@@ -256,6 +264,8 @@ library RumpelConfig {
             return new ProtocolGuardConfig[](0);
         } else if (tagHash == keccak256(bytes("enable-swap-owner"))) {
             return getEnableSwapOwnerProtocolGuard();
+        } else if (tagHash == keccak256(bytes("initial-resolv-strategies"))) {
+            return getInitialResolvStrategyProtocolGuardConfigs();
         }
 
         revert("Unsupported tag");
@@ -312,6 +322,8 @@ library RumpelConfig {
             return getPendleUSDEYTsTokenGuardConfigs();
         } else if (tagHash == keccak256(bytes("enable-swap-owner"))) {
             return new TokenGuardConfig[](0);
+        } else if (tagHash == keccak256(bytes("initial-resolv-strategies"))) {
+            return getInitialResolvStrategyTokenGuardConfigs();
         }
 
         revert("Unsupported tag");
@@ -365,6 +377,8 @@ library RumpelConfig {
             return new TokenModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("enable-swap-owner"))) {
             return new TokenModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("initial-resolv-strategies"))) {
+            return new TokenModuleConfig[](0);
         }
 
         revert("Unsupported tag");
@@ -414,6 +428,8 @@ library RumpelConfig {
         } else if (tagHash == keccak256(bytes("pendle-usde-yts"))) {
             return new ProtocolModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("enable-swap-owner"))) {
+            return new ProtocolModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("initial-resolv-strategies"))) {
             return new ProtocolModuleConfig[](0);
         }
 
@@ -1264,6 +1280,63 @@ library RumpelConfig {
 
         return configs;
     }
+
+    function getInitialResolvStrategyProtocolGuardConfigs() internal pure returns (ProtocolGuardConfig[] memory) {
+        ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](2);
+
+        configs[0] =
+            ProtocolGuardConfig({target: MAINNET_EULER_VAULT_CONNECTOR, selectorStates: new SelectorState[](1)});
+        configs[0].selectorStates[0] =
+            SelectorState({selector: IEthereumVaultConnector.batch.selector, state: RumpelGuard.AllowListState.ON});
+
+        configs[1] = ProtocolGuardConfig({target: MAINNET_SY_WSTUSR_26MAR2025, selectorStates: new SelectorState[](1)});
+        configs[1].selectorStates[0] =
+            SelectorState({selector: IStandardizedYield.redeem.selector, state: RumpelGuard.AllowListState.ON});
+
+        return configs;
+    }
+
+    function getInitialResolvStrategyTokenGuardConfigs() internal pure returns (TokenGuardConfig[] memory) {
+        TokenGuardConfig[] memory configs = new TokenGuardConfig[](6);
+
+        configs[0] = TokenGuardConfig({
+            token: MAINNET_USR,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+
+        configs[1] = TokenGuardConfig({
+            token: MAINNET_RLP,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+
+        configs[2] = TokenGuardConfig({
+            token: MAINNET_STUSR,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+
+        configs[3] = TokenGuardConfig({
+            token: MAINNET_WSTUSR,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.ON
+        });
+
+        configs[4] = TokenGuardConfig({
+            token: MAINNET_YT_WSTUSR_26MAR2025,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+
+        configs[5] = TokenGuardConfig({
+            token: MAINNET_SY_WSTUSR_26MAR2025,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.ON
+        });
+        
+        return configs;
+    }
 }
 
 interface IMorphoBundler {
@@ -1411,6 +1484,17 @@ interface ILRT2Claim {
         bytes32 expectedMerkleRoot,
         bytes32[] calldata merkleProof
     ) external;
+}
+
+interface IEthereumVaultConnector {
+    struct BatchItem {
+        address targetContract;
+        address onBehalfOfAccount;
+        uint256 value;
+        bytes data;
+    }
+
+    function batch(BatchItem[] calldata items) external payable;
 }
 
 interface Safe {
