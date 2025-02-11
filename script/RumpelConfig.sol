@@ -94,6 +94,8 @@ library RumpelConfig {
     address public constant MAINNET_YT_SUSDE_29MAY2025 = 0x1de6Ff19FDA7496DdC12f2161f6ad6427c52aBBe;
     address public constant MAINNET_YT_WSTUSR_26MAR2025 = 0xe0e034AfF49755e80b15594ce3A16d74d1a09b2F;
 
+    address public constant MAINNET_PENDLE_YT_USDE_27MAR2025 = 0x4A8036EFA1307F1cA82d932C0895faa18dB0c9eE;
+
     address public constant MAINNET_AMPHRETH = 0x5fD13359Ba15A84B76f7F87568309040176167cd;
     address public constant MAINNET_SYMBIOTIC_LBTC = 0x9C0823D3A1172F9DdF672d438dec79c39a64f448;
 
@@ -259,6 +261,10 @@ library RumpelConfig {
             return getRemoveLRT2ProtocolGuardConfigs();
         } else if (tagHash == keccak256(bytes("perm-allow-march-may-2025-susde-yts"))) {
             return new ProtocolGuardConfig[](0);
+        } else if (tagHash == keccak256(bytes("pendle-usde-yts"))) {
+            return new ProtocolGuardConfig[](0);
+        } else if (tagHash == keccak256(bytes("enable-swap-owner"))) {
+            return getEnableSwapOwnerProtocolGuard();
         } else if (tagHash == keccak256(bytes("initial-resolv-strategies"))) {
             return getInitialResolvStrategyProtocolGuardConfigs();
         }
@@ -313,6 +319,10 @@ library RumpelConfig {
             return getRemoveLRT2AssetTokenGuardConfigs();
         } else if (tagHash == keccak256(bytes("perm-allow-march-may-2025-susde-yts"))) {
             return getPermAllowMarchAndMay2025SusdeYTsTokenGuardConfigs();
+        } else if (tagHash == keccak256(bytes("pendle-usde-yts"))) {
+            return getPendleUSDEYTsTokenGuardConfigs();
+        } else if (tagHash == keccak256(bytes("enable-swap-owner"))) {
+            return new TokenGuardConfig[](0);
         } else if (tagHash == keccak256(bytes("initial-resolv-strategies"))) {
             return getInitialResolvStrategyTokenGuardConfigs();
         }
@@ -364,6 +374,10 @@ library RumpelConfig {
             return new TokenModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("perm-allow-march-may-2025-susde-yts"))) {
             return getMarchAndMay20252025SusdeYTsTokenModuleConfigs();
+        } else if (tagHash == keccak256(bytes("pendle-usde-yts"))) {
+            return new TokenModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("enable-swap-owner"))) {
+            return new TokenModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("initial-resolv-strategies"))) {
             return new TokenModuleConfig[](0);
         }
@@ -411,6 +425,10 @@ library RumpelConfig {
         } else if (tagHash == keccak256(bytes("remove-lrt2-claiming"))) {
             return new ProtocolModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("perm-allow-march-may-2025-susde-yts"))) {
+            return new ProtocolModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("pendle-usde-yts"))) {
+            return new ProtocolModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("enable-swap-owner"))) {
             return new ProtocolModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("initial-resolv-strategies"))) {
             return new ProtocolModuleConfig[](0);
@@ -1117,6 +1135,18 @@ library RumpelConfig {
         return configs;
     }
 
+    function getPendleUSDEYTsTokenGuardConfigs() internal pure returns (TokenGuardConfig[] memory) {
+        TokenGuardConfig[] memory configs = new TokenGuardConfig[](1);
+
+        configs[0] = TokenGuardConfig({
+            token: MAINNET_PENDLE_YT_USDE_27MAR2025,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+
+        return configs;
+    }
+
     function getClaimLRT2ProtocolGuardConfigs() internal pure returns (ProtocolGuardConfig[] memory) {
         ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](1);
 
@@ -1242,6 +1272,16 @@ library RumpelConfig {
         return configs;
     }
 
+    function getEnableSwapOwnerProtocolGuard() internal pure returns (ProtocolGuardConfig[] memory) {
+        ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](1);
+
+        configs[0] = ProtocolGuardConfig({target: address(0), selectorStates: new SelectorState[](1)});
+        configs[0].selectorStates[0] =
+            SelectorState({selector: Safe.swapOwner.selector, state: RumpelGuard.AllowListState.ON});
+
+        return configs;
+    }
+
     function getInitialResolvStrategyProtocolGuardConfigs() internal pure returns (ProtocolGuardConfig[] memory) {
         ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](2);
 
@@ -1295,7 +1335,7 @@ library RumpelConfig {
             transferAllowState: RumpelGuard.AllowListState.ON,
             approveAllowState: RumpelGuard.AllowListState.ON
         });
-
+        
         return configs;
     }
 }
@@ -1460,4 +1500,8 @@ interface IEthereumVaultConnector {
 
 interface Permit2 {
     function approve(address token, address spender, uint160 amount, uint48 expiration) external;
+}
+
+interface Safe {
+    function swapOwner(address prevOwner, address oldOwner, address newOwner) external;
 }
