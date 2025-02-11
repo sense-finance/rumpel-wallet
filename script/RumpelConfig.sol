@@ -51,7 +51,6 @@ library RumpelConfig {
     address public constant MAINNET_FLUID_VAULT_SUSDE_GHO = 0x2F3780e21cAba1bEdFB24E37C97917def304dFFA;
     address public constant MAINNET_ETHERFI_LRT2_CLAIM = 0x6Db24Ee656843E3fE03eb8762a54D86186bA6B64;
     address public constant MAINNET_EULER_VAULT_CONNECTOR = 0x0C9a3dd6b8F28529d72d7f9cE918D493519EE383;
-    address public constant MAINNET_PERMIT2 = 0x000000000022D473030F116dDEE9F6B43aC78BA3;
 
     // Tokens
     address public constant MAINNET_RSUSDE = 0x82f5104b23FF2FA54C2345F821dAc9369e9E0B26;
@@ -1496,10 +1495,6 @@ interface IEthereumVaultConnector {
     }
 
     function batch(BatchItem[] calldata items) external payable;
-}
-
-interface Permit2 {
-    function approve(address token, address spender, uint160 amount, uint48 expiration) external;
 }
 
 interface Safe {
