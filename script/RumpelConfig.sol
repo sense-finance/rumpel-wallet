@@ -800,104 +800,131 @@ library RumpelConfig {
 
         configs[0] = TokenGuardConfig({
             token: MAINNET_MELLOW_DVSTETH,
-            transferAllowState: RumpelGuard.AllowListState.ON,
+            transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
             approveAllowState: RumpelGuard.AllowListState.OFF
         });
         configs[1] = TokenGuardConfig({
             token: MAINNET_MELLOW_RENZO_PZETH,
-            transferAllowState: RumpelGuard.AllowListState.ON,
+            transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
             approveAllowState: RumpelGuard.AllowListState.OFF
         });
         configs[2] = TokenGuardConfig({
             token: MAINNET_MELLOW_RSENA,
-            transferAllowState: RumpelGuard.AllowListState.ON,
+            transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
             approveAllowState: RumpelGuard.AllowListState.OFF
         });
         configs[3] = TokenGuardConfig({
             token: MAINNET_MELLOW_AMPHRBTC,
-            transferAllowState: RumpelGuard.AllowListState.ON,
+            transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
             approveAllowState: RumpelGuard.AllowListState.OFF
         });
         configs[4] = TokenGuardConfig({
             token: MAINNET_MELLOW_STEAKLRT,
-            transferAllowState: RumpelGuard.AllowListState.ON,
+            transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
             approveAllowState: RumpelGuard.AllowListState.OFF
         });
         configs[5] = TokenGuardConfig({
             token: MAINNET_MELLOW_HYVEX,
-            transferAllowState: RumpelGuard.AllowListState.ON,
+            transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
             approveAllowState: RumpelGuard.AllowListState.OFF
         });
         configs[6] = TokenGuardConfig({
             token: MAINNET_MELLOW_RE7RTBTC,
-            transferAllowState: RumpelGuard.AllowListState.ON,
+            transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
             approveAllowState: RumpelGuard.AllowListState.OFF
         });
         configs[7] = TokenGuardConfig({
             token: MAINNET_MELLOW_IFSETH,
-            transferAllowState: RumpelGuard.AllowListState.ON,
+            transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
             approveAllowState: RumpelGuard.AllowListState.OFF
         });
         configs[8] = TokenGuardConfig({
             token: MAINNET_MELLOW_CP0XLRT,
-            transferAllowState: RumpelGuard.AllowListState.ON,
+            transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
             approveAllowState: RumpelGuard.AllowListState.OFF
         });
         configs[9] = TokenGuardConfig({
             token: MAINNET_MELLOW_URLRT,
-            transferAllowState: RumpelGuard.AllowListState.ON,
+            transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
             approveAllowState: RumpelGuard.AllowListState.OFF
         });
         configs[10] = TokenGuardConfig({
             token: MAINNET_MELLOW_COETH,
-            transferAllowState: RumpelGuard.AllowListState.ON,
+            transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
             approveAllowState: RumpelGuard.AllowListState.OFF
         });
         configs[11] = TokenGuardConfig({
             token: MAINNET_MELLOW_HCETH,
-            transferAllowState: RumpelGuard.AllowListState.ON,
+            transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
             approveAllowState: RumpelGuard.AllowListState.OFF
         });
         configs[12] = TokenGuardConfig({
             token: MAINNET_MELLOW_ISETH,
-            transferAllowState: RumpelGuard.AllowListState.ON,
+            transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
             approveAllowState: RumpelGuard.AllowListState.OFF
         });
         configs[13] = TokenGuardConfig({
             token: MAINNET_MELLOW_SIBTC,
-            transferAllowState: RumpelGuard.AllowListState.ON,
+            transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
             approveAllowState: RumpelGuard.AllowListState.OFF
         });
         configs[14] = TokenGuardConfig({
             token: MAINNET_MELLOW_LUGAETH,
-            transferAllowState: RumpelGuard.AllowListState.ON,
+            transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
             approveAllowState: RumpelGuard.AllowListState.OFF
         });
         configs[15] = TokenGuardConfig({
             token: MAINNET_MELLOW_ROETH,
-            transferAllowState: RumpelGuard.AllowListState.ON,
+            transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
             approveAllowState: RumpelGuard.AllowListState.OFF
         });
         configs[16] = TokenGuardConfig({
             token: MAINNET_MELLOW_RSUNIBTC,
-            transferAllowState: RumpelGuard.AllowListState.ON,
+            transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
             approveAllowState: RumpelGuard.AllowListState.OFF
         });
         configs[17] = TokenGuardConfig({
             token: MAINNET_TBTC,
-            transferAllowState: RumpelGuard.AllowListState.ON,
-            approveAllowState: RumpelGuard.AllowListState.ON
+            transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
+            approveAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON
         });
         configs[18] = TokenGuardConfig({
             token: MAINNET_UNIBTC,
-            transferAllowState: RumpelGuard.AllowListState.ON,
-            approveAllowState: RumpelGuard.AllowListState.ON
+            transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
+            approveAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON
         });
         configs[19] = TokenGuardConfig({
             token: MAINNET_IBTC,
-            transferAllowState: RumpelGuard.AllowListState.ON,
-            approveAllowState: RumpelGuard.AllowListState.ON
+            transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
+            approveAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON
         });
+
+        return configs;
+    }
+
+    function getMellowVaultsModuleTokenConfigs() internal pure returns (TokenModuleConfig[] memory) {
+        TokenModuleConfig[] memory configs = new TokenModuleConfig[](17);
+
+        configs[0] = TokenModuleConfig({token: MAINNET_MELLOW_DVSTETH, blockTransfer: true, blockApprove: true});
+        configs[1] = TokenModuleConfig({token: MAINNET_MELLOW_RENZO_PZETH, blockTransfer: true, blockApprove: true});
+        configs[2] = TokenModuleConfig({token: MAINNET_MELLOW_RSENA, blockTransfer: true, blockApprove: true});
+        configs[3] = TokenModuleConfig({token: MAINNET_MELLOW_AMPHRBTC, blockTransfer: true, blockApprove: true});
+        configs[4] = TokenModuleConfig({token: MAINNET_MELLOW_STEAKLRT, blockTransfer: true, blockApprove: true});
+        configs[5] = TokenModuleConfig({token: MAINNET_MELLOW_HYVEX, blockTransfer: true, blockApprove: true});
+        configs[6] = TokenModuleConfig({token: MAINNET_MELLOW_RE7RTBTC, blockTransfer: true, blockApprove: true});
+        configs[7] = TokenModuleConfig({token: MAINNET_MELLOW_IFSETH, blockTransfer: true, blockApprove: true});
+        configs[8] = TokenModuleConfig({token: MAINNET_MELLOW_CP0XLRT, blockTransfer: true, blockApprove: true});
+        configs[9] = TokenModuleConfig({token: MAINNET_MELLOW_URLRT, blockTransfer: true, blockApprove: true});
+        configs[10] = TokenModuleConfig({token: MAINNET_MELLOW_COETH, blockTransfer: true, blockApprove: true});
+        configs[11] = TokenModuleConfig({token: MAINNET_MELLOW_HCETH, blockTransfer: true, blockApprove: true});
+        configs[12] = TokenModuleConfig({token: MAINNET_MELLOW_ISETH, blockTransfer: true, blockApprove: true});
+        configs[13] = TokenModuleConfig({token: MAINNET_MELLOW_SIBTC, blockTransfer: true, blockApprove: true});
+        configs[14] = TokenModuleConfig({token: MAINNET_MELLOW_LUGAETH, blockTransfer: true, blockApprove: true});
+        configs[15] = TokenModuleConfig({token: MAINNET_MELLOW_ROETH, blockTransfer: true, blockApprove: true});
+        configs[16] = TokenModuleConfig({token: MAINNET_MELLOW_RSUNIBTC, blockTransfer: true, blockApprove: true});
+        configs[17] = TokenModuleConfig({token: MAINNET_TBTC, blockTransfer: true, blockApprove: true});
+        configs[18] = TokenModuleConfig({token: MAINNET_UNIBTC, blockTransfer: true, blockApprove: true});
+        configs[19] = TokenModuleConfig({token: MAINNET_IBTC, blockTransfer: true, blockApprove: true});
 
         return configs;
     }
