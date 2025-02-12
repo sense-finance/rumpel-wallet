@@ -40,6 +40,12 @@ library RumpelConfig {
     address public constant MAINNET_ZIRCUIT_RESTAKING_POOL = 0xF047ab4c75cebf0eB9ed34Ae2c186f3611aEAfa6;
     address public constant MAINNET_SYMBIOTIC_WSTETH_COLLATERAL = 0xC329400492c6ff2438472D4651Ad17389fCb843a;
     address public constant MAINNET_SYMBIOTIC_SUSDE_COLLATERAL = 0x19d0D8e6294B7a04a2733FE433444704B791939A;
+    address public constant MAINNET_SYMBIOTIC_WBETH_COLLATERAL = 0x422F5acCC812C396600010f224b320a743695f85;
+    address public constant MAINNET_SYMBIOTIC_SWELL_SWBTC_COLLATERAL = 0x9e405601B645d3484baeEcf17bBF7aD87680f6e8;
+    address public constant MAINNET_SYMBIOTIC_SWETH_COLLATERAL = 0x38B86004842D3FA4596f0b7A0b53DE90745Ab654;
+    address public constant MAINNET_SYMBIOTIC_LSETH_COLLATERAL = 0xB09A50AcFFF7D12B7d18adeF3D1027bC149Bad1c;
+    address public constant MAINNET_SYMBIOTIC_OSETH_COLLATERAL = 0x52cB8A621610Cc3cCf498A1981A8ae7AD6B8AB2a;
+
     address public constant MAINNET_KARAK_VAULT_SUPERVISOR = 0x54e44DbB92dBA848ACe27F44c0CB4268981eF1CC;
     address public constant MAINNET_KARAK_DELEGATION_SUPERVISOR = 0xAfa904152E04aBFf56701223118Be2832A4449E0;
     address public constant MAINNET_ETHENA_LP_STAKING = 0x8707f238936c12c309bfc2B9959C35828AcFc512;
@@ -67,6 +73,10 @@ library RumpelConfig {
     address public constant MAINNET_USDT = 0xdAC17F958D2ee523a2206206994597C13D831ec7;
     address public constant MAINNET_GHO = 0x40D16FC0246aD3160Ccc09B8D0D3A2cD28aE6C2f;
     address public constant MAINNET_KSUSDE = 0xDe5Bff0755F192C333B126A449FF944Ee2B69681;
+    address public constant MAINNET_WBETH = 0xa2E3356610840701BDf5611a53974510Ae27E2e1;
+    address public constant MAINNET_SWETH = 0xf951E335afb289353dc249e82926178EaC7DEd78;
+    address public constant MAINNET_LSETH = 0x8c1BEd5b9a0928467c9B1341Da1D7BD5e10b6549;
+    address public constant MAINNET_OSETH = 0xf1C9acDc66974dFB6dEcB12aA385b9cD01190E38;
 
     address public constant MAINNET_RE7LRT = 0x84631c0d0081FDe56DeB72F6DE77abBbF6A9f93a;
     address public constant MAINNET_RE7RWBTC = 0x7F43fDe12A40dE708d908Fb3b9BFB8540d9Ce444;
@@ -266,6 +276,8 @@ library RumpelConfig {
             return getEnableSwapOwnerProtocolGuard();
         } else if (tagHash == keccak256(bytes("initial-resolv-strategies"))) {
             return getInitialResolvStrategyProtocolGuardConfigs();
+        } else if (tagHash == keccak256(bytes("symbiotic-expansion-batch-2"))) {
+            return getSymbioticExpansionBatch2ProtocolGuardConfigs();
         }
 
         revert("Unsupported tag");
@@ -324,6 +336,8 @@ library RumpelConfig {
             return new TokenGuardConfig[](0);
         } else if (tagHash == keccak256(bytes("initial-resolv-strategies"))) {
             return getInitialResolvStrategyTokenGuardConfigs();
+        } else if (tagHash == keccak256(bytes("symbiotic-expansion-batch-2"))) {
+            return getSymbioticExpansionBatch2TokenGuardConfigs();
         }
 
         revert("Unsupported tag");
@@ -379,6 +393,8 @@ library RumpelConfig {
             return new TokenModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("initial-resolv-strategies"))) {
             return new TokenModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("symbiotic-expansion-batch-2"))) {
+            return new TokenModuleConfig[](0);
         }
 
         revert("Unsupported tag");
@@ -431,6 +447,8 @@ library RumpelConfig {
             return new ProtocolModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("initial-resolv-strategies"))) {
             return new ProtocolModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("symbiotic-expansion-batch-2"))) {
+            return new ProtocolModuleConfig[](0);
         }
 
         revert("Unsupported tag");
@@ -456,20 +474,24 @@ library RumpelConfig {
         // Symbiotic WstETH Collateral
         configs[2] =
             ProtocolGuardConfig({target: MAINNET_SYMBIOTIC_WSTETH_COLLATERAL, selectorStates: new SelectorState[](2)});
-        configs[2].selectorStates[0] =
-            SelectorState({selector: ISymbioticWstETHCollateral.deposit.selector, state: RumpelGuard.AllowListState.ON});
+        configs[2].selectorStates[0] = SelectorState({
+            selector: ISymbioticDefaultCollateral.deposit.selector,
+            state: RumpelGuard.AllowListState.ON
+        });
         configs[2].selectorStates[1] = SelectorState({
-            selector: ISymbioticWstETHCollateral.withdraw.selector,
+            selector: ISymbioticDefaultCollateral.withdraw.selector,
             state: RumpelGuard.AllowListState.ON
         });
 
         // Symbiotic SUSDe Collateral
         configs[3] =
             ProtocolGuardConfig({target: MAINNET_SYMBIOTIC_SUSDE_COLLATERAL, selectorStates: new SelectorState[](2)});
-        configs[3].selectorStates[0] =
-            SelectorState({selector: ISymbioticWstETHCollateral.deposit.selector, state: RumpelGuard.AllowListState.ON});
+        configs[3].selectorStates[0] = SelectorState({
+            selector: ISymbioticDefaultCollateral.deposit.selector,
+            state: RumpelGuard.AllowListState.ON
+        });
         configs[3].selectorStates[1] = SelectorState({
-            selector: ISymbioticWstETHCollateral.withdraw.selector,
+            selector: ISymbioticDefaultCollateral.withdraw.selector,
             state: RumpelGuard.AllowListState.ON
         });
 
@@ -1334,7 +1356,142 @@ library RumpelConfig {
             transferAllowState: RumpelGuard.AllowListState.ON,
             approveAllowState: RumpelGuard.AllowListState.ON
         });
-        
+
+        return configs;
+    }
+
+    function getSymbioticExpansionBatch2ProtocolGuardConfigs() internal pure returns (ProtocolGuardConfig[] memory) {
+        ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](10);
+
+        configs[0] =
+            ProtocolGuardConfig({target: MAINNET_SYMBIOTIC_WBETH_COLLATERAL, selectorStates: new SelectorState[](1)});
+        configs[0].selectorStates[0] = SelectorState({
+            selector: ISymbioticDefaultCollateral.deposit.selector,
+            state: RumpelGuard.AllowListState.ON
+        });
+
+        configs[1] =
+            ProtocolGuardConfig({target: MAINNET_SYMBIOTIC_WBETH_COLLATERAL, selectorStates: new SelectorState[](1)});
+        configs[1].selectorStates[0] = SelectorState({
+            selector: ISymbioticDefaultCollateral.withdraw.selector,
+            state: RumpelGuard.AllowListState.ON
+        });
+
+        configs[2] = ProtocolGuardConfig({
+            target: MAINNET_SYMBIOTIC_SWELL_SWBTC_COLLATERAL,
+            selectorStates: new SelectorState[](1)
+        });
+        configs[2].selectorStates[0] = SelectorState({
+            selector: ISymbioticDefaultCollateral.deposit.selector,
+            state: RumpelGuard.AllowListState.ON
+        });
+
+        configs[3] = ProtocolGuardConfig({
+            target: MAINNET_SYMBIOTIC_SWELL_SWBTC_COLLATERAL,
+            selectorStates: new SelectorState[](1)
+        });
+        configs[3].selectorStates[0] = SelectorState({
+            selector: ISymbioticDefaultCollateral.withdraw.selector,
+            state: RumpelGuard.AllowListState.ON
+        });
+
+        configs[4] =
+            ProtocolGuardConfig({target: MAINNET_SYMBIOTIC_SWETH_COLLATERAL, selectorStates: new SelectorState[](1)});
+        configs[4].selectorStates[0] = SelectorState({
+            selector: ISymbioticDefaultCollateral.deposit.selector,
+            state: RumpelGuard.AllowListState.ON
+        });
+
+        configs[5] =
+            ProtocolGuardConfig({target: MAINNET_SYMBIOTIC_SWETH_COLLATERAL, selectorStates: new SelectorState[](1)});
+        configs[5].selectorStates[0] = SelectorState({
+            selector: ISymbioticDefaultCollateral.withdraw.selector,
+            state: RumpelGuard.AllowListState.ON
+        });
+
+        configs[6] =
+            ProtocolGuardConfig({target: MAINNET_SYMBIOTIC_LSETH_COLLATERAL, selectorStates: new SelectorState[](1)});
+        configs[6].selectorStates[0] = SelectorState({
+            selector: ISymbioticDefaultCollateral.deposit.selector,
+            state: RumpelGuard.AllowListState.ON
+        });
+
+        configs[7] =
+            ProtocolGuardConfig({target: MAINNET_SYMBIOTIC_LSETH_COLLATERAL, selectorStates: new SelectorState[](1)});
+        configs[7].selectorStates[0] = SelectorState({
+            selector: ISymbioticDefaultCollateral.withdraw.selector,
+            state: RumpelGuard.AllowListState.ON
+        });
+
+        configs[8] =
+            ProtocolGuardConfig({target: MAINNET_SYMBIOTIC_OSETH_COLLATERAL, selectorStates: new SelectorState[](1)});
+        configs[8].selectorStates[0] = SelectorState({
+            selector: ISymbioticDefaultCollateral.deposit.selector,
+            state: RumpelGuard.AllowListState.ON
+        });
+
+        configs[9] =
+            ProtocolGuardConfig({target: MAINNET_SYMBIOTIC_OSETH_COLLATERAL, selectorStates: new SelectorState[](1)});
+        configs[9].selectorStates[0] = SelectorState({
+            selector: ISymbioticDefaultCollateral.withdraw.selector,
+            state: RumpelGuard.AllowListState.ON
+        });
+
+        return configs;
+    }
+
+    function getSymbioticExpansionBatch2TokenGuardConfigs() internal pure returns (TokenGuardConfig[] memory) {
+        TokenGuardConfig[] memory configs = new TokenGuardConfig[](9);
+
+        // underlying
+        configs[0] = TokenGuardConfig({
+            token: MAINNET_WBETH,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.ON
+        });
+        configs[1] = TokenGuardConfig({
+            token: MAINNET_SWETH,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.ON
+        });
+        configs[2] = TokenGuardConfig({
+            token: MAINNET_LSETH,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.ON
+        });
+        configs[3] = TokenGuardConfig({
+            token: MAINNET_OSETH,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.ON
+        });
+
+        // symbiotic default collateral
+        configs[4] = TokenGuardConfig({
+            token: MAINNET_SYMBIOTIC_WBETH_COLLATERAL,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.ON
+        });
+        configs[5] = TokenGuardConfig({
+            token: MAINNET_SYMBIOTIC_SWELL_SWBTC_COLLATERAL,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.ON
+        });
+        configs[6] = TokenGuardConfig({
+            token: MAINNET_SYMBIOTIC_SWETH_COLLATERAL,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.ON
+        });
+        configs[7] = TokenGuardConfig({
+            token: MAINNET_SYMBIOTIC_LSETH_COLLATERAL,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.ON
+        });
+        configs[8] = TokenGuardConfig({
+            token: MAINNET_SYMBIOTIC_OSETH_COLLATERAL,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.ON
+        });
+
         return configs;
     }
 }
@@ -1352,7 +1509,7 @@ interface IZircuitRestakingPool {
     function withdraw(address _token, uint256 _amount) external;
 }
 
-interface ISymbioticWstETHCollateral {
+interface ISymbioticDefaultCollateral {
     function deposit(address recipient, uint256 amount) external returns (uint256);
     function withdraw(address recipient, uint256 amount) external;
 }
