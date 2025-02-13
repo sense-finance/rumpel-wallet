@@ -1361,7 +1361,7 @@ library RumpelConfig {
     }
 
     function getSymbioticExpansionBatch2ProtocolGuardConfigs() internal pure returns (ProtocolGuardConfig[] memory) {
-        ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](10);
+        ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](5);
 
         configs[0] =
             ProtocolGuardConfig({target: MAINNET_SYMBIOTIC_WBETH_COLLATERAL, selectorStates: new SelectorState[](2)});
