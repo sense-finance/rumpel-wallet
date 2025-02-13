@@ -1360,69 +1360,57 @@ library RumpelConfig {
     }
 
     function getSymbioticExpansionBatch1ProtocolGuardConfigs() internal pure returns (ProtocolGuardConfig[] memory) {
-        ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](9);
+        ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](5);
 
         configs[0] =
-            ProtocolGuardConfig({target: MAINNET_SYMBIOTIC_METH_COLLATERAL, selectorStates: new SelectorState[](1)});
+            ProtocolGuardConfig({target: MAINNET_SYMBIOTIC_METH_COLLATERAL, selectorStates: new SelectorState[](2)});
         configs[0].selectorStates[0] = SelectorState({
             selector: ISymbioticDefaultCollateral.deposit.selector,
             state: RumpelGuard.AllowListState.ON
         });
+        configs[0].selectorStates[1] = SelectorState({
+            selector: ISymbioticDefaultCollateral.withdraw.selector,
+            state: RumpelGuard.AllowListState.ON
+        });
 
         configs[1] =
-            ProtocolGuardConfig({target: MAINNET_SYMBIOTIC_METH_COLLATERAL, selectorStates: new SelectorState[](1)});
+            ProtocolGuardConfig({target: MAINNET_SYMBIOTIC_WBTC_COLLATERAL, selectorStates: new SelectorState[](2)});
+        configs[1].selectorStates[0] = SelectorState({
+            selector: ISymbioticDefaultCollateral.deposit.selector,
+            state: RumpelGuard.AllowListState.ON
+        });
         configs[1].selectorStates[0] = SelectorState({
             selector: ISymbioticDefaultCollateral.withdraw.selector,
             state: RumpelGuard.AllowListState.ON
         });
 
         configs[2] =
-            ProtocolGuardConfig({target: MAINNET_SYMBIOTIC_WBTC_COLLATERAL, selectorStates: new SelectorState[](1)});
+            ProtocolGuardConfig({target: MAINNET_SYMBIOTIC_RETH_COLLATERAL, selectorStates: new SelectorState[](2)});
         configs[2].selectorStates[0] = SelectorState({
             selector: ISymbioticDefaultCollateral.deposit.selector,
             state: RumpelGuard.AllowListState.ON
         });
+        configs[2].selectorStates[1] = SelectorState({
+            selector: ISymbioticDefaultCollateral.withdraw.selector,
+            state: RumpelGuard.AllowListState.ON
+        });
 
         configs[3] =
-            ProtocolGuardConfig({target: MAINNET_SYMBIOTIC_WBTC_COLLATERAL, selectorStates: new SelectorState[](1)});
+            ProtocolGuardConfig({target: MAINNET_SYMBIOTIC_CBETH_COLLATERAL, selectorStates: new SelectorState[](2)});
         configs[3].selectorStates[0] = SelectorState({
-            selector: ISymbioticDefaultCollateral.withdraw.selector,
-            state: RumpelGuard.AllowListState.ON
-        });
-
-        configs[4] =
-            ProtocolGuardConfig({target: MAINNET_SYMBIOTIC_RETH_COLLATERAL, selectorStates: new SelectorState[](1)});
-        configs[4].selectorStates[0] = SelectorState({
             selector: ISymbioticDefaultCollateral.deposit.selector,
             state: RumpelGuard.AllowListState.ON
         });
-
-        configs[5] =
-            ProtocolGuardConfig({target: MAINNET_SYMBIOTIC_RETH_COLLATERAL, selectorStates: new SelectorState[](1)});
-        configs[5].selectorStates[0] = SelectorState({
-            selector: ISymbioticDefaultCollateral.withdraw.selector,
-            state: RumpelGuard.AllowListState.ON
-        });
-
-        configs[6] =
-            ProtocolGuardConfig({target: MAINNET_SYMBIOTIC_CBETH_COLLATERAL, selectorStates: new SelectorState[](1)});
-        configs[6].selectorStates[0] = SelectorState({
-            selector: ISymbioticDefaultCollateral.deposit.selector,
-            state: RumpelGuard.AllowListState.ON
-        });
-
-        configs[7] =
-            ProtocolGuardConfig({target: MAINNET_SYMBIOTIC_CBETH_COLLATERAL, selectorStates: new SelectorState[](1)});
-        configs[7].selectorStates[0] = SelectorState({
+        configs[3].selectorStates[1] = SelectorState({
             selector: ISymbioticDefaultCollateral.withdraw.selector,
             state: RumpelGuard.AllowListState.ON
         });
 
         // skip deposit and withdraw of ENA -- only allow asset receipt asset transfer
 
-        configs[8] =
+        configs[4] =
             ProtocolGuardConfig({target: MAINNET_SYMBIOTIC_COLLATERAL_MIGRATOR, selectorStates: new SelectorState[](1)});
-        configs[8].selectorStates[0] = SelectorState({
+        configs[4].selectorStates[0] = SelectorState({
             selector: ISymbioticDefaultCollateralMigrator.migrate.selector,
             state: RumpelGuard.AllowListState.ON
         });
