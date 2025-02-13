@@ -1533,7 +1533,7 @@ library RumpelConfig {
     }
 
     function getSymbioticExpansionBatch3TokenGuardConfigs() internal pure returns (TokenGuardConfig[] memory) {
-        TokenGuardConfig[] memory configs = new TokenGuardConfig[](5);
+        TokenGuardConfig[] memory configs = new TokenGuardConfig[](4);
 
         // underlying
         // wstETH already added
@@ -1542,29 +1542,24 @@ library RumpelConfig {
         configs[0] = TokenGuardConfig({
             token: MAINNET_SFRX,
             transferAllowState: RumpelGuard.AllowListState.ON,
-            approveAllowState: RumpelGuard.AllowListState.OFF
+            approveAllowState: RumpelGuard.AllowListState.ON
         });
 
         // collateral tokens
         configs[1] = TokenGuardConfig({
-            token: MAINNET_SYMBIOTIC_MEV_CAPITAL_WSTETH_COLLATERAL,
-            transferAllowState: RumpelGuard.AllowListState.ON,
-            approveAllowState: RumpelGuard.AllowListState.OFF
-        });
-        configs[2] = TokenGuardConfig({
             token: MAINNET_SYMBIOTIC_SFRXETH_COLLATERAL,
             transferAllowState: RumpelGuard.AllowListState.ON,
-            approveAllowState: RumpelGuard.AllowListState.OFF
+            approveAllowState: RumpelGuard.AllowListState.ON
         });
-        configs[3] = TokenGuardConfig({
+        configs[2] = TokenGuardConfig({
             token: MAINNET_SYMBIOTIC_GUANTLET_RESTAKED_SWETH_COLLATERAL,
             transferAllowState: RumpelGuard.AllowListState.ON,
-            approveAllowState: RumpelGuard.AllowListState.OFF
+            approveAllowState: RumpelGuard.AllowListState.ON
         });
-        configs[4] = TokenGuardConfig({
+        configs[3] = TokenGuardConfig({
             token: MAINNET_SYMBIOTIC_ETHFI_COLLATERAL,
             transferAllowState: RumpelGuard.AllowListState.ON,
-            approveAllowState: RumpelGuard.AllowListState.OFF
+            approveAllowState: RumpelGuard.AllowListState.ON
         });
 
         return configs;
