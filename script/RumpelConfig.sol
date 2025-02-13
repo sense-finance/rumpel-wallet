@@ -40,6 +40,11 @@ library RumpelConfig {
     address public constant MAINNET_ZIRCUIT_RESTAKING_POOL = 0xF047ab4c75cebf0eB9ed34Ae2c186f3611aEAfa6;
     address public constant MAINNET_SYMBIOTIC_WSTETH_COLLATERAL = 0xC329400492c6ff2438472D4651Ad17389fCb843a;
     address public constant MAINNET_SYMBIOTIC_SUSDE_COLLATERAL = 0x19d0D8e6294B7a04a2733FE433444704B791939A;
+    address public constant MAINNET_SYMBIOTIC_MEV_CAPITAL_WSTETH_COLLATERAL = 0x4e0554959A631B3D3938ffC158e0a7b2124aF9c5;
+    address public constant MAINNET_SYMBIOTIC_SFRXETH_COLLATERAL = 0x5198CB44D7B2E993ebDDa9cAd3b9a0eAa32769D2;
+    address public constant MAINNET_SYMBIOTIC_GUANTLET_RESTAKED_SWETH_COLLATERAL =
+        0x65B560d887c010c4993C8F8B36E595C171d69D63;
+    address public constant MAINNET_SYMBIOTIC_ETHFI_COLLATERAL = 0x21DbBA985eEA6ba7F27534a72CCB292eBA1D2c7c;
     address public constant MAINNET_KARAK_VAULT_SUPERVISOR = 0x54e44DbB92dBA848ACe27F44c0CB4268981eF1CC;
     address public constant MAINNET_KARAK_DELEGATION_SUPERVISOR = 0xAfa904152E04aBFf56701223118Be2832A4449E0;
     address public constant MAINNET_ETHENA_LP_STAKING = 0x8707f238936c12c309bfc2B9959C35828AcFc512;
@@ -67,6 +72,7 @@ library RumpelConfig {
     address public constant MAINNET_USDT = 0xdAC17F958D2ee523a2206206994597C13D831ec7;
     address public constant MAINNET_GHO = 0x40D16FC0246aD3160Ccc09B8D0D3A2cD28aE6C2f;
     address public constant MAINNET_KSUSDE = 0xDe5Bff0755F192C333B126A449FF944Ee2B69681;
+    address public constant MAINNET_SFRX = 0xac3E018457B222d93114458476f3E3416Abbe38F;
 
     address public constant MAINNET_RE7LRT = 0x84631c0d0081FDe56DeB72F6DE77abBbF6A9f93a;
     address public constant MAINNET_RE7RWBTC = 0x7F43fDe12A40dE708d908Fb3b9BFB8540d9Ce444;
@@ -266,6 +272,8 @@ library RumpelConfig {
             return getEnableSwapOwnerProtocolGuard();
         } else if (tagHash == keccak256(bytes("initial-resolv-strategies"))) {
             return getInitialResolvStrategyProtocolGuardConfigs();
+        } else if (tagHash == keccak256(bytes("symbiotic-expansion-batch-3"))) {
+            return getSymbioticExpansionBatch3ProtocolGuardConfigs();
         }
 
         revert("Unsupported tag");
@@ -324,6 +332,8 @@ library RumpelConfig {
             return new TokenGuardConfig[](0);
         } else if (tagHash == keccak256(bytes("initial-resolv-strategies"))) {
             return getInitialResolvStrategyTokenGuardConfigs();
+        } else if (tagHash == keccak256(bytes("symbiotic-expansion-batch-3"))) {
+            return getSymbioticExpansionBatch3TokenGuardConfigs();
         }
 
         revert("Unsupported tag");
@@ -379,6 +389,8 @@ library RumpelConfig {
             return new TokenModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("initial-resolv-strategies"))) {
             return new TokenModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("symbiotic-expansion-batch-3"))) {
+            return new TokenModuleConfig[](0);
         }
 
         revert("Unsupported tag");
@@ -431,6 +443,8 @@ library RumpelConfig {
             return new ProtocolModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("initial-resolv-strategies"))) {
             return new ProtocolModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("symbiotic-expansion-batch-3"))) {
+            return new ProtocolModuleConfig[](0);
         }
 
         revert("Unsupported tag");
@@ -456,20 +470,24 @@ library RumpelConfig {
         // Symbiotic WstETH Collateral
         configs[2] =
             ProtocolGuardConfig({target: MAINNET_SYMBIOTIC_WSTETH_COLLATERAL, selectorStates: new SelectorState[](2)});
-        configs[2].selectorStates[0] =
-            SelectorState({selector: ISymbioticWstETHCollateral.deposit.selector, state: RumpelGuard.AllowListState.ON});
+        configs[2].selectorStates[0] = SelectorState({
+            selector: ISymbioticDefaultCollateral.deposit.selector,
+            state: RumpelGuard.AllowListState.ON
+        });
         configs[2].selectorStates[1] = SelectorState({
-            selector: ISymbioticWstETHCollateral.withdraw.selector,
+            selector: ISymbioticDefaultCollateral.withdraw.selector,
             state: RumpelGuard.AllowListState.ON
         });
 
         // Symbiotic SUSDe Collateral
         configs[3] =
             ProtocolGuardConfig({target: MAINNET_SYMBIOTIC_SUSDE_COLLATERAL, selectorStates: new SelectorState[](2)});
-        configs[3].selectorStates[0] =
-            SelectorState({selector: ISymbioticWstETHCollateral.deposit.selector, state: RumpelGuard.AllowListState.ON});
+        configs[3].selectorStates[0] = SelectorState({
+            selector: ISymbioticDefaultCollateral.deposit.selector,
+            state: RumpelGuard.AllowListState.ON
+        });
         configs[3].selectorStates[1] = SelectorState({
-            selector: ISymbioticWstETHCollateral.withdraw.selector,
+            selector: ISymbioticDefaultCollateral.withdraw.selector,
             state: RumpelGuard.AllowListState.ON
         });
 
@@ -1334,7 +1352,90 @@ library RumpelConfig {
             transferAllowState: RumpelGuard.AllowListState.ON,
             approveAllowState: RumpelGuard.AllowListState.ON
         });
-        
+
+        return configs;
+    }
+
+    function getSymbioticExpansionBatch3ProtocolGuardConfigs() internal pure returns (ProtocolGuardConfig[] memory) {
+        ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](3);
+
+        // ETHFI skipped as reward token - only transfer enabled
+
+        configs[0] = ProtocolGuardConfig({
+            target: MAINNET_SYMBIOTIC_MEV_CAPITAL_WSTETH_COLLATERAL,
+            selectorStates: new SelectorState[](2)
+        });
+        configs[0].selectorStates[0] = SelectorState({
+            selector: ISymbioticDefaultCollateral.deposit.selector,
+            state: RumpelGuard.AllowListState.ON
+        });
+        configs[0].selectorStates[1] = SelectorState({
+            selector: ISymbioticDefaultCollateral.withdraw.selector,
+            state: RumpelGuard.AllowListState.ON
+        });
+
+        configs[1] =
+            ProtocolGuardConfig({target: MAINNET_SYMBIOTIC_SFRXETH_COLLATERAL, selectorStates: new SelectorState[](2)});
+        configs[1].selectorStates[0] = SelectorState({
+            selector: ISymbioticDefaultCollateral.deposit.selector,
+            state: RumpelGuard.AllowListState.ON
+        });
+        configs[1].selectorStates[1] = SelectorState({
+            selector: ISymbioticDefaultCollateral.withdraw.selector,
+            state: RumpelGuard.AllowListState.ON
+        });
+
+        configs[2] = ProtocolGuardConfig({
+            target: MAINNET_SYMBIOTIC_GUANTLET_RESTAKED_SWETH_COLLATERAL,
+            selectorStates: new SelectorState[](2)
+        });
+        configs[2].selectorStates[0] = SelectorState({
+            selector: ISymbioticDefaultCollateral.deposit.selector,
+            state: RumpelGuard.AllowListState.ON
+        });
+        configs[2].selectorStates[1] = SelectorState({
+            selector: ISymbioticDefaultCollateral.withdraw.selector,
+            state: RumpelGuard.AllowListState.ON
+        });
+
+        return configs;
+    }
+
+    function getSymbioticExpansionBatch3TokenGuardConfigs() internal pure returns (TokenGuardConfig[] memory) {
+        TokenGuardConfig[] memory configs = new TokenGuardConfig[](5);
+
+        // underlying
+        // wstETH already added
+        // swETH added in symbiotic-batch-2
+        // ETHFI skipped as reward token
+        configs[0] = TokenGuardConfig({
+            token: MAINNET_SFRX,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+
+        // collateral tokens
+        configs[1] = TokenGuardConfig({
+            token: MAINNET_SYMBIOTIC_MEV_CAPITAL_WSTETH_COLLATERAL,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+        configs[2] = TokenGuardConfig({
+            token: MAINNET_SYMBIOTIC_SFRXETH_COLLATERAL,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+        configs[3] = TokenGuardConfig({
+            token: MAINNET_SYMBIOTIC_GUANTLET_RESTAKED_SWETH_COLLATERAL,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+        configs[4] = TokenGuardConfig({
+            token: MAINNET_SYMBIOTIC_ETHFI_COLLATERAL,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+
         return configs;
     }
 }
@@ -1352,7 +1453,7 @@ interface IZircuitRestakingPool {
     function withdraw(address _token, uint256 _amount) external;
 }
 
-interface ISymbioticWstETHCollateral {
+interface ISymbioticDefaultCollateral {
     function deposit(address recipient, uint256 amount) external returns (uint256);
     function withdraw(address recipient, uint256 amount) external;
 }
