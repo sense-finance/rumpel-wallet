@@ -110,7 +110,7 @@ library RumpelConfig {
     address public constant MAINNET_TBTC = 0x18084fbA666a33d37592fA2633fD49a74DD93a88;
     address public constant MAINNET_UNIBTC = 0x004E9C3EF86bc1ca1f0bB5C7662861Ee93350568;
     address public constant MAINNET_IBTC = 0x20157DBAbb84e3BBFE68C349d0d44E48AE7B5AD2;
-    
+
     address public constant MAINNET_MELLOW_DVSTETH = 0x5E362eb2c0706Bd1d134689eC75176018385430B;
     address public constant MAINNET_MELLOW_RENZO_PZETH = 0x8c9532a60E0E7C6BbD2B2c1303F63aCE1c3E9811;
     address public constant MAINNET_MELLOW_RSENA = 0xc65433845ecD16688eda196497FA9130d6C47Bd8;
@@ -128,7 +128,6 @@ library RumpelConfig {
     address public constant MAINNET_MELLOW_LUGAETH = 0x82dc3260f599f4fC4307209A1122B6eAa007163b;
     address public constant MAINNET_MELLOW_ROETH = 0x7b31F008c48EFb65da78eA0f255EE424af855249;
     address public constant MAINNET_MELLOW_RSUNIBTC = 0x08F39b3d75712148dacDB2669C3EAcc7F1152547;
-
 
     // YT Yield Claiming
     address public constant MAINNET_SY_SUSDE = 0xD288755556c235afFfb6316702719C32bD8706e8;
@@ -706,14 +705,20 @@ library RumpelConfig {
         return configs;
     }
 
-    function getProtocolGuardConfigMellowSymbiotic(address vault) internal pure returns (ProtocolGuardConfig memory config) {
-        config = ProtocolGuardConfig({target: vault, selectorStates: new SelectorState[](3)});
+    function getProtocolGuardConfigMellowSymbiotic(address vault)
+        internal
+        pure
+        returns (ProtocolGuardConfig memory config)
+    {
+        config = ProtocolGuardConfig({target: vault, selectorStates: new SelectorState[](4)});
         config.selectorStates[0] =
             SelectorState({selector: IERC4626Mellow.deposit.selector, state: RumpelGuard.AllowListState.ON});
         config.selectorStates[1] =
             SelectorState({selector: IERC4626.withdraw.selector, state: RumpelGuard.AllowListState.ON});
         config.selectorStates[2] =
             SelectorState({selector: IERC4626.deposit.selector, state: RumpelGuard.AllowListState.ON});
+        config.selectorStates[3] =
+            SelectorState({selector: IMellowSymbioticVault.claim.selector, state: RumpelGuard.AllowListState.ON});
     }
 
     // Mellow Vaults ----
@@ -745,7 +750,7 @@ library RumpelConfig {
 
         // Mellow HYVEX
         configs[5] = getProtocolGuardConfigMellowSymbiotic(MAINNET_MELLOW_HYVEX);
-        
+
         // Mellow Re7rtBTC
         configs[6] = ProtocolGuardConfig({target: MAINNET_MELLOW_RE7RTBTC, selectorStates: new SelectorState[](2)});
         configs[6].selectorStates[0] =
@@ -761,7 +766,7 @@ library RumpelConfig {
 
         // Mellow urLRT
         configs[9] = getProtocolGuardConfigMellowSymbiotic(MAINNET_MELLOW_URLRT);
-        
+
         // Mellow coETH
         configs[10] = getProtocolGuardConfigMellowSymbiotic(MAINNET_MELLOW_COETH);
 
@@ -1771,9 +1776,11 @@ interface IMellowT1 {
 }
 
 interface IERC4626Mellow {
-    function deposit(uint256 assets, address receiver, address referral)
-        external
-        returns (uint256 shares);
+    function deposit(uint256 assets, address receiver, address referral) external returns (uint256 shares);
+}
+
+interface IMellowSymbioticVault {
+    function claim(address account, address recipient, uint256 maxAmount) external returns (uint256);
 }
 
 interface IFluidVaultT1 {
