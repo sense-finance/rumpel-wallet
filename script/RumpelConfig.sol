@@ -50,6 +50,11 @@ library RumpelConfig {
     address public constant MAINNET_SYMBIOTIC_SWETH_COLLATERAL = 0x38B86004842D3FA4596f0b7A0b53DE90745Ab654;
     address public constant MAINNET_SYMBIOTIC_LSETH_COLLATERAL = 0xB09A50AcFFF7D12B7d18adeF3D1027bC149Bad1c;
     address public constant MAINNET_SYMBIOTIC_OSETH_COLLATERAL = 0x52cB8A621610Cc3cCf498A1981A8ae7AD6B8AB2a;
+    address public constant MAINNET_SYMBIOTIC_MEV_CAPITAL_WSTETH_COLLATERAL = 0x4e0554959A631B3D3938ffC158e0a7b2124aF9c5;
+    address public constant MAINNET_SYMBIOTIC_SFRXETH_COLLATERAL = 0x5198CB44D7B2E993ebDDa9cAd3b9a0eAa32769D2;
+    address public constant MAINNET_SYMBIOTIC_GUANTLET_RESTAKED_SWETH_COLLATERAL =
+        0x65B560d887c010c4993C8F8B36E595C171d69D63;
+    address public constant MAINNET_SYMBIOTIC_ETHFI_COLLATERAL = 0x21DbBA985eEA6ba7F27534a72CCB292eBA1D2c7c;
     address public constant MAINNET_SYMBIOTIC_COLLATERAL_MIGRATOR = 0x8F152FEAA99eb6656F902E94BD4E7bCf563D4A43;
     address public constant MAINNET_KARAK_VAULT_SUPERVISOR = 0x54e44DbB92dBA848ACe27F44c0CB4268981eF1CC;
     address public constant MAINNET_KARAK_DELEGATION_SUPERVISOR = 0xAfa904152E04aBFf56701223118Be2832A4449E0;
@@ -86,6 +91,7 @@ library RumpelConfig {
     address public constant MAINNET_SWETH = 0xf951E335afb289353dc249e82926178EaC7DEd78;
     address public constant MAINNET_LSETH = 0x8c1BEd5b9a0928467c9B1341Da1D7BD5e10b6549;
     address public constant MAINNET_OSETH = 0xf1C9acDc66974dFB6dEcB12aA385b9cD01190E38;
+    address public constant MAINNET_SFRX = 0xac3E018457B222d93114458476f3E3416Abbe38F;
 
     address public constant MAINNET_RE7LRT = 0x84631c0d0081FDe56DeB72F6DE77abBbF6A9f93a;
     address public constant MAINNET_RE7RWBTC = 0x7F43fDe12A40dE708d908Fb3b9BFB8540d9Ce444;
@@ -311,6 +317,8 @@ library RumpelConfig {
             return getSymbioticExpansionBatch1ProtocolGuardConfigs();
         } else if (tagHash == keccak256(bytes("symbiotic-expansion-batch-2"))) {
             return getSymbioticExpansionBatch2ProtocolGuardConfigs();
+        } else if (tagHash == keccak256(bytes("symbiotic-expansion-batch-3"))) {
+            return getSymbioticExpansionBatch3ProtocolGuardConfigs();
         } else if (tagHash == keccak256(bytes("add-mellow-vaults"))) {
             return getMellowVaultsGuardProtocolConfigs();
         }
@@ -375,6 +383,8 @@ library RumpelConfig {
             return getSymbioticExpansionBatch1TokenGuardConfigs();
         } else if (tagHash == keccak256(bytes("symbiotic-expansion-batch-2"))) {
             return getSymbioticExpansionBatch2TokenGuardConfigs();
+        } else if (tagHash == keccak256(bytes("symbiotic-expansion-batch-3"))) {
+            return getSymbioticExpansionBatch3TokenGuardConfigs();
         } else if (tagHash == keccak256(bytes("add-mellow-vaults"))) {
             return getMellowVaultsGuardTokenConfigs();
         }
@@ -436,10 +446,11 @@ library RumpelConfig {
             return new TokenModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("symbiotic-expansion-batch-2"))) {
             return new TokenModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("symbiotic-expansion-batch-3"))) {
+            return new TokenModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("add-mellow-vaults"))) {
             return new TokenModuleConfig[](0);
         }
-
         revert("Unsupported tag");
     }
 
@@ -493,6 +504,8 @@ library RumpelConfig {
         } else if (tagHash == keccak256(bytes("symbiotic-expansion-batch-1"))) {
             return new ProtocolModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("symbiotic-expansion-batch-2"))) {
+            return new ProtocolModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("symbiotic-expansion-batch-3"))) {
             return new ProtocolModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("add-mellow-vaults"))) {
             return new ProtocolModuleConfig[](0);
@@ -1820,6 +1833,84 @@ library RumpelConfig {
         });
         configs[7] = TokenGuardConfig({
             token: MAINNET_SYMBIOTIC_OSETH_COLLATERAL,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.ON
+        });
+
+        return configs;
+    }
+
+    function getSymbioticExpansionBatch3ProtocolGuardConfigs() internal pure returns (ProtocolGuardConfig[] memory) {
+        ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](3);
+
+        // ETHFI skipped as reward token - only transfer enabled
+
+        configs[0] = ProtocolGuardConfig({
+            target: MAINNET_SYMBIOTIC_MEV_CAPITAL_WSTETH_COLLATERAL,
+            selectorStates: new SelectorState[](2)
+        });
+        configs[0].selectorStates[0] = SelectorState({
+            selector: ISymbioticDefaultCollateral.deposit.selector,
+            state: RumpelGuard.AllowListState.ON
+        });
+        configs[0].selectorStates[1] = SelectorState({
+            selector: ISymbioticDefaultCollateral.withdraw.selector,
+            state: RumpelGuard.AllowListState.ON
+        });
+
+        configs[1] =
+            ProtocolGuardConfig({target: MAINNET_SYMBIOTIC_SFRXETH_COLLATERAL, selectorStates: new SelectorState[](2)});
+        configs[1].selectorStates[0] = SelectorState({
+            selector: ISymbioticDefaultCollateral.deposit.selector,
+            state: RumpelGuard.AllowListState.ON
+        });
+        configs[1].selectorStates[1] = SelectorState({
+            selector: ISymbioticDefaultCollateral.withdraw.selector,
+            state: RumpelGuard.AllowListState.ON
+        });
+
+        configs[2] = ProtocolGuardConfig({
+            target: MAINNET_SYMBIOTIC_GUANTLET_RESTAKED_SWETH_COLLATERAL,
+            selectorStates: new SelectorState[](2)
+        });
+        configs[2].selectorStates[0] = SelectorState({
+            selector: ISymbioticDefaultCollateral.deposit.selector,
+            state: RumpelGuard.AllowListState.ON
+        });
+        configs[2].selectorStates[1] = SelectorState({
+            selector: ISymbioticDefaultCollateral.withdraw.selector,
+            state: RumpelGuard.AllowListState.ON
+        });
+
+        return configs;
+    }
+
+    function getSymbioticExpansionBatch3TokenGuardConfigs() internal pure returns (TokenGuardConfig[] memory) {
+        TokenGuardConfig[] memory configs = new TokenGuardConfig[](4);
+
+        // underlying
+        // wstETH already added
+        // swETH added in symbiotic-batch-2
+        // ETHFI skipped as reward token
+        configs[0] = TokenGuardConfig({
+            token: MAINNET_SFRX,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.ON
+        });
+
+        // collateral tokens
+        configs[1] = TokenGuardConfig({
+            token: MAINNET_SYMBIOTIC_SFRXETH_COLLATERAL,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.ON
+        });
+        configs[2] = TokenGuardConfig({
+            token: MAINNET_SYMBIOTIC_GUANTLET_RESTAKED_SWETH_COLLATERAL,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.ON
+        });
+        configs[3] = TokenGuardConfig({
+            token: MAINNET_SYMBIOTIC_ETHFI_COLLATERAL,
             transferAllowState: RumpelGuard.AllowListState.ON,
             approveAllowState: RumpelGuard.AllowListState.ON
         });
