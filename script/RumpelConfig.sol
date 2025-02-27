@@ -74,9 +74,9 @@ library RumpelConfig {
     address public constant MAINNET_FLUID_VAULT_SUSDE_USDC = 0x3996464c0fCCa8183e13ea5E5e74375e2c8744Dd;
     address public constant MAINNET_FLUID_VAULT_SUSDE_USDT = 0xBc345229C1b52e4c30530C614BB487323BA38Da5;
     address public constant MAINNET_FLUID_VAULT_SUSDE_GHO = 0x2F3780e21cAba1bEdFB24E37C97917def304dFFA;
-    address public constant MAINNET_FLUID_VAULT_SUSDE_USDT_USDT = 0x7503b58Bb29937e7E2980f70D3FD021B7ebeA6d0;
-    address public constant MAINNET_FLUID_VAULT_SUSDE_USDC_USDT = 0xe210d8ded13Abe836a10E8Aa956dd424658d0034;
-    address public constant MAINNET_FLUID_VAULT_USDE_USDT_USDT = 0x989a44CB4dBb7eBe20e0aBf3C1E1d727BF90F881;
+    address public constant MAINNET_FLUID_VAULT_SUSDE_USDT_USDT = 0x7503b58Bb29937e7E2980f70D3FD021B7ebeA6d0; // sUSDe-USDT/USDT
+    address public constant MAINNET_FLUID_VAULT_SUSDE_USDC_USDT = 0xe210d8ded13Abe836a10E8Aa956dd424658d0034; // sUSDe/USDC-USDT
+    address public constant MAINNET_FLUID_VAULT_USDE_USDT_USDT = 0x989a44CB4dBb7eBe20e0aBf3C1E1d727BF90F881; // USDe-USDT/USDT
     address public constant MAINNET_ETHERFI_LRT2_CLAIM = 0x6Db24Ee656843E3fE03eb8762a54D86186bA6B64;
     address public constant MAINNET_EULER_VAULT_CONNECTOR = 0x0C9a3dd6b8F28529d72d7f9cE918D493519EE383;
 
@@ -2171,17 +2171,17 @@ library RumpelConfig {
         configs[0] =
             ProtocolGuardConfig({target: MAINNET_FLUID_VAULT_SUSDE_USDT_USDT, selectorStates: new SelectorState[](1)});
         configs[0].selectorStates[0] =
-            SelectorState({selector: IFluidVaultT1.operate.selector, state: RumpelGuard.AllowListState.ON});
+            SelectorState({selector: IFluidVaultT2.operate.selector, state: RumpelGuard.AllowListState.ON});
 
         configs[1] =
             ProtocolGuardConfig({target: MAINNET_FLUID_VAULT_SUSDE_USDC_USDT, selectorStates: new SelectorState[](1)});
         configs[1].selectorStates[0] =
-            SelectorState({selector: IFluidVaultT1.operate.selector, state: RumpelGuard.AllowListState.ON});
+            SelectorState({selector: IFluidVaultT3.operate.selector, state: RumpelGuard.AllowListState.ON});
 
         configs[2] =
             ProtocolGuardConfig({target: MAINNET_FLUID_VAULT_USDE_USDT_USDT, selectorStates: new SelectorState[](1)});
         configs[2].selectorStates[0] =
-            SelectorState({selector: IFluidVaultT1.operate.selector, state: RumpelGuard.AllowListState.ON});
+            SelectorState({selector: IFluidVaultT2.operate.selector, state: RumpelGuard.AllowListState.ON});
 
         return configs;
     }
@@ -2275,6 +2275,28 @@ interface IMellowSymbioticVault {
 
 interface IFluidVaultT1 {
     function operate(uint256 nftId_, int256 newCol_, int256 newDebt_, address to_) external;
+}
+
+interface IFluidVaultT2 {
+    function operate(
+        uint256 nftId_,
+        int256 newCol1_,
+        int256 newCol2_,
+        int256 colSharesMinMax_,
+        int256 newDebt_,
+        address to_
+    ) external;
+}
+
+interface IFluidVaultT3 {
+    function operate(
+        uint256 nftId_,
+        int256 newCol_,
+        int256 newDebtToken0,
+        int256 newDebtToken1_,
+        int256 debtSharesMinMax_,
+        address to_
+    ) external;
 }
 
 interface IFluidVaultFactory {
