@@ -2180,6 +2180,8 @@ library RumpelConfig {
 
         configs[2] =
             ProtocolGuardConfig({target: MAINNET_FLUID_VAULT_USDE_USDT_USDT, selectorStates: new SelectorState[](1)});
+        configs[2].selectorStates[0] =
+            SelectorState({selector: IFluidVaultT1.operate.selector, state: RumpelGuard.AllowListState.ON});
 
         return configs;
     }
