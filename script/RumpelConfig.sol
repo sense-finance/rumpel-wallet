@@ -40,6 +40,7 @@ library RumpelConfig {
     address public constant MAINNET_ZIRCUIT_RESTAKING_POOL = 0xF047ab4c75cebf0eB9ed34Ae2c186f3611aEAfa6;
     address public constant MAINNET_SYMBIOTIC_WSTETH_COLLATERAL = 0xC329400492c6ff2438472D4651Ad17389fCb843a;
     address public constant MAINNET_SYMBIOTIC_SUSDE_COLLATERAL = 0x19d0D8e6294B7a04a2733FE433444704B791939A;
+
     address public constant MAINNET_SYMBIOTIC_METH_COLLATERAL = 0x475D3Eb031d250070B63Fa145F0fCFC5D97c304a;
     address public constant MAINNET_SYMBIOTIC_WBTC_COLLATERAL = 0x971e5b5D4baa5607863f3748FeBf287C7bf82618;
     address public constant MAINNET_SYMBIOTIC_RETH_COLLATERAL = 0x03Bf48b8A1B37FBeAd1EcAbcF15B98B924ffA5AC;
@@ -62,6 +63,7 @@ library RumpelConfig {
     address public constant MAINNET_SYMBIOTIC_MANTA_COLLATERAL = 0x594380c06552A4136E2601F89E50b3b9Ad17bd4d;
     address public constant MAINNET_SYMBIOTIC_GAUNTLET_RESTAKED_WSTETH_COLLATERAL =
         0xc10A7f0AC6E3944F4860eE97a937C51572e3a1Da;
+
     address public constant MAINNET_SYMBIOTIC_COLLATERAL_MIGRATOR = 0x8F152FEAA99eb6656F902E94BD4E7bCf563D4A43;
     address public constant MAINNET_KARAK_VAULT_SUPERVISOR = 0x54e44DbB92dBA848ACe27F44c0CB4268981eF1CC;
     address public constant MAINNET_KARAK_DELEGATION_SUPERVISOR = 0xAfa904152E04aBFf56701223118Be2832A4449E0;
@@ -72,6 +74,9 @@ library RumpelConfig {
     address public constant MAINNET_FLUID_VAULT_SUSDE_USDC = 0x3996464c0fCCa8183e13ea5E5e74375e2c8744Dd;
     address public constant MAINNET_FLUID_VAULT_SUSDE_USDT = 0xBc345229C1b52e4c30530C614BB487323BA38Da5;
     address public constant MAINNET_FLUID_VAULT_SUSDE_GHO = 0x2F3780e21cAba1bEdFB24E37C97917def304dFFA;
+    address public constant MAINNET_FLUID_VAULT_SUSDE_USDT_USDT = 0x7503b58Bb29937e7E2980f70D3FD021B7ebeA6d0;
+    address public constant MAINNET_FLUID_VAULT_SUSDE_USDC_USDT = 0xe210d8ded13Abe836a10E8Aa956dd424658d0034;
+    address public constant MAINNET_FLUID_VAULT_USDE_USDT_USDT = 0x989a44CB4dBb7eBe20e0aBf3C1E1d727BF90F881;
     address public constant MAINNET_ETHERFI_LRT2_CLAIM = 0x6Db24Ee656843E3fE03eb8762a54D86186bA6B64;
     address public constant MAINNET_EULER_VAULT_CONNECTOR = 0x0C9a3dd6b8F28529d72d7f9cE918D493519EE383;
 
@@ -348,8 +353,10 @@ library RumpelConfig {
             return getSymbioticExpansionBatch4ProtocolGuardConfigs();
         } else if (tagHash == keccak256(bytes("add-mellow-vaults"))) {
             return getMellowVaultsGuardProtocolConfigs();
-        }  else if (tagHash == keccak256(bytes("add-additional-mellow-vaults"))) {
+        } else if (tagHash == keccak256(bytes("add-additional-mellow-vaults"))) {
             return getAdditionalMellowVaultsGuardProtocolConfigs();
+        } else if (tagHash == keccak256(bytes("fluid-loop-usde-smart-vaults"))) {
+            return getFluidLoopUSDeSmartVaultsConfigs();
         }
 
         revert("Unsupported tag");
@@ -420,6 +427,8 @@ library RumpelConfig {
             return getMellowVaultsGuardTokenConfigs();
         } else if (tagHash == keccak256(bytes("add-additional-mellow-vaults"))) {
             return getAdditionalMellowVaultsGuardTokenConfigs();
+        } else if (tagHash == keccak256(bytes("fluid-loop-usde-smart-vaults"))) {
+            return new TokenGuardConfig[](0);
         }
 
         revert("Unsupported tag");
@@ -485,9 +494,12 @@ library RumpelConfig {
             return new TokenModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("add-mellow-vaults"))) {
             return new TokenModuleConfig[](0);
-        }  else if (tagHash == keccak256(bytes("add-additional-mellow-vaults"))) {
+        } else if (tagHash == keccak256(bytes("add-additional-mellow-vaults"))) {
+            return new TokenModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("fluid-loop-usde-smart-vaults"))) {
             return new TokenModuleConfig[](0);
         }
+
         revert("Unsupported tag");
     }
 
@@ -549,6 +561,8 @@ library RumpelConfig {
         } else if (tagHash == keccak256(bytes("add-mellow-vaults"))) {
             return new ProtocolModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("add-additional-mellow-vaults"))) {
+            return new ProtocolModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("fluid-loop-usde-smart-vaults"))) {
             return new ProtocolModuleConfig[](0);
         }
 
@@ -2147,6 +2161,25 @@ library RumpelConfig {
             transferAllowState: RumpelGuard.AllowListState.ON,
             approveAllowState: RumpelGuard.AllowListState.ON
         });
+
+        return configs;
+    }
+
+    function getFluidLoopUSDeSmartVaultsConfigs() internal pure returns (ProtocolGuardConfig[] memory) {
+        ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](3);
+
+        configs[0] =
+            ProtocolGuardConfig({target: MAINNET_FLUID_VAULT_SUSDE_USDT_USDT, selectorStates: new SelectorState[](1)});
+        configs[0].selectorStates[0] =
+            SelectorState({selector: IFluidVaultT1.operate.selector, state: RumpelGuard.AllowListState.ON});
+
+        configs[1] =
+            ProtocolGuardConfig({target: MAINNET_FLUID_VAULT_SUSDE_USDC_USDT, selectorStates: new SelectorState[](1)});
+        configs[1].selectorStates[0] =
+            SelectorState({selector: IFluidVaultT1.operate.selector, state: RumpelGuard.AllowListState.ON});
+
+        configs[2] =
+            ProtocolGuardConfig({target: MAINNET_FLUID_VAULT_USDE_USDT_USDT, selectorStates: new SelectorState[](1)});
 
         return configs;
     }
