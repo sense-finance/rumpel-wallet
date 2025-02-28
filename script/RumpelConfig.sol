@@ -40,6 +40,7 @@ library RumpelConfig {
     address public constant MAINNET_ZIRCUIT_RESTAKING_POOL = 0xF047ab4c75cebf0eB9ed34Ae2c186f3611aEAfa6;
     address public constant MAINNET_SYMBIOTIC_WSTETH_COLLATERAL = 0xC329400492c6ff2438472D4651Ad17389fCb843a;
     address public constant MAINNET_SYMBIOTIC_SUSDE_COLLATERAL = 0x19d0D8e6294B7a04a2733FE433444704B791939A;
+
     address public constant MAINNET_SYMBIOTIC_METH_COLLATERAL = 0x475D3Eb031d250070B63Fa145F0fCFC5D97c304a;
     address public constant MAINNET_SYMBIOTIC_WBTC_COLLATERAL = 0x971e5b5D4baa5607863f3748FeBf287C7bf82618;
     address public constant MAINNET_SYMBIOTIC_RETH_COLLATERAL = 0x03Bf48b8A1B37FBeAd1EcAbcF15B98B924ffA5AC;
@@ -62,6 +63,7 @@ library RumpelConfig {
     address public constant MAINNET_SYMBIOTIC_MANTA_COLLATERAL = 0x594380c06552A4136E2601F89E50b3b9Ad17bd4d;
     address public constant MAINNET_SYMBIOTIC_GAUNTLET_RESTAKED_WSTETH_COLLATERAL =
         0xc10A7f0AC6E3944F4860eE97a937C51572e3a1Da;
+
     address public constant MAINNET_SYMBIOTIC_COLLATERAL_MIGRATOR = 0x8F152FEAA99eb6656F902E94BD4E7bCf563D4A43;
     address public constant MAINNET_KARAK_VAULT_SUPERVISOR = 0x54e44DbB92dBA848ACe27F44c0CB4268981eF1CC;
     address public constant MAINNET_KARAK_DELEGATION_SUPERVISOR = 0xAfa904152E04aBFf56701223118Be2832A4449E0;
@@ -72,6 +74,10 @@ library RumpelConfig {
     address public constant MAINNET_FLUID_VAULT_SUSDE_USDC = 0x3996464c0fCCa8183e13ea5E5e74375e2c8744Dd;
     address public constant MAINNET_FLUID_VAULT_SUSDE_USDT = 0xBc345229C1b52e4c30530C614BB487323BA38Da5;
     address public constant MAINNET_FLUID_VAULT_SUSDE_GHO = 0x2F3780e21cAba1bEdFB24E37C97917def304dFFA;
+    address public constant MAINNET_FLUID_VAULT_DEX_SUSDE_USDT_USDT = 0x7503b58Bb29937e7E2980f70D3FD021B7ebeA6d0; // sUSDe-USDT/USDT
+    address public constant MAINNET_FLUID_VAULT_SUSDE_DEX_USDC_USDT = 0xe210d8ded13Abe836a10E8Aa956dd424658d0034; // sUSDe/USDC-USDT
+    address public constant MAINNET_FLUID_VAULT_DEX_USDE_USDT_USDT = 0x989a44CB4dBb7eBe20e0aBf3C1E1d727BF90F881; // USDe-USDT/USDT
+    address public constant MAINNET_FLUID_VAULT_DEX_EBTC_CBBTC_WBTC = 0x43d1cA906c72f09D96291B4913D7255E241F428d; // EBTC-cbBTC/WBTC
     address public constant MAINNET_ETHERFI_LRT2_CLAIM = 0x6Db24Ee656843E3fE03eb8762a54D86186bA6B64;
     address public constant MAINNET_EULER_VAULT_CONNECTOR = 0x0C9a3dd6b8F28529d72d7f9cE918D493519EE383;
 
@@ -105,6 +111,8 @@ library RumpelConfig {
     address public constant MAINNET_RE7LRT = 0x84631c0d0081FDe56DeB72F6DE77abBbF6A9f93a;
     address public constant MAINNET_RE7RWBTC = 0x7F43fDe12A40dE708d908Fb3b9BFB8540d9Ce444;
     address public constant MAINNET_WBTC = 0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599;
+    address public constant MAINNET_EBTC = 0x657e8C867D8B37dCC18fA4Caead9C45EB088C642;
+    address public constant MAINNET_CBBTC = 0xcbB7C0000aB88B473b1f5aFd9ef808440eed33Bf;
 
     address public constant MAINNET_USR = 0x66a1E37c9b0eAddca17d3662D6c05F4DECf3e110;
     address public constant MAINNET_RLP = 0x4956b52aE2fF65D74CA2d61207523288e4528f96;
@@ -348,8 +356,10 @@ library RumpelConfig {
             return getSymbioticExpansionBatch4ProtocolGuardConfigs();
         } else if (tagHash == keccak256(bytes("add-mellow-vaults"))) {
             return getMellowVaultsGuardProtocolConfigs();
-        }  else if (tagHash == keccak256(bytes("add-additional-mellow-vaults"))) {
+        } else if (tagHash == keccak256(bytes("add-additional-mellow-vaults"))) {
             return getAdditionalMellowVaultsGuardProtocolConfigs();
+        } else if (tagHash == keccak256(bytes("fluid-loop-usde-smart-vaults"))) {
+            return getFluidLoopUSDeSmartVaultsConfigs();
         }
 
         revert("Unsupported tag");
@@ -420,6 +430,8 @@ library RumpelConfig {
             return getMellowVaultsGuardTokenConfigs();
         } else if (tagHash == keccak256(bytes("add-additional-mellow-vaults"))) {
             return getAdditionalMellowVaultsGuardTokenConfigs();
+        } else if (tagHash == keccak256(bytes("fluid-loop-usde-smart-vaults"))) {
+            return getFluidLoopUSDeSmartVaultsTokenConfigs();
         }
 
         revert("Unsupported tag");
@@ -485,9 +497,12 @@ library RumpelConfig {
             return new TokenModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("add-mellow-vaults"))) {
             return new TokenModuleConfig[](0);
-        }  else if (tagHash == keccak256(bytes("add-additional-mellow-vaults"))) {
+        } else if (tagHash == keccak256(bytes("add-additional-mellow-vaults"))) {
+            return new TokenModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("fluid-loop-usde-smart-vaults"))) {
             return new TokenModuleConfig[](0);
         }
+
         revert("Unsupported tag");
     }
 
@@ -549,6 +564,8 @@ library RumpelConfig {
         } else if (tagHash == keccak256(bytes("add-mellow-vaults"))) {
             return new ProtocolModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("add-additional-mellow-vaults"))) {
+            return new ProtocolModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("fluid-loop-usde-smart-vaults"))) {
             return new ProtocolModuleConfig[](0);
         }
 
@@ -2150,6 +2167,58 @@ library RumpelConfig {
 
         return configs;
     }
+
+    function getFluidLoopUSDeSmartVaultsTokenConfigs() internal pure returns (TokenGuardConfig[] memory) {
+        TokenGuardConfig[] memory configs = new TokenGuardConfig[](2);
+
+        configs[0] = TokenGuardConfig({
+            token: MAINNET_EBTC,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.ON
+        });
+
+        configs[1] = TokenGuardConfig({
+            token: MAINNET_CBBTC,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.ON
+        });
+
+        return configs;
+    }
+
+    function getFluidLoopUSDeSmartVaultsConfigs() internal pure returns (ProtocolGuardConfig[] memory) {
+        ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](4);
+
+        configs[0] = ProtocolGuardConfig({
+            target: MAINNET_FLUID_VAULT_DEX_SUSDE_USDT_USDT, // sUSDe-USDT/USDT
+            selectorStates: new SelectorState[](1)
+        });
+        configs[0].selectorStates[0] =
+            SelectorState({selector: IFluidVaultT2.operate.selector, state: RumpelGuard.AllowListState.ON});
+
+        configs[1] = ProtocolGuardConfig({
+            target: MAINNET_FLUID_VAULT_SUSDE_DEX_USDC_USDT, // sUSDe/USDC-USDT
+            selectorStates: new SelectorState[](1)
+        });
+        configs[1].selectorStates[0] =
+            SelectorState({selector: IFluidVaultT3.operate.selector, state: RumpelGuard.AllowListState.ON});
+
+        configs[2] = ProtocolGuardConfig({
+            target: MAINNET_FLUID_VAULT_DEX_USDE_USDT_USDT, // USDe-USDT/USDT
+            selectorStates: new SelectorState[](1)
+        });
+        configs[2].selectorStates[0] =
+            SelectorState({selector: IFluidVaultT2.operate.selector, state: RumpelGuard.AllowListState.ON});
+
+        configs[3] = ProtocolGuardConfig({
+            target: MAINNET_FLUID_VAULT_DEX_EBTC_CBBTC_WBTC, // EBTC-cbBTC/WBTC
+            selectorStates: new SelectorState[](1)
+        });
+        configs[3].selectorStates[0] =
+            SelectorState({selector: IFluidVaultT2.operate.selector, state: RumpelGuard.AllowListState.ON});
+
+        return configs;
+    }
 }
 
 interface IMorphoBundler {
@@ -2240,6 +2309,28 @@ interface IMellowSymbioticVault {
 
 interface IFluidVaultT1 {
     function operate(uint256 nftId_, int256 newCol_, int256 newDebt_, address to_) external;
+}
+
+interface IFluidVaultT2 {
+    function operate(
+        uint256 nftId_,
+        int256 newCol1_,
+        int256 newCol2_,
+        int256 colSharesMinMax_,
+        int256 newDebt_,
+        address to_
+    ) external;
+}
+
+interface IFluidVaultT3 {
+    function operate(
+        uint256 nftId_,
+        int256 newCol_,
+        int256 newDebtToken0,
+        int256 newDebtToken1_,
+        int256 debtSharesMinMax_,
+        address to_
+    ) external;
 }
 
 interface IFluidVaultFactory {
