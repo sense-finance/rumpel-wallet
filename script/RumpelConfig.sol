@@ -189,6 +189,8 @@ library RumpelConfig {
 
     // Additional Reward Assets
     address public constant MAINNET_LRT2 = 0x8F08B70456eb22f6109F57b8fafE862ED28E6040;
+    address public constant MAINNET_OBOL_CLAIM = 0xEfd2247fcC3C7aA1FCbE1d2b81e6d0164583eeA3;
+    address public constant MAINNET_OBOL = 0x0B010000b7624eb9B3DfBC279673C76E9D29D5F7;
 
     function updateGuardAllowlist(RumpelGuard rumpelGuard, string memory tag) internal {
         setupGuardProtocols(rumpelGuard, tag);
@@ -360,6 +362,8 @@ library RumpelConfig {
             return getAdditionalMellowVaultsGuardProtocolConfigs();
         } else if (tagHash == keccak256(bytes("fluid-loop-usde-smart-vaults"))) {
             return getFluidLoopUSDeSmartVaultsConfigs();
+        } else if (tagHash == keccak256(bytes("obol-claiming"))) {
+            return getOBOLProtocolConfigs();
         }
 
         revert("Unsupported tag");
@@ -432,6 +436,8 @@ library RumpelConfig {
             return getAdditionalMellowVaultsGuardTokenConfigs();
         } else if (tagHash == keccak256(bytes("fluid-loop-usde-smart-vaults"))) {
             return getFluidLoopUSDeSmartVaultsTokenConfigs();
+        } else if (tagHash == keccak256(bytes("obol-claiming"))) {
+            return getOBOLTokenConfigs();
         }
 
         revert("Unsupported tag");
@@ -501,6 +507,8 @@ library RumpelConfig {
             return new TokenModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("fluid-loop-usde-smart-vaults"))) {
             return new TokenModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("obol-claiming"))) {
+            return new TokenModuleConfig[](0);
         }
 
         revert("Unsupported tag");
@@ -566,6 +574,8 @@ library RumpelConfig {
         } else if (tagHash == keccak256(bytes("add-additional-mellow-vaults"))) {
             return new ProtocolModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("fluid-loop-usde-smart-vaults"))) {
+            return new ProtocolModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("obol-claiming"))) {
             return new ProtocolModuleConfig[](0);
         }
 
@@ -2219,6 +2229,28 @@ library RumpelConfig {
 
         return configs;
     }
+
+    function getOBOLTokenConfigs() internal pure returns (TokenGuardConfig[] memory) {
+        TokenGuardConfig[] memory configs = new TokenGuardConfig[](1);
+
+        configs[0] = TokenGuardConfig({
+            token: MAINNET_OBOL,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+
+        return configs;
+    }
+
+    function getOBOLProtocolConfigs() internal pure returns (ProtocolGuardConfig[] memory) {
+        ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](1);
+
+        configs[0] = ProtocolGuardConfig({target: MAINNET_OBOL_CLAIM, selectorStates: new SelectorState[](1)});
+        configs[0].selectorStates[0] =
+            SelectorState({selector: IOBOLClaim.claimAndDelegate.selector, state: RumpelGuard.AllowListState.ON});
+
+        return configs;
+    }
 }
 
 interface IMorphoBundler {
@@ -2340,6 +2372,24 @@ interface IFluidVaultFactory {
 
 interface IFluidVaultFactory_ {
     function safeTransferFrom(address from_, address to_, uint256 id_) external;
+}
+
+interface IOBOLClaim {
+    struct SignatureParams {
+        uint256 nonce;
+        uint256 expiry;
+        uint8 v;
+        bytes32 r;
+        bytes32 s;
+    }
+
+    function claimAndDelegate(
+        bytes16 campaignId,
+        bytes32[] memory proof,
+        uint256 claimAmount,
+        address delegatee,
+        SignatureParams memory delegationSignature
+    ) external payable;
 }
 
 // @dev actually a function in ActionMiscV3 called through the RouterProxy
