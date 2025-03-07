@@ -191,6 +191,7 @@ library RumpelConfig {
     address public constant MAINNET_LRT2 = 0x8F08B70456eb22f6109F57b8fafE862ED28E6040;
     address public constant MAINNET_OBOL_CLAIM = 0xEfd2247fcC3C7aA1FCbE1d2b81e6d0164583eeA3;
     address public constant MAINNET_OBOL = 0x0B010000b7624eb9B3DfBC279673C76E9D29D5F7;
+    address public constant MAINNET_OBOL_LOCKUPS = 0x3b9122704A20946E9Cb49b2a8616CCC0f0d61AdB;
 
     function updateGuardAllowlist(RumpelGuard rumpelGuard, string memory tag) internal {
         setupGuardProtocols(rumpelGuard, tag);
@@ -2243,11 +2244,15 @@ library RumpelConfig {
     }
 
     function getOBOLProtocolConfigs() internal pure returns (ProtocolGuardConfig[] memory) {
-        ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](1);
+        ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](2);
 
         configs[0] = ProtocolGuardConfig({target: MAINNET_OBOL_CLAIM, selectorStates: new SelectorState[](1)});
         configs[0].selectorStates[0] =
-            SelectorState({selector: IOBOLClaim.claimAndDelegate.selector, state: RumpelGuard.AllowListState.ON});
+            SelectorState({selector: IObolClaim.claimAndDelegate.selector, state: RumpelGuard.AllowListState.ON});
+
+        configs[1] = ProtocolGuardConfig({target: MAINNET_OBOL_LOCKUPS, selectorStates: new SelectorState[](1)});
+        configs[1].selectorStates[0] =
+            SelectorState({selector: IObolLockups.unlock.selector, state: RumpelGuard.AllowListState.ON});
 
         return configs;
     }
@@ -2374,7 +2379,7 @@ interface IFluidVaultFactory_ {
     function safeTransferFrom(address from_, address to_, uint256 id_) external;
 }
 
-interface IOBOLClaim {
+interface IObolClaim {
     struct SignatureParams {
         uint256 nonce;
         uint256 expiry;
@@ -2390,6 +2395,10 @@ interface IOBOLClaim {
         address delegatee,
         SignatureParams memory delegationSignature
     ) external payable;
+}
+
+interface IObolLockups {
+    function unlock(uint256) external;
 }
 
 // @dev actually a function in ActionMiscV3 called through the RouterProxy
