@@ -368,8 +368,8 @@ library RumpelConfig {
             return getFluidLoopUSDeSmartVaultsConfigs();
         } else if (tagHash == keccak256(bytes("obol-claiming"))) {
             return getOBOLProtocolConfigs();
-        } else if (tagHash == keccak256(bytes("contango-batch-1"))) {
-            return getContangoFirstBatchProtocolConfigs();
+        } else if (tagHash == keccak256(bytes("contango"))) {
+            return getContangoProtocolConfigs();
         }
 
         revert("Unsupported tag");
@@ -444,7 +444,7 @@ library RumpelConfig {
             return getFluidLoopUSDeSmartVaultsTokenConfigs();
         } else if (tagHash == keccak256(bytes("obol-claiming"))) {
             return getOBOLTokenConfigs();
-        } else if (tagHash == keccak256(bytes("contango-batch-1"))) {
+        } else if (tagHash == keccak256(bytes("contango"))) {
             return new TokenGuardConfig[](0);
         }
 
@@ -517,7 +517,7 @@ library RumpelConfig {
             return new TokenModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("obol-claiming"))) {
             return new TokenModuleConfig[](0);
-        } else if (tagHash == keccak256(bytes("contango-batch-1"))) {
+        } else if (tagHash == keccak256(bytes("contango"))) {
             return new TokenModuleConfig[](0);
         }
 
@@ -587,7 +587,7 @@ library RumpelConfig {
             return new ProtocolModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("obol-claiming"))) {
             return new ProtocolModuleConfig[](0);
-        } else if (tagHash == keccak256(bytes("contango-batch-1"))) {
+        } else if (tagHash == keccak256(bytes("contango"))) {
             return new ProtocolModuleConfig[](0);
         }
 
@@ -2268,7 +2268,7 @@ library RumpelConfig {
         return configs;
     }
 
-    function getContangoFirstBatchProtocolConfigs() internal pure returns (ProtocolGuardConfig[] memory){
+    function getContangoProtocolConfigs() internal pure returns (ProtocolGuardConfig[] memory){
         ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](2);
 
         configs[0] = ProtocolGuardConfig({target: MAINNET_CONTANGO_POSITION_NFT, selectorStates: new SelectorState[](1)});
