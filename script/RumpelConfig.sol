@@ -2271,9 +2271,13 @@ library RumpelConfig {
     function getContangoProtocolConfigs() internal pure returns (ProtocolGuardConfig[] memory){
         ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](2);
 
-        configs[0] = ProtocolGuardConfig({target: MAINNET_CONTANGO_POSITION_NFT, selectorStates: new SelectorState[](1)});
+        configs[0] = ProtocolGuardConfig({target: MAINNET_CONTANGO_POSITION_NFT, selectorStates: new SelectorState[](3)});
         configs[0].selectorStates[0] =
             SelectorState({selector: ERC721.transferFrom.selector, state: RumpelGuard.AllowListState.ON});
+        configs[0].selectorStates[1] =
+            SelectorState({selector: bytes4(keccak256("safeTransferFrom(address,address,uint256)")), state: RumpelGuard.AllowListState.ON});
+        configs[0].selectorStates[2] =
+            SelectorState({selector: bytes4(keccak256("safeTransferFrom(address,address,uint256,bytes)")), state: RumpelGuard.AllowListState.ON});
 
         configs[1] = ProtocolGuardConfig({target: MAINNET_CONTANGO_MAESTRO, selectorStates: new SelectorState[](1)});
         configs[1].selectorStates[0] =
