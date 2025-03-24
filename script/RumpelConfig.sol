@@ -4,6 +4,7 @@ pragma solidity =0.8.24;
 import {RumpelGuard} from "../src/RumpelGuard.sol";
 import {RumpelModule} from "../src/RumpelModule.sol";
 import {ERC20} from "solmate/tokens/ERC20.sol";
+import {ERC721} from "solmate/tokens/ERC721.sol";
 import {console} from "forge-std/console.sol";
 
 struct SelectorState {
@@ -80,6 +81,8 @@ library RumpelConfig {
     address public constant MAINNET_FLUID_VAULT_DEX_EBTC_CBBTC_WBTC = 0x43d1cA906c72f09D96291B4913D7255E241F428d; // EBTC-cbBTC/WBTC
     address public constant MAINNET_ETHERFI_LRT2_CLAIM = 0x6Db24Ee656843E3fE03eb8762a54D86186bA6B64;
     address public constant MAINNET_EULER_VAULT_CONNECTOR = 0x0C9a3dd6b8F28529d72d7f9cE918D493519EE383;
+    address public constant MAINNET_CONTANGO_POSITION_NFT = 0xC2462f03920D47fC5B9e2C5F0ba5D2ded058fD78;
+    address public constant MAINNET_CONTANGO_MAESTRO = 0x79B2374Bd437D031A4561fac55d62aD3E6516276;
 
     // Tokens
     address public constant MAINNET_RSUSDE = 0x82f5104b23FF2FA54C2345F821dAc9369e9E0B26;
@@ -365,6 +368,8 @@ library RumpelConfig {
             return getFluidLoopUSDeSmartVaultsConfigs();
         } else if (tagHash == keccak256(bytes("obol-claiming"))) {
             return getOBOLProtocolConfigs();
+        } else if (tagHash == keccak256(bytes("contango"))) {
+            return getContangoProtocolConfigs();
         }
 
         revert("Unsupported tag");
@@ -439,6 +444,8 @@ library RumpelConfig {
             return getFluidLoopUSDeSmartVaultsTokenConfigs();
         } else if (tagHash == keccak256(bytes("obol-claiming"))) {
             return getOBOLTokenConfigs();
+        } else if (tagHash == keccak256(bytes("contango"))) {
+            return new TokenGuardConfig[](0);
         }
 
         revert("Unsupported tag");
@@ -510,6 +517,8 @@ library RumpelConfig {
             return new TokenModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("obol-claiming"))) {
             return new TokenModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("contango"))) {
+            return new TokenModuleConfig[](0);
         }
 
         revert("Unsupported tag");
@@ -577,6 +586,8 @@ library RumpelConfig {
         } else if (tagHash == keccak256(bytes("fluid-loop-usde-smart-vaults"))) {
             return new ProtocolModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("obol-claiming"))) {
+            return new ProtocolModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("contango"))) {
             return new ProtocolModuleConfig[](0);
         }
 
@@ -2256,6 +2267,24 @@ library RumpelConfig {
 
         return configs;
     }
+
+    function getContangoProtocolConfigs() internal pure returns (ProtocolGuardConfig[] memory){
+        ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](2);
+
+        configs[0] = ProtocolGuardConfig({target: MAINNET_CONTANGO_POSITION_NFT, selectorStates: new SelectorState[](3)});
+        configs[0].selectorStates[0] =
+            SelectorState({selector: ERC721.transferFrom.selector, state: RumpelGuard.AllowListState.ON});
+        configs[0].selectorStates[1] =
+            SelectorState({selector: bytes4(keccak256("safeTransferFrom(address,address,uint256)")), state: RumpelGuard.AllowListState.ON});
+        configs[0].selectorStates[2] =
+            SelectorState({selector: bytes4(keccak256("safeTransferFrom(address,address,uint256,bytes)")), state: RumpelGuard.AllowListState.ON});
+
+        configs[1] = ProtocolGuardConfig({target: MAINNET_CONTANGO_MAESTRO, selectorStates: new SelectorState[](1)});
+        configs[1].selectorStates[0] =
+            SelectorState({selector: PayableMulticall.multicall.selector, state: RumpelGuard.AllowListState.ON});
+
+        return configs;
+    }
 }
 
 interface IMorphoBundler {
@@ -2490,4 +2519,8 @@ interface IEthereumVaultConnector {
 
 interface Safe {
     function swapOwner(address prevOwner, address oldOwner, address newOwner) external;
+}
+
+interface PayableMulticall {
+    function multicall(bytes[] calldata data) external payable returns (bytes[] memory results);
 }
