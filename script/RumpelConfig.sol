@@ -184,7 +184,7 @@ library RumpelConfig {
     // Mellow: Marlin POND LRT
     address public constant MAINNET_MELLOW_RSPOND = 0x4d12fA40e9608298be8F62Bd3627C152d8566B49;
     // Mellow: Re7 Resolv Restaked wstUSR
-    address public constant MAINNET_MELLPW_RSTUSR = 0x617895460004821C8DE800d4a644593cAb0aD40c;
+    address public constant MAINNET_MELLOW_RSTUSR = 0x617895460004821C8DE800d4a644593cAb0aD40c;
 
     address public constant MAINNET_POND = 0x57B946008913B82E4dF85f501cbAeD910e58D26C;
 
@@ -2310,7 +2310,7 @@ library RumpelConfig {
         TokenGuardConfig[] memory configs = new TokenGuardConfig[](3);
 
         configs[0] = TokenGuardConfig({
-            token: MAINNET_MELLPW_RSTUSR,
+            token: MAINNET_MELLOW_RSTUSR,
             transferAllowState: RumpelGuard.AllowListState.ON,
             approveAllowState: RumpelGuard.AllowListState.OFF
         });
@@ -2333,7 +2333,7 @@ library RumpelConfig {
     function getUserRequestBatchProtocolConfigs() internal pure returns (ProtocolGuardConfig[] memory) {
         ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](3);
 
-        configs[0] = getProtocolGuardConfigMellowSymbiotic(MAINNET_MELLPW_RSTUSR, false);
+        configs[0] = getProtocolGuardConfigMellowSymbiotic(MAINNET_MELLOW_RSTUSR, false);
 
         configs[1] = ProtocolGuardConfig({
             target: MAINNET_FLUID_VAULT_DEX_SUDE_USDT_DEX_USDC_USDT, // sUSDe-USDT/USDC-USDT
