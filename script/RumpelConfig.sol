@@ -2468,15 +2468,14 @@ interface IFluidVaultT3 {
 interface IFluidVaultT4 {
     function operate(
         uint256 nftId_,
-        int256 newCol1_,
-        int256 newCol2_,
+        int256 newColToken0_,
+        int256 newColToken1_,
         int256 colSharesMinMax_,
         int256 newDebtToken0_,
         int256 newDebtToken1_,
         int256 debtSharesMinMax_,
-        int256 newDebt_,
         address to_
-    ) external;
+    ) external payable;
 }
 
 interface IFluidVaultFactory {
