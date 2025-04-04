@@ -79,6 +79,9 @@ library RumpelConfig {
     address public constant MAINNET_FLUID_VAULT_SUSDE_DEX_USDC_USDT = 0xe210d8ded13Abe836a10E8Aa956dd424658d0034; // sUSDe/USDC-USDT
     address public constant MAINNET_FLUID_VAULT_DEX_USDE_USDT_USDT = 0x989a44CB4dBb7eBe20e0aBf3C1E1d727BF90F881; // USDe-USDT/USDT
     address public constant MAINNET_FLUID_VAULT_DEX_EBTC_CBBTC_WBTC = 0x43d1cA906c72f09D96291B4913D7255E241F428d; // EBTC-cbBTC/WBTC
+    address public constant MAINNET_FLUID_VAULT_DEX_SUDE_USDT_DEX_USDC_USDT = 0xB170B94BeFe21098966aa9905Da6a2F569463A21; // sUSDe-USDT/USDC-USDT
+    address public constant MAINNET_FLUID_VAULT_DEX_UDE_USDT_DEX_USDC_USDT = 0xaEac94D417BF8d8bb3A44507100Ab8c0D3b12cA1; // USDe-USDT/USDC-USDT
+
     address public constant MAINNET_ETHERFI_LRT2_CLAIM = 0x6Db24Ee656843E3fE03eb8762a54D86186bA6B64;
     address public constant MAINNET_EULER_VAULT_CONNECTOR = 0x0C9a3dd6b8F28529d72d7f9cE918D493519EE383;
     address public constant MAINNET_CONTANGO_POSITION_NFT = 0xC2462f03920D47fC5B9e2C5F0ba5D2ded058fD78;
@@ -137,6 +140,8 @@ library RumpelConfig {
     address public constant MAINNET_YT_SUSDE_27MAR2025 = 0x96512230bF0Fa4E20Cf02C3e8A7d983132cd2b9F;
     address public constant MAINNET_YT_SUSDE_29MAY2025 = 0x1de6Ff19FDA7496DdC12f2161f6ad6427c52aBBe;
     address public constant MAINNET_YT_WSTUSR_26MAR2025 = 0xe0e034AfF49755e80b15594ce3A16d74d1a09b2F;
+    address public constant MAINNET_YT_LVLUSD_28MAY2025 = 0x65901Ac9EFA7CdAf1Bdb4dbce4c53B151ae8d014;
+    address public constant MAINNET_YT_EBTC_25JUNE2025 = 0x6a162ea0F31dC63Cd154f4fcCDD43B612Df731e9;
 
     address public constant MAINNET_PENDLE_YT_USDE_27MAR2025 = 0x4A8036EFA1307F1cA82d932C0895faa18dB0c9eE;
 
@@ -178,6 +183,8 @@ library RumpelConfig {
     address public constant MAINNET_MELLOW_A41ETH = 0x1EC4C1f8CDd7cb2Da5903701bFbD64f03ed33244;
     // Mellow: Marlin POND LRT
     address public constant MAINNET_MELLOW_RSPOND = 0x4d12fA40e9608298be8F62Bd3627C152d8566B49;
+    // Mellow: Re7 Resolv Restaked wstUSR
+    address public constant MAINNET_MELLOW_RSTUSR = 0x617895460004821C8DE800d4a644593cAb0aD40c;
 
     address public constant MAINNET_POND = 0x57B946008913B82E4dF85f501cbAeD910e58D26C;
 
@@ -370,6 +377,8 @@ library RumpelConfig {
             return getOBOLProtocolConfigs();
         } else if (tagHash == keccak256(bytes("contango"))) {
             return getContangoProtocolConfigs();
+        } else if (tagHash == keccak256(bytes("user-request-batch"))) {
+            return getUserRequestBatchProtocolConfigs();
         }
 
         revert("Unsupported tag");
@@ -446,6 +455,8 @@ library RumpelConfig {
             return getOBOLTokenConfigs();
         } else if (tagHash == keccak256(bytes("contango"))) {
             return new TokenGuardConfig[](0);
+        } else if (tagHash == keccak256(bytes("user-request-batch"))) {
+            return getUserRequestBatchTokenConfigs();
         }
 
         revert("Unsupported tag");
@@ -519,6 +530,8 @@ library RumpelConfig {
             return new TokenModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("contango"))) {
             return new TokenModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("user-request-batch"))) {
+            return new TokenModuleConfig[](0);
         }
 
         revert("Unsupported tag");
@@ -588,6 +601,8 @@ library RumpelConfig {
         } else if (tagHash == keccak256(bytes("obol-claiming"))) {
             return new ProtocolModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("contango"))) {
+            return new ProtocolModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("user-request-batch"))) {
             return new ProtocolModuleConfig[](0);
         }
 
@@ -2268,20 +2283,71 @@ library RumpelConfig {
         return configs;
     }
 
-    function getContangoProtocolConfigs() internal pure returns (ProtocolGuardConfig[] memory){
+    function getContangoProtocolConfigs() internal pure returns (ProtocolGuardConfig[] memory) {
         ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](2);
 
-        configs[0] = ProtocolGuardConfig({target: MAINNET_CONTANGO_POSITION_NFT, selectorStates: new SelectorState[](3)});
+        configs[0] =
+            ProtocolGuardConfig({target: MAINNET_CONTANGO_POSITION_NFT, selectorStates: new SelectorState[](3)});
         configs[0].selectorStates[0] =
             SelectorState({selector: ERC721.transferFrom.selector, state: RumpelGuard.AllowListState.ON});
-        configs[0].selectorStates[1] =
-            SelectorState({selector: bytes4(keccak256("safeTransferFrom(address,address,uint256)")), state: RumpelGuard.AllowListState.ON});
-        configs[0].selectorStates[2] =
-            SelectorState({selector: bytes4(keccak256("safeTransferFrom(address,address,uint256,bytes)")), state: RumpelGuard.AllowListState.ON});
+        configs[0].selectorStates[1] = SelectorState({
+            selector: bytes4(keccak256("safeTransferFrom(address,address,uint256)")),
+            state: RumpelGuard.AllowListState.ON
+        });
+        configs[0].selectorStates[2] = SelectorState({
+            selector: bytes4(keccak256("safeTransferFrom(address,address,uint256,bytes)")),
+            state: RumpelGuard.AllowListState.ON
+        });
 
         configs[1] = ProtocolGuardConfig({target: MAINNET_CONTANGO_MAESTRO, selectorStates: new SelectorState[](1)});
         configs[1].selectorStates[0] =
             SelectorState({selector: PayableMulticall.multicall.selector, state: RumpelGuard.AllowListState.ON});
+
+        return configs;
+    }
+
+    function getUserRequestBatchTokenConfigs() internal pure returns (TokenGuardConfig[] memory) {
+        TokenGuardConfig[] memory configs = new TokenGuardConfig[](3);
+
+        configs[0] = TokenGuardConfig({
+            token: MAINNET_MELLOW_RSTUSR,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+
+        configs[1] = TokenGuardConfig({
+            token: MAINNET_YT_LVLUSD_28MAY2025,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+
+        configs[2] = TokenGuardConfig({
+            token: MAINNET_YT_EBTC_25JUNE2025,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+
+        return configs;
+    }
+
+    function getUserRequestBatchProtocolConfigs() internal pure returns (ProtocolGuardConfig[] memory) {
+        ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](3);
+
+        configs[0] = getProtocolGuardConfigMellowSymbiotic(MAINNET_MELLOW_RSTUSR, false);
+
+        configs[1] = ProtocolGuardConfig({
+            target: MAINNET_FLUID_VAULT_DEX_SUDE_USDT_DEX_USDC_USDT, // sUSDe-USDT/USDC-USDT
+            selectorStates: new SelectorState[](1)
+        });
+        configs[1].selectorStates[0] =
+            SelectorState({selector: IFluidVaultT4.operate.selector, state: RumpelGuard.AllowListState.ON});
+
+        configs[2] = ProtocolGuardConfig({
+            target: MAINNET_FLUID_VAULT_DEX_UDE_USDT_DEX_USDC_USDT, // USDe-USDT/USDC-USDT
+            selectorStates: new SelectorState[](1)
+        });
+        configs[2].selectorStates[0] =
+            SelectorState({selector: IFluidVaultT4.operate.selector, state: RumpelGuard.AllowListState.ON});
 
         return configs;
     }
@@ -2397,6 +2463,19 @@ interface IFluidVaultT3 {
         int256 debtSharesMinMax_,
         address to_
     ) external;
+}
+
+interface IFluidVaultT4 {
+    function operate(
+        uint256 nftId_,
+        int256 newColToken0_,
+        int256 newColToken1_,
+        int256 colSharesMinMax_,
+        int256 newDebtToken0_,
+        int256 newDebtToken1_,
+        int256 debtSharesMinMax_,
+        address to_
+    ) external payable;
 }
 
 interface IFluidVaultFactory {
