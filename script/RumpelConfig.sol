@@ -203,6 +203,10 @@ library RumpelConfig {
     address public constant MAINNET_OBOL = 0x0B010000b7624eb9B3DfBC279673C76E9D29D5F7;
     address public constant MAINNET_OBOL_LOCKUPS = 0x3b9122704A20946E9Cb49b2a8616CCC0f0d61AdB;
 
+    // Kernel
+    address public constant MAINNET_KERNEL_MERKLE_DISTRIBUTOR = 0x68B55c20A2634B25a50a219b632F22854D810bf5;
+    address public constant MAINNET_KERNEL = 0x3f80B1c54Ae920Be41a77f8B902259D48cf24cCf;
+
     function updateGuardAllowlist(RumpelGuard rumpelGuard, string memory tag) internal {
         setupGuardProtocols(rumpelGuard, tag);
         setupGuardTokens(rumpelGuard, tag);
@@ -379,6 +383,8 @@ library RumpelConfig {
             return getContangoProtocolConfigs();
         } else if (tagHash == keccak256(bytes("user-request-batch"))) {
             return getUserRequestBatchProtocolConfigs();
+        } else if (tagHash == keccak256(bytes("kernel"))) {
+            return getKernelProtocolConfigs();
         }
 
         revert("Unsupported tag");
@@ -457,6 +463,8 @@ library RumpelConfig {
             return new TokenGuardConfig[](0);
         } else if (tagHash == keccak256(bytes("user-request-batch"))) {
             return getUserRequestBatchTokenConfigs();
+        } else if (tagHash == keccak256(bytes("kernel"))) {
+            return getKernelTokenConfigs();
         }
 
         revert("Unsupported tag");
@@ -532,6 +540,8 @@ library RumpelConfig {
             return new TokenModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("user-request-batch"))) {
             return new TokenModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("kernel"))) {
+            return new TokenModuleConfig[](0);
         }
 
         revert("Unsupported tag");
@@ -603,6 +613,8 @@ library RumpelConfig {
         } else if (tagHash == keccak256(bytes("contango"))) {
             return new ProtocolModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("user-request-batch"))) {
+            return new ProtocolModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("kernel"))) {
             return new ProtocolModuleConfig[](0);
         }
 
@@ -2351,6 +2363,39 @@ library RumpelConfig {
 
         return configs;
     }
+
+    function getKernelProtocolConfigs() internal pure returns (ProtocolGuardConfig[] memory) {
+        ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](1);
+
+        configs[0] =
+            ProtocolGuardConfig({target: MAINNET_KERNEL_MERKLE_DISTRIBUTOR, selectorStates: new SelectorState[](2)});
+        configs[0].selectorStates[0] =
+            SelectorState({selector: IKernelMerkleDistributor.claim.selector, state: RumpelGuard.AllowListState.ON});
+        configs[0].selectorStates[1] = SelectorState({
+            selector: IKernelMerkleDistributor.claimAndStake.selector,
+            state: RumpelGuard.AllowListState.ON
+        });
+
+        return configs;
+    }
+
+    function getKernelTokenConfigs() internal pure returns (TokenGuardConfig[] memory) {
+        TokenGuardConfig[] memory configs = new TokenGuardConfig[](1);
+
+        configs[0] = TokenGuardConfig({
+            token: MAINNET_KERNEL,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.ON
+        });
+
+        return configs;
+    }
+}
+
+interface IKernelMerkleDistributor {
+    function claim(uint256 index, address account, uint256 cumulativeAmount, bytes32[] calldata merkleProof) external;
+    function claimAndStake(uint256 index, address account, uint256 cumulativeAmount, bytes32[] calldata merkleProof)
+        external;
 }
 
 interface IMorphoBundler {
