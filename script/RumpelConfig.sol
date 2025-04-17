@@ -105,6 +105,7 @@ library RumpelConfig {
     address public constant MAINNET_METH = 0xd5F7838F5C461fefF7FE49ea5ebaF7728bB0ADfa;
     address public constant MAINNET_RETH = 0xae78736Cd615f374D3085123A210448E74Fc6393;
     address public constant MAINNET_CBETH = 0xBe9895146f7AF43049ca1c1AE358B0541Ea49704;
+    address public constant MAINNET_USDC = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48;
 
     address public constant MAINNET_WBETH = 0xa2E3356610840701BDf5611a53974510Ae27E2e1;
     address public constant MAINNET_SWETH = 0xf951E335afb289353dc249e82926178EaC7DEd78;
@@ -385,6 +386,10 @@ library RumpelConfig {
             return getUserRequestBatchProtocolConfigs();
         } else if (tagHash == keccak256(bytes("kernel"))) {
             return getKernelProtocolConfigs();
+        } else if (tagHash == keccak256(bytes("kernel"))) {
+            return getKernelProtocolConfigs();
+        } else if (tagHash == keccak256(bytes("usdc"))) {
+            return new ProtocolGuardConfig[](0);
         }
 
         revert("Unsupported tag");
@@ -465,6 +470,10 @@ library RumpelConfig {
             return getUserRequestBatchTokenConfigs();
         } else if (tagHash == keccak256(bytes("kernel"))) {
             return getKernelTokenConfigs();
+        } else if (tagHash == keccak256(bytes("kernel"))) {
+            return getKernelTokenConfigs();
+        } else if (tagHash == keccak256(bytes("usdc"))) {
+            return getUSDCTokenConfigs();
         }
 
         revert("Unsupported tag");
@@ -542,6 +551,10 @@ library RumpelConfig {
             return new TokenModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("kernel"))) {
             return new TokenModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("kernel"))) {
+            return new TokenModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("usdc"))) {
+            return new TokenModuleConfig[](0);
         }
 
         revert("Unsupported tag");
@@ -615,6 +628,10 @@ library RumpelConfig {
         } else if (tagHash == keccak256(bytes("user-request-batch"))) {
             return new ProtocolModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("kernel"))) {
+            return new ProtocolModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("kernel"))) {
+            return new ProtocolModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("usdc"))) {
             return new ProtocolModuleConfig[](0);
         }
 
@@ -2384,6 +2401,18 @@ library RumpelConfig {
 
         configs[0] = TokenGuardConfig({
             token: MAINNET_KERNEL,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.ON
+        });
+
+        return configs;
+    }
+
+    function getUSDCTokenConfigs() internal pure returns (TokenGuardConfig[] memory) {
+        TokenGuardConfig[] memory configs = new TokenGuardConfig[](1);
+
+        configs[0] = TokenGuardConfig({
+            token: MAINNET_USDC,
             transferAllowState: RumpelGuard.AllowListState.ON,
             approveAllowState: RumpelGuard.AllowListState.ON
         });
