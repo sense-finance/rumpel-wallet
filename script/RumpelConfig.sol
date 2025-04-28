@@ -152,7 +152,7 @@ library RumpelConfig {
     address public constant MAINNET_YT_WEETHS_25JUNE2025 = 0xaaC7DB6C2bC926aDE954D69A2d705f059043EA02;
     address public constant MAINNET_YT_EETH_25JUNE2025 = 0x08AEfe9dFe7818CaaedD94E38e910d2155b7d2b0;
     address public constant MAINNET_YT_WEETHK_25JUNE2025 = 0x03722CE19e9F5828969D39474a8EfC35c4eA3987;
-    address public constant MAINNET_YT_AGETH_25JUNE2025 = 0xA15a58BCcdDf80A7e9474Cd1abF0c3ad5E823561;
+    address public constant MAINNET_YT_AGETH_25JUNE2025 = 0x0310A860CF7Efe8F54Ab9B4dE49Cd071C37fCBCB;
 
     address public constant MAINNET_PENDLE_YT_USDE_27MAR2025 = 0x4A8036EFA1307F1cA82d932C0895faa18dB0c9eE;
 
@@ -208,6 +208,10 @@ library RumpelConfig {
     address public constant MAINNET_SY_SUSDE_29MAY2025 = 0xE877B2A8a53763C8B0534a15e87da28f3aC1257e;
     address public constant MAINNET_SY_WSTUSR_26MAR2025 = 0x6c78661c00D797C9c7fCBE4BCacbD9612A61C07f;
     address public constant MAINNET_SY_SUSDE_30JUL2025 = 0xF541AA4d6f29ec2423A0D306dBc677021A02DBC0;
+    address public constant MAINNET_SY_WEETHS_25JUNE2025 = 0x012BADcC6e824c2eA32bd5367eBda3be3402c9c5;
+    address public constant MAINNET_SY_EETH_25JUNE2025 = 0xAC0047886a985071476a1186bE89222659970d65;
+    address public constant MAINNET_SY_WEETHK_25JUNE2025 = 0xffC374D301F2EA381EE313Da0324ea7bf0dbFddF;
+    address public constant MAINNET_SY_AGETH_25JUN2025 = 0xb1B9150f2085f6a553b547099977181CA802752A;
 
     // Additional Reward Assets
     address public constant MAINNET_LRT2 = 0x8F08B70456eb22f6109F57b8fafE862ED28E6040;
@@ -2440,7 +2444,7 @@ library RumpelConfig {
     }
 
     function getApril25YTBatchTokenConfigs() internal pure returns (TokenGuardConfig[] memory) {
-        TokenGuardConfig[] memory configs = new TokenGuardConfig[](10);
+        TokenGuardConfig[] memory configs = new TokenGuardConfig[](15);
 
         configs[0] = TokenGuardConfig({
             token: MAINNET_YT_SUSDE_30JUL2025,
@@ -2493,14 +2497,57 @@ library RumpelConfig {
             approveAllowState: RumpelGuard.AllowListState.OFF
         });
 
+        // SY Tokens
+        configs[10] = TokenGuardConfig({
+            token: MAINNET_SY_SUSDE_30JUL2025,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.ON
+        });
+        configs[11] = TokenGuardConfig({
+            token: MAINNET_SY_WEETHS_25JUNE2025,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.ON
+        });
+        configs[12] = TokenGuardConfig({
+            token: MAINNET_SY_EETH_25JUNE2025,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.ON
+        });
+        configs[13] = TokenGuardConfig({
+            token: MAINNET_SY_WEETHK_25JUNE2025,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.ON
+        });
+        configs[14] = TokenGuardConfig({
+            token: MAINNET_SY_AGETH_25JUN2025,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.ON
+        });
+
         return configs;
     }
 
     function getApril25YTBatchProtocolGuardConfigs() internal pure returns (ProtocolGuardConfig[] memory) {
-        ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](1);
+        ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](5);
 
         configs[0] = ProtocolGuardConfig({target: MAINNET_SY_SUSDE_30JUL2025, selectorStates: new SelectorState[](1)});
         configs[0].selectorStates[0] =
+            SelectorState({selector: IStandardizedYield.redeem.selector, state: RumpelGuard.AllowListState.ON});
+
+        configs[1] = ProtocolGuardConfig({target: MAINNET_SY_WEETHS_25JUNE2025, selectorStates: new SelectorState[](1)});
+        configs[1].selectorStates[0] =
+            SelectorState({selector: IStandardizedYield.redeem.selector, state: RumpelGuard.AllowListState.ON});
+
+        configs[2] = ProtocolGuardConfig({target: MAINNET_SY_EETH_25JUNE2025, selectorStates: new SelectorState[](1)});
+        configs[2].selectorStates[0] =
+            SelectorState({selector: IStandardizedYield.redeem.selector, state: RumpelGuard.AllowListState.ON});
+
+        configs[3] = ProtocolGuardConfig({target: MAINNET_SY_WEETHK_25JUNE2025, selectorStates: new SelectorState[](1)});
+        configs[3].selectorStates[0] =
+            SelectorState({selector: IStandardizedYield.redeem.selector, state: RumpelGuard.AllowListState.ON});
+
+        configs[4] = ProtocolGuardConfig({target: MAINNET_SY_AGETH_25JUN2025, selectorStates: new SelectorState[](1)});
+        configs[4].selectorStates[0] =
             SelectorState({selector: IStandardizedYield.redeem.selector, state: RumpelGuard.AllowListState.ON});
 
         return configs;
