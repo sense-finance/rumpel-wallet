@@ -143,6 +143,19 @@ library RumpelConfig {
     address public constant MAINNET_YT_WSTUSR_26MAR2025 = 0xe0e034AfF49755e80b15594ce3A16d74d1a09b2F;
     address public constant MAINNET_YT_LVLUSD_28MAY2025 = 0x65901Ac9EFA7CdAf1Bdb4dbce4c53B151ae8d014;
     address public constant MAINNET_YT_EBTC_25JUNE2025 = 0x6a162ea0F31dC63Cd154f4fcCDD43B612Df731e9;
+    // address public constant MAINNET_YT_SUSDE_28MAY2025 = 0x1de6Ff19FDA7496DdC12f2161f6ad6427c52aBBe;
+    address public constant MAINNET_YT_SUSDE_30JUL2025 = 0xb7E51D15161C49C823f3951D579DEd61cD27272B;
+    address public constant MAINNET_YT_EUSDE_28MAY2025 = 0x708dD9B344dDc7842f44C7b90492CF0e1E3eb868;
+    address public constant MAINNET_YT_USDE_30JUL2025 = 0x733Ee9Ba88f16023146EbC965b7A1Da18a322464;
+    // address public constant MAINNET_YT_SENA_24SEP2025 = 0x9DB057e02582D1ceaeC287BE9861fbE25cecC765;
+    address public constant MAINNET_YT_LVLUSD_24SEP2025 = 0x946934554a2Bf59039661f971986F0223E906264;
+    address public constant MAINNET_YT_USR_28MAY2025 = 0x77DE4Be22Ecc633416D79371eF8e861Fb1d2cC39;
+    address public constant MAINNET_YT_WSTUSR_24SEP2025 = 0x1E24B022329f3CA0083b12FAF75d19639FAebF6f;
+    address public constant MAINNET_YT_WEETHS_25JUNE2025 = 0xaaC7DB6C2bC926aDE954D69A2d705f059043EA02;
+    address public constant MAINNET_YT_EETH_25JUNE2025 = 0x08AEfe9dFe7818CaaedD94E38e910d2155b7d2b0;
+    address public constant MAINNET_YT_WEETHK_25JUNE2025 = 0x03722CE19e9F5828969D39474a8EfC35c4eA3987;
+    // address public constant MAINNET_YT_EBTC_25JUNE2025 = 0x6a162ea0F31dC63Cd154f4fcCDD43B612Df731e9;
+    address public constant MAINNET_YT_AGETH_25JUNE2025 = 0xA15a58BCcdDf80A7e9474Cd1abF0c3ad5E823561;
 
     address public constant MAINNET_PENDLE_YT_USDE_27MAR2025 = 0x4A8036EFA1307F1cA82d932C0895faa18dB0c9eE;
 
@@ -197,6 +210,9 @@ library RumpelConfig {
     address public constant MAINNET_SY_SUSDE_27MAR2025 = 0x3Ee118EFC826d30A29645eAf3b2EaaC9E8320185;
     address public constant MAINNET_SY_SUSDE_29MAY2025 = 0xE877B2A8a53763C8B0534a15e87da28f3aC1257e;
     address public constant MAINNET_SY_WSTUSR_26MAR2025 = 0x6c78661c00D797C9c7fCBE4BCacbD9612A61C07f;
+    address public constant MAINNET_SY_SUSDE_30JUL2025 = 0xF541AA4d6f29ec2423A0D306dBc677021A02DBC0;
+    // address public constant MAINNET_SY_SENA_24SEP2025 = ;
+    // address public constant MAINNET_SY_WSTUSR_24SEP2025 = 0x6c78661c00D797C9c7fCBE4BCacbD9612A61C07f;
 
     // Additional Reward Assets
     address public constant MAINNET_LRT2 = 0x8F08B70456eb22f6109F57b8fafE862ED28E6040;
@@ -390,6 +406,8 @@ library RumpelConfig {
             return getKernelProtocolConfigs();
         } else if (tagHash == keccak256(bytes("usdc"))) {
             return new ProtocolGuardConfig[](0);
+        } else if (tagHash == keccak256(bytes("april-25-yt-batch"))) {
+            return getApril25YTBatchProtocolGuardConfigs();
         }
 
         revert("Unsupported tag");
@@ -474,6 +492,8 @@ library RumpelConfig {
             return getKernelTokenConfigs();
         } else if (tagHash == keccak256(bytes("usdc"))) {
             return getUSDCTokenConfigs();
+        } else if (tagHash == keccak256(bytes("april-25-yt-batch"))) {
+            return getApril25YTBatchTokenConfigs();
         }
 
         revert("Unsupported tag");
@@ -555,6 +575,8 @@ library RumpelConfig {
             return new TokenModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("usdc"))) {
             return new TokenModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("april-25-yt-batch"))) {
+            return new TokenModuleConfig[](0);
         }
 
         revert("Unsupported tag");
@@ -632,6 +654,8 @@ library RumpelConfig {
         } else if (tagHash == keccak256(bytes("kernel"))) {
             return new ProtocolModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("usdc"))) {
+            return new ProtocolModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("april-25-yt-batch"))) {
             return new ProtocolModuleConfig[](0);
         }
 
@@ -2416,6 +2440,73 @@ library RumpelConfig {
             transferAllowState: RumpelGuard.AllowListState.ON,
             approveAllowState: RumpelGuard.AllowListState.ON
         });
+
+        return configs;
+    }
+
+    function getApril25YTBatchTokenConfigs() internal pure returns (TokenGuardConfig[] memory) {
+        TokenGuardConfig[] memory configs = new TokenGuardConfig[](10);
+
+        configs[0] = TokenGuardConfig({
+            token: MAINNET_YT_SUSDE_30JUL2025,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+        configs[1] = TokenGuardConfig({
+            token: MAINNET_YT_EUSDE_28MAY2025,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+        configs[2] = TokenGuardConfig({
+            token: MAINNET_YT_USDE_30JUL2025,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+        configs[3] = TokenGuardConfig({
+            token: MAINNET_YT_LVLUSD_24SEP2025,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+        configs[4] = TokenGuardConfig({
+            token: MAINNET_YT_USR_28MAY2025,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+        configs[5] = TokenGuardConfig({
+            token: MAINNET_YT_WSTUSR_24SEP2025,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+        configs[6] = TokenGuardConfig({
+            token: MAINNET_YT_WEETHS_25JUNE2025,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+        configs[7] = TokenGuardConfig({
+            token: MAINNET_YT_EETH_25JUNE2025,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+        configs[8] = TokenGuardConfig({
+            token: MAINNET_YT_WEETHK_25JUNE2025,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+        configs[9] = TokenGuardConfig({
+            token: MAINNET_YT_AGETH_25JUNE2025,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+
+        return configs;
+    }
+
+    function getApril25YTBatchProtocolGuardConfigs() internal pure returns (ProtocolGuardConfig[] memory) {
+        ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](1);
+
+        configs[0] = ProtocolGuardConfig({target: MAINNET_SY_SUSDE_30JUL2025, selectorStates: new SelectorState[](1)});
+        configs[0].selectorStates[0] =
+            SelectorState({selector: IStandardizedYield.redeem.selector, state: RumpelGuard.AllowListState.ON});
 
         return configs;
     }
