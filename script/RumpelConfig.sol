@@ -223,6 +223,10 @@ library RumpelConfig {
     address public constant MAINNET_KERNEL_MERKLE_DISTRIBUTOR = 0x68B55c20A2634B25a50a219b632F22854D810bf5;
     address public constant MAINNET_KERNEL = 0x3f80B1c54Ae920Be41a77f8B902259D48cf24cCf;
 
+    // Merkl Claiming
+    address public constant MAINNET_MERKL_DISTRIBUTOR = 0x3Ef3D8bA38EBe18DB133cEc108f4D14CE00Dd9Ae;
+    address public constant MAINNET_REUL = 0xf3e621395fc714B90dA337AA9108771597b4E696;
+
     function updateGuardAllowlist(RumpelGuard rumpelGuard, string memory tag) internal {
         setupGuardProtocols(rumpelGuard, tag);
         setupGuardTokens(rumpelGuard, tag);
@@ -407,6 +411,10 @@ library RumpelConfig {
             return new ProtocolGuardConfig[](0);
         } else if (tagHash == keccak256(bytes("april-25-yt-batch"))) {
             return getApril25YTBatchProtocolGuardConfigs();
+        } else if (tagHash == keccak256(bytes("merkl-claim-reul-on"))) {
+            return getMerklClaimREULOnProtocolGuardConfigs();
+        } else if (tagHash == keccak256(bytes("merkl-claim-reul-off"))) {
+            return getMerklClaimREULOffProtocolGuardConfigs();
         }
 
         revert("Unsupported tag");
@@ -493,6 +501,10 @@ library RumpelConfig {
             return getUSDCTokenConfigs();
         } else if (tagHash == keccak256(bytes("april-25-yt-batch"))) {
             return getApril25YTBatchTokenConfigs();
+        } else if (tagHash == keccak256(bytes("merkl-claim-reul-on"))) {
+            return getMerklClaimREULOnTokenConfigs();
+        } else if (tagHash == keccak256(bytes("merkl-claim-reul-off"))) {
+            return getMerklClaimREULOffTokenConfigs();
         }
 
         revert("Unsupported tag");
@@ -576,6 +588,10 @@ library RumpelConfig {
             return new TokenModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("april-25-yt-batch"))) {
             return new TokenModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("merkl-claim-reul-on"))) {
+            return new TokenModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("merkl-claim-reul-off"))) {
+            return new TokenModuleConfig[](0);
         }
 
         revert("Unsupported tag");
@@ -655,6 +671,10 @@ library RumpelConfig {
         } else if (tagHash == keccak256(bytes("usdc"))) {
             return new ProtocolModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("april-25-yt-batch"))) {
+            return new ProtocolModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("merkl-claim-reul-on"))) {
+            return new ProtocolModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("merkl-claim-reul-off"))) {
             return new ProtocolModuleConfig[](0);
         }
 
@@ -2552,6 +2572,50 @@ library RumpelConfig {
 
         return configs;
     }
+
+    function getMerklClaimREULOnProtocolGuardConfigs() internal pure returns (ProtocolGuardConfig[] memory) {
+        ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](1);
+
+        configs[0] = ProtocolGuardConfig({target: MAINNET_MERKL_DISTRIBUTOR, selectorStates: new SelectorState[](1)});
+        configs[0].selectorStates[0] =
+            SelectorState({selector: MerklDistributor.claim.selector, state: RumpelGuard.AllowListState.ON});
+
+        return configs;
+    }
+
+    function getMerklClaimREULOnTokenConfigs() internal pure returns (TokenGuardConfig[] memory) {
+        TokenGuardConfig[] memory configs = new TokenGuardConfig[](1);
+
+        configs[0] = TokenGuardConfig({
+            token: MAINNET_REUL,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+
+        return configs;
+    }
+
+    function getMerklClaimREULOffProtocolGuardConfigs() internal pure returns (ProtocolGuardConfig[] memory) {
+        ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](1);
+
+        configs[0] = ProtocolGuardConfig({target: MAINNET_MERKL_DISTRIBUTOR, selectorStates: new SelectorState[](1)});
+        configs[0].selectorStates[0] =
+            SelectorState({selector: MerklDistributor.claim.selector, state: RumpelGuard.AllowListState.OFF});
+
+        return configs;
+    }
+
+    function getMerklClaimREULOffTokenConfigs() internal pure returns (TokenGuardConfig[] memory) {
+        TokenGuardConfig[] memory configs = new TokenGuardConfig[](1);
+
+        configs[0] = TokenGuardConfig({
+            token: MAINNET_REUL,
+            transferAllowState: RumpelGuard.AllowListState.OFF,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+
+        return configs;
+    }
 }
 
 interface IKernelMerkleDistributor {
@@ -2809,4 +2873,13 @@ interface Safe {
 
 interface PayableMulticall {
     function multicall(bytes[] calldata data) external payable returns (bytes[] memory results);
+}
+
+interface MerklDistributor {
+    function claim(
+        address[] calldata users,
+        address[] calldata tokens,
+        uint256[] calldata amounts,
+        bytes32[][] calldata proofs
+    ) external;
 }
