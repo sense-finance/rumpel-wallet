@@ -128,6 +128,9 @@ library RumpelConfig {
     address public constant MAINNET_STUSR = 0x6c8984bc7DBBeDAf4F6b2FD766f16eBB7d10AAb4;
     address public constant MAINNET_WSTUSR = 0x1202F5C7b4B9E47a1A484E8B270be34dbbC75055;
 
+    address public constant MAINNET_PENDLE = 0x808507121B80c02388fAd14726482e061B8da827;
+    address public constant MAINNET_VEPENDLE = 0x4f30A9D41B80ecC5B94306AB4364951AE3170210;
+
     address public constant MAINNET_YTEBTC_26DEC2024 = 0xeB993B610b68F2631f70CA1cf4Fe651dB81f368e;
     address public constant MAINNET_YT_WEETHK_26DEC2024 = 0x7B64b99A1fd80b6c012E354a14ADb352b5916CE1;
     address public constant MAINNET_YT_AGETH_26DEC2024 = 0x3568f1d2e8058F6D99Daa17051Cb4a2930C83978;
@@ -155,8 +158,18 @@ library RumpelConfig {
     address public constant MAINNET_YT_EETH_25JUNE2025 = 0x08AEfe9dFe7818CaaedD94E38e910d2155b7d2b0;
     address public constant MAINNET_YT_WEETHK_25JUNE2025 = 0x03722CE19e9F5828969D39474a8EfC35c4eA3987;
     address public constant MAINNET_YT_AGETH_25JUNE2025 = 0x0310A860CF7Efe8F54Ab9B4dE49Cd071C37fCBCB;
-
     address public constant MAINNET_PENDLE_YT_USDE_27MAR2025 = 0x4A8036EFA1307F1cA82d932C0895faa18dB0c9eE;
+
+    // Pendle LPs
+    address public constant MAINNET_PENDLE_LP_WSTUSR_24SEP2025 = 0x09fA04Aac9c6d1c6131352EE950CD67ecC6d4fB9;
+    address public constant MAINNET_PENDLE_LP_USDE_30JUL2025 = 0x9Df192D13D61609D1852461c4850595e1F56E714;
+    address public constant MAINNET_PENDLE_LP_SUSDE_30JUL2025 = 0x4339Ffe2B7592Dc783ed13cCE310531aB366dEac;
+    address public constant MAINNET_PENDLE_LP_WEETHS_25JUNE2025 = 0xcbA3B226cA62e666042Cb4a1e6E4681053885F75;
+    address public constant MAINNET_PENDLE_LP_WEETHK_25JUNE2025 = 0x9E612FF1902c5fEEa4fd69eB236375d5299e0FfC;
+    address public constant MAINNET_PENDLE_LP_EETH_25JUNE2025 = 0xF4Cf59259D007a96C641B41621aB52C93b9691B1;
+    address public constant MAINNET_PENDLE_LP_EBTC_25JUNE2025 = 0x523f9441853467477b4dDE653c554942f8E17162;
+    address public constant MAINNET_PENDLE_LP_AGETH_25JUNE2025 = 0xBe8549a20257917a0a9EF8911DAF18190A8842a4;
+    address public constant MAINNET_PENDLE_LP_LVLUSD_24SEP2025 = 0x461bc2ac3f80801BC11B0F20d63B73feF60C8076;
 
     address public constant MAINNET_AMPHRETH = 0x5fD13359Ba15A84B76f7F87568309040176167cd;
     address public constant MAINNET_SYMBIOTIC_LBTC = 0x9C0823D3A1172F9DdF672d438dec79c39a64f448;
@@ -419,6 +432,8 @@ library RumpelConfig {
             return getMerklClaimREULOffProtocolGuardConfigs();
         } else if (tagHash == keccak256(bytes("fluid-merkle-claim"))) {
             return getFluidMerkleClaimProtocol();
+        } else if (tagHash == keccak256(bytes("may-25-pendle-lp-batch"))) {
+            return getPendleLPMay25ProtocolGuardConfigs();
         }
 
         revert("Unsupported tag");
@@ -511,6 +526,8 @@ library RumpelConfig {
             return getMerklClaimREULOffTokenConfigs();
         } else if (tagHash == keccak256(bytes("fluid-merkle-claim"))) {
             return getFluidMerkleClaimToken();
+        } else if (tagHash == keccak256(bytes("may-25-pendle-lp-batch"))) {
+            return getPendleLPMay25TokenConfigs();
         }
 
         revert("Unsupported tag");
@@ -600,6 +617,8 @@ library RumpelConfig {
             return new TokenModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("fluid-merkle-claim"))) {
             return new TokenModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("may-25-pendle-lp-batch"))) {
+            return new TokenModuleConfig[](0);
         }
 
         revert("Unsupported tag");
@@ -685,6 +704,8 @@ library RumpelConfig {
         } else if (tagHash == keccak256(bytes("merkl-claim-reul-off"))) {
             return new ProtocolModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("fluid-merkle-claim"))) {
+            return new ProtocolModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("may-25-pendle-lp-batch"))) {
             return new ProtocolModuleConfig[](0);
         }
 
@@ -2639,6 +2660,38 @@ library RumpelConfig {
 
         return configs;
     }
+    
+    function getPendleLPMay25ProtocolGuardConfigs() internal pure returns (ProtocolGuardConfig[] memory) {
+        ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](2);
+
+        configs[0] = ProtocolGuardConfig({target: MAINNET_PENDLE_ROUTERV4, selectorStates: new SelectorState[](5)});
+        configs[0].selectorStates[0] = SelectorState({
+            selector: IPendleRouterV4.addLiquiditySingleToken.selector,
+            state: RumpelGuard.AllowListState.ON
+        });
+        configs[0].selectorStates[1] = SelectorState({
+            selector: IPendleRouterV4.addLiquiditySingleTokenKeepYt.selector,
+            state: RumpelGuard.AllowListState.ON
+        });
+        configs[0].selectorStates[2] = SelectorState({
+            selector: IPendleRouterV4.removeLiquiditySingleToken.selector,
+            state: RumpelGuard.AllowListState.ON
+        });
+        configs[0].selectorStates[3] =
+            SelectorState({selector: IPendleRouterV4.multicall.selector, state: RumpelGuard.AllowListState.ON});
+        configs[0].selectorStates[4] =
+            SelectorState({selector: IPendleRouterV4.callAndReflect.selector, state: RumpelGuard.AllowListState.ON});
+
+        configs[1] = ProtocolGuardConfig({target: MAINNET_VEPENDLE, selectorStates: new SelectorState[](2)});
+        configs[1].selectorStates[0] = SelectorState({
+            selector: IPVotingEscrowMainchain.increaseLockPosition.selector,
+            state: RumpelGuard.AllowListState.ON
+        });
+        configs[1].selectorStates[1] =
+            SelectorState({selector: IPVotingEscrowMainchain.withdraw.selector, state: RumpelGuard.AllowListState.ON});
+
+        return configs;
+    }
 
     function getFluidMerkleClaimToken() internal pure returns (TokenGuardConfig[] memory) {
         TokenGuardConfig[] memory configs = new TokenGuardConfig[](1);
@@ -2647,6 +2700,65 @@ library RumpelConfig {
             token: MAINNET_FLUID_TOKEN,
             transferAllowState: RumpelGuard.AllowListState.ON,
             approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+
+        return configs;
+    }
+              
+    function getPendleLPMay25TokenConfigs() internal pure returns (TokenGuardConfig[] memory) {
+        TokenGuardConfig[] memory configs = new TokenGuardConfig[](10);
+
+        configs[0] = TokenGuardConfig({
+            token: MAINNET_PENDLE_LP_WSTUSR_24SEP2025,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.ON
+        });
+        configs[1] = TokenGuardConfig({
+            token: MAINNET_PENDLE_LP_USDE_30JUL2025,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.ON
+        });
+        configs[2] = TokenGuardConfig({
+            token: MAINNET_PENDLE_LP_SUSDE_30JUL2025,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.ON
+        });
+        configs[3] = TokenGuardConfig({
+            token: MAINNET_PENDLE_LP_WEETHS_25JUNE2025,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.ON
+        });
+        configs[4] = TokenGuardConfig({
+            token: MAINNET_PENDLE_LP_WEETHK_25JUNE2025,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.ON
+        });
+        configs[5] = TokenGuardConfig({
+            token: MAINNET_PENDLE_LP_EETH_25JUNE2025,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.ON
+        });
+        configs[6] = TokenGuardConfig({
+            token: MAINNET_PENDLE_LP_EBTC_25JUNE2025,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.ON
+        });
+        configs[7] = TokenGuardConfig({
+            token: MAINNET_PENDLE_LP_AGETH_25JUNE2025,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.ON
+        });
+        configs[8] = TokenGuardConfig({
+            token: MAINNET_PENDLE_LP_LVLUSD_24SEP2025,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.ON
+        });
+
+        // enable pendel transfers & approvals for vePendel locking for LP boosts
+        configs[9] = TokenGuardConfig({
+            token: MAINNET_PENDLE,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.ON
         });
 
         return configs;
@@ -2840,6 +2952,8 @@ interface IObolLockups {
 }
 
 // @dev actually a function in ActionMiscV3 called through the RouterProxy
+// @dev contract uses a diamond proxy pattern, so functions are found across many contracts but
+// are combined into one here for simplicity
 contract IPendleRouterV4 {
     struct RedeemYtIncomeToTokenStruct {
         IPYieldToken yt;
@@ -2854,13 +2968,6 @@ contract IPendleRouterV4 {
         address extRouter;
         bytes extCalldata;
         bool needScale;
-    }
-
-    struct SwapDataExtra {
-        address tokenIn;
-        address tokenOut;
-        uint256 minOut;
-        SwapData swapData;
     }
 
     enum SwapType {
@@ -2886,6 +2993,133 @@ contract IPendleRouterV4 {
         IPSwapAggregator pendleSwap,
         SwapDataExtra[] calldata swaps
     ) external returns (uint256[] memory netOutFromSwaps, uint256[] memory netInterests) {}
+
+    // live in IPLimitRouter
+    enum OrderType {
+        SY_FOR_PT,
+        PT_FOR_SY,
+        SY_FOR_YT,
+        YT_FOR_SY
+    }
+
+    struct Order {
+        uint256 salt;
+        uint256 expiry;
+        uint256 nonce;
+        OrderType orderType;
+        address token;
+        address YT;
+        address maker;
+        address receiver;
+        uint256 makingAmount;
+        uint256 lnImpliedRate;
+        uint256 failSafeRate;
+        bytes permit;
+    }
+
+    struct FillOrderParams {
+        Order order;
+        bytes signature;
+        uint256 makingAmount;
+    }
+
+    // live in IPAllActionTypeV3
+    struct TokenInput {
+        address tokenIn;
+        uint256 netTokenIn;
+        address tokenMintSy;
+        address pendleSwap;
+        SwapData swapData;
+    }
+
+    struct TokenOutput {
+        address tokenOut;
+        uint256 minTokenOut;
+        address tokenRedeemSy;
+        address pendleSwap;
+        SwapData swapData;
+    }
+
+    struct LimitOrderData {
+        address limitRouter;
+        uint256 epsSkipMarket;
+        FillOrderParams[] normalFills;
+        FillOrderParams[] flashFills;
+        bytes optData;
+    }
+
+    struct ApproxParams {
+        uint256 guessMin;
+        uint256 guessMax;
+        uint256 guessOffchain;
+        uint256 maxIteration;
+        uint256 eps;
+    }
+
+    struct ExitPreExpReturnParams {
+        uint256 netPtFromRemove;
+        uint256 netSyFromRemove;
+        uint256 netPyRedeem;
+        uint256 netSyFromRedeem;
+        uint256 netPtSwap;
+        uint256 netYtSwap;
+        uint256 netSyFromSwap;
+        uint256 netSyFee;
+        uint256 totalSyOut;
+    }
+
+    // lives in ActionAddRemoveLiqV3
+    function addLiquiditySingleToken(
+        address receiver,
+        address market,
+        uint256 minLpOut,
+        ApproxParams calldata guessPtReceivedFromSy,
+        TokenInput calldata input,
+        LimitOrderData calldata limit
+    ) external payable returns (uint256 netLpOut, uint256 netSyFee, uint256 netSyInterm) {}
+
+    // lives in ActionAddRemoveLiqV3
+    function addLiquiditySingleTokenKeepYt(
+        address receiver,
+        address market,
+        uint256 minLpOut,
+        uint256 minYtOut,
+        TokenInput calldata input
+    ) external payable returns (uint256 netLpOut, uint256 netYtOut, uint256 netSyMintPy, uint256 netSyInterm) {}
+
+    // lives in ActionAddRemoveLiqV3
+    function removeLiquiditySingleToken(
+        address receiver,
+        address market,
+        uint256 netLpToRemove,
+        TokenOutput calldata output,
+        LimitOrderData calldata limit
+    ) external returns (uint256 netTokenOut, uint256 netSyFee, uint256 netSyInterm) {}
+
+    // lives in  IPActionMiscV3
+    // used for withdraw and claim rewards combined
+    struct Call3 {
+        bool allowFailure;
+        bytes callData;
+    }
+
+    struct Result {
+        bool success;
+        bytes returnData;
+    }
+
+    // lives in ActionMiscV3
+    // used for withdraw and claim rewards combined
+    function multicall(Call3[] calldata calls) external payable returns (Result[] memory res) {}
+
+    // lives in ActionMiscV3
+    // used for transferring LP position to separate pool
+    function callAndReflect(
+        address payable reflector,
+        bytes calldata selfCall1,
+        bytes calldata selfCall2,
+        bytes calldata reflectCall
+    ) external payable returns (bytes memory selfRes1, bytes memory selfRes2, bytes memory reflectRes) {}
 }
 
 interface IStandardizedYield {
@@ -2941,4 +3175,11 @@ interface MerklDistributor {
         uint256[] calldata amounts,
         bytes32[][] calldata proofs
     ) external;
+}
+
+// vePendle
+interface IPVotingEscrowMainchain {
+    function increaseLockPosition(uint128 additionalAmountToLock, uint128 expiry) external returns (uint128);
+
+    function withdraw() external returns (uint128);
 }
