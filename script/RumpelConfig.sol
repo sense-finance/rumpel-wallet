@@ -81,6 +81,8 @@ library RumpelConfig {
     address public constant MAINNET_FLUID_VAULT_DEX_EBTC_CBBTC_WBTC = 0x43d1cA906c72f09D96291B4913D7255E241F428d; // EBTC-cbBTC/WBTC
     address public constant MAINNET_FLUID_VAULT_DEX_SUDE_USDT_DEX_USDC_USDT = 0xB170B94BeFe21098966aa9905Da6a2F569463A21; // sUSDe-USDT/USDC-USDT
     address public constant MAINNET_FLUID_VAULT_DEX_UDE_USDT_DEX_USDC_USDT = 0xaEac94D417BF8d8bb3A44507100Ab8c0D3b12cA1; // USDe-USDT/USDC-USDT
+    address public constant MAINNET_FLUID_MERKLE_DISTRIBUTOR = 0xD833484b198D3d05707832cc1C2D62b520D95B8A;
+    address public constant MAINNET_FLUID_TOKEN = 0x6f40d4A6237C257fff2dB00FA0510DeEECd303eb;
 
     address public constant MAINNET_ETHERFI_LRT2_CLAIM = 0x6Db24Ee656843E3fE03eb8762a54D86186bA6B64;
     address public constant MAINNET_EULER_VAULT_CONNECTOR = 0x0C9a3dd6b8F28529d72d7f9cE918D493519EE383;
@@ -428,6 +430,8 @@ library RumpelConfig {
             return getMerklClaimREULOnProtocolGuardConfigs();
         } else if (tagHash == keccak256(bytes("merkl-claim-reul-off"))) {
             return getMerklClaimREULOffProtocolGuardConfigs();
+        } else if (tagHash == keccak256(bytes("fluid-merkle-claim"))) {
+            return getFluidMerkleClaimProtocol();
         } else if (tagHash == keccak256(bytes("may-25-pendle-lp-batch"))) {
             return getPendleLPMay25ProtocolGuardConfigs();
         }
@@ -520,6 +524,8 @@ library RumpelConfig {
             return getMerklClaimREULOnTokenConfigs();
         } else if (tagHash == keccak256(bytes("merkl-claim-reul-off"))) {
             return getMerklClaimREULOffTokenConfigs();
+        } else if (tagHash == keccak256(bytes("fluid-merkle-claim"))) {
+            return getFluidMerkleClaimToken();
         } else if (tagHash == keccak256(bytes("may-25-pendle-lp-batch"))) {
             return getPendleLPMay25TokenConfigs();
         }
@@ -609,6 +615,8 @@ library RumpelConfig {
             return new TokenModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("merkl-claim-reul-off"))) {
             return new TokenModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("fluid-merkle-claim"))) {
+            return new TokenModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("may-25-pendle-lp-batch"))) {
             return new TokenModuleConfig[](0);
         }
@@ -694,6 +702,8 @@ library RumpelConfig {
         } else if (tagHash == keccak256(bytes("merkl-claim-reul-on"))) {
             return new ProtocolModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("merkl-claim-reul-off"))) {
+            return new ProtocolModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("fluid-merkle-claim"))) {
             return new ProtocolModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("may-25-pendle-lp-batch"))) {
             return new ProtocolModuleConfig[](0);
@@ -2638,6 +2648,19 @@ library RumpelConfig {
         return configs;
     }
 
+    function getFluidMerkleClaimProtocol() internal pure returns (ProtocolGuardConfig[] memory) {
+        ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](1);
+
+        configs[0] =
+            ProtocolGuardConfig({target: MAINNET_FLUID_MERKLE_DISTRIBUTOR, selectorStates: new SelectorState[](2)});
+        configs[0].selectorStates[0] =
+            SelectorState({selector: FluidMerkleDistributor.claim.selector, state: RumpelGuard.AllowListState.ON});
+        configs[0].selectorStates[1] =
+            SelectorState({selector: FluidMerkleDistributor.bulkClaim.selector, state: RumpelGuard.AllowListState.ON});
+
+        return configs;
+    }
+    
     function getPendleLPMay25ProtocolGuardConfigs() internal pure returns (ProtocolGuardConfig[] memory) {
         ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](2);
 
@@ -2670,6 +2693,18 @@ library RumpelConfig {
         return configs;
     }
 
+    function getFluidMerkleClaimToken() internal pure returns (TokenGuardConfig[] memory) {
+        TokenGuardConfig[] memory configs = new TokenGuardConfig[](1);
+
+        configs[0] = TokenGuardConfig({
+            token: MAINNET_FLUID_TOKEN,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+
+        return configs;
+    }
+              
     function getPendleLPMay25TokenConfigs() internal pure returns (TokenGuardConfig[] memory) {
         TokenGuardConfig[] memory configs = new TokenGuardConfig[](10);
 
@@ -2868,6 +2903,30 @@ interface IFluidVaultFactory {
 
 interface IFluidVaultFactory_ {
     function safeTransferFrom(address from_, address to_, uint256 id_) external;
+}
+
+interface FluidMerkleDistributor {
+    struct Claim {
+        address recipient;
+        uint256 cumulativeAmount;
+        uint8 positionType;
+        bytes32 positionId;
+        uint256 cycle;
+        bytes32[] merkleProof;
+        bytes metadata;
+    }
+
+    function claim(
+        address recipient,
+        uint256 cumulativeAmount,
+        uint8 positionType,
+        bytes32 positionId,
+        uint256 cycle,
+        bytes32[] calldata merkleProof,
+        bytes calldata metadata
+    ) external;
+
+    function bulkClaim(Claim[] calldata claims_) external;
 }
 
 interface IObolClaim {
