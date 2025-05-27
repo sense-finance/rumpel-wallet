@@ -3221,18 +3221,3 @@ interface IPVotingEscrowMainchain {
 
     function withdraw() external returns (uint128);
 }
-
-interface IMulticall {
-    struct Call3 {
-        address target;
-        bool allowFailure;
-        bytes callData;
-    }
-
-    struct Result {
-        bool success;
-        bytes returnData;
-    }
-
-    function aggregate(Call3[] calldata calls) external returns (Result[] memory returnData);
-}
