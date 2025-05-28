@@ -108,6 +108,7 @@ library RumpelConfig {
     address public constant MAINNET_RETH = 0xae78736Cd615f374D3085123A210448E74Fc6393;
     address public constant MAINNET_CBETH = 0xBe9895146f7AF43049ca1c1AE358B0541Ea49704;
     address public constant MAINNET_USDC = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48;
+    address public constant MAINNET_MORPHO = 0x58D97B57BB95320F9a05dC918Aef65434969c2B2;
 
     address public constant MAINNET_WBETH = 0xa2E3356610840701BDf5611a53974510Ae27E2e1;
     address public constant MAINNET_SWETH = 0xf951E335afb289353dc249e82926178EaC7DEd78;
@@ -241,6 +242,9 @@ library RumpelConfig {
     // Merkl Claiming
     address public constant MAINNET_MERKL_DISTRIBUTOR = 0x3Ef3D8bA38EBe18DB133cEc108f4D14CE00Dd9Ae;
     address public constant MAINNET_REUL = 0xf3e621395fc714B90dA337AA9108771597b4E696;
+
+    // Morpho
+    address public constant MAINNET_MORPHO_DISTRIBUTOR = 0x330eefa8a787552DC5cAd3C3cA644844B1E61Ddb;
 
     function updateGuardAllowlist(RumpelGuard rumpelGuard, string memory tag) internal {
         setupGuardProtocols(rumpelGuard, tag);
@@ -434,6 +438,8 @@ library RumpelConfig {
             return getFluidMerkleClaimProtocol();
         } else if (tagHash == keccak256(bytes("may-25-pendle-lp-batch"))) {
             return getPendleLPMay25ProtocolGuardConfigs();
+        } else if (tagHash == keccak256(bytes("morpho-transfer-and-claim"))) {
+            return getMorphoProtocolConfigs();
         }
 
         revert("Unsupported tag");
@@ -528,6 +534,8 @@ library RumpelConfig {
             return getFluidMerkleClaimToken();
         } else if (tagHash == keccak256(bytes("may-25-pendle-lp-batch"))) {
             return getPendleLPMay25TokenConfigs();
+        } else if (tagHash == keccak256(bytes("morpho-transfer-and-claim"))) {
+            return getMorphoTokenConfigs();
         }
 
         revert("Unsupported tag");
@@ -619,6 +627,8 @@ library RumpelConfig {
             return new TokenModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("may-25-pendle-lp-batch"))) {
             return new TokenModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("morpho-transfer-and-claim"))) {
+            return new TokenModuleConfig[](0);
         }
 
         revert("Unsupported tag");
@@ -706,6 +716,8 @@ library RumpelConfig {
         } else if (tagHash == keccak256(bytes("fluid-merkle-claim"))) {
             return new ProtocolModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("may-25-pendle-lp-batch"))) {
+            return new ProtocolModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("morpho-transfer-and-claim"))) {
             return new ProtocolModuleConfig[](0);
         }
 
@@ -2660,7 +2672,7 @@ library RumpelConfig {
 
         return configs;
     }
-    
+
     function getPendleLPMay25ProtocolGuardConfigs() internal pure returns (ProtocolGuardConfig[] memory) {
         ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](2);
 
@@ -2704,7 +2716,7 @@ library RumpelConfig {
 
         return configs;
     }
-              
+
     function getPendleLPMay25TokenConfigs() internal pure returns (TokenGuardConfig[] memory) {
         TokenGuardConfig[] memory configs = new TokenGuardConfig[](10);
 
@@ -2763,6 +2775,28 @@ library RumpelConfig {
 
         return configs;
     }
+
+    function getMorphoTokenConfigs() internal pure returns (TokenGuardConfig[] memory) {
+        TokenGuardConfig[] memory configs = new TokenGuardConfig[](1);
+
+        configs[0] = TokenGuardConfig({
+            token: MAINNET_MORPHO,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.ON
+        });
+
+        return configs;
+    }
+
+    function getMorphoProtocolConfigs() internal pure returns (ProtocolGuardConfig[] memory) {
+        ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](1);
+
+        configs[0] = ProtocolGuardConfig({target: MAINNET_MORPHO_DISTRIBUTOR, selectorStates: new SelectorState[](1)});
+        configs[0].selectorStates[0] =
+            SelectorState({selector: IMorphoDistributor.claim.selector, state: RumpelGuard.AllowListState.ON});
+
+        return configs;
+    }
 }
 
 interface IKernelMerkleDistributor {
@@ -2777,6 +2811,10 @@ interface IMorphoBundler {
 
 interface IMorphoBase {
     function setAuthorization(address authorized, bool newIsAuthorized) external;
+}
+
+interface IMorphoDistributor {
+    function claim(address account, address reward, uint256 claimable, bytes32[] calldata proof) external;
 }
 
 interface IZircuitRestakingPool {
