@@ -28,9 +28,7 @@ contract RumpelWalletFactoryScripts is Script {
     address public HYPE_SAFE_SINGLETON = 0xfb1bffC9d739B8D520DaF37dF666da4C687191EA;
     address public HYPE_SIGN_MESSAGE_LIB = 0x98FFBBF51bb33A056B08ddf711f289936AafF717;
 
-    address public HYPE_OPERATOR = 0x200F8df85C37268F39e3Fae332E91730A2d049d5;
     address public HYPE_ADMIN = 0x3ffd3d3695Ee8D51A54b46e37bACAa86776A8CDA;
-    address public HYPE_MERKLE_UPDATER = 0x800e8022528c36273044e144580859EA629e1B63;
 
     address public HYPE_RUMPEL_VAULT = 0xEa333eb11FC6ea62F6f4c2d73Cd9F2d994Ff3587;
     address public HYPE_FEUSD = 0x02c6a2fA58cC01A18B8D9E00eA48d65E4dF26c70;
@@ -83,8 +81,6 @@ contract RumpelWalletFactoryScripts is Script {
 
         // Populate initial allowlist
         // RumpelConfig.updateGuardAllowlist(rumpelGuard, "initial");
-
-        https://rbskphftvfnpcetghldu.supabase.co/rest/v1/points_snapshots?select=*&addres=eq.0xfe82af4569830228dce4e75788452c213afec39b&order=week_number.asc&apikey=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJic2twaGZ0dmZucGNldGdobGR1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzkyNzE0NzAsImV4cCI6MjA1NDg0NzQ3MH0.naRsLDRJHXRrBv2MVCUfZMaI17tDl9Lk-ZL8QoWuHLY
 
         rumpelGuard.transferOwnership(admin);
         rumpelModule.transferOwnership(admin);
