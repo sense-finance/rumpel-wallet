@@ -154,10 +154,7 @@ library RumpelConfig {
     address public constant MAINNET_YT_EBTC_25JUNE2025 = 0x6a162ea0F31dC63Cd154f4fcCDD43B612Df731e9;
     address public constant MAINNET_YT_SUSDE_30JUL2025 = 0xb7E51D15161C49C823f3951D579DEd61cD27272B;
     address public constant MAINNET_YT_EUSDE_28MAY2025 = 0x708dD9B344dDc7842f44C7b90492CF0e1E3eb868;
-    // TODO: update address once available
-    address public constant MAINNET_YT_EUSDE_29AUG2025 = 0x0000000000000000000000000000000000000000;
-    // TODO: update address once available
-    address public constant MAINNET_PENDLE_YT_PENDLE_29AUG2025 = 0x0000000000000000000000000000000000000001;
+    address public constant MAINNET_YT_EUSDE_29AUG2025 = 0xe8eF806c8aaDc541408dcAd36107c7d26a391712;
     address public constant MAINNET_YT_USDE_30JUL2025 = 0x733Ee9Ba88f16023146EbC965b7A1Da18a322464;
     address public constant MAINNET_YT_LVLUSD_24SEP2025 = 0x946934554a2Bf59039661f971986F0223E906264;
     address public constant MAINNET_YT_USR_28MAY2025 = 0x77DE4Be22Ecc633416D79371eF8e861Fb1d2cC39;
@@ -1670,7 +1667,7 @@ library RumpelConfig {
     }
 
     function getStablesTokenGuardConfigs() internal pure returns (TokenGuardConfig[] memory) {
-        TokenGuardConfig[] memory configs = new TokenGuardConfig[](2);
+        TokenGuardConfig[] memory configs = new TokenGuardConfig[](1);
 
         configs[0] = TokenGuardConfig({
             token: MAINNET_USDT,
@@ -2419,12 +2416,6 @@ function getFluidVaultsAndYTs0603ProtocolConfigs() internal pure returns (Protoc
 
         configs[0] = TokenGuardConfig({
             token: MAINNET_YT_EUSDE_29AUG2025,
-            transferAllowState: RumpelGuard.AllowListState.ON,
-            approveAllowState: RumpelGuard.AllowListState.OFF
-        });
-
-        configs[1] = TokenGuardConfig({
-            token: MAINNET_PENDLE_YT_PENDLE_29AUG2025,
             transferAllowState: RumpelGuard.AllowListState.ON,
             approveAllowState: RumpelGuard.AllowListState.OFF
         });
