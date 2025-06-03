@@ -82,7 +82,8 @@ library RumpelConfig {
     address public constant MAINNET_FLUID_VAULT_DEX_SUDE_USDT_DEX_USDC_USDT = 0xB170B94BeFe21098966aa9905Da6a2F569463A21; // sUSDe-USDT/USDC-USDT
     address public constant MAINNET_FLUID_VAULT_DEX_UDE_USDT_DEX_USDC_USDT = 0xaEac94D417BF8d8bb3A44507100Ab8c0D3b12cA1; // USDe-USDT/USDC-USDT
     address public constant MAINNET_FLUID_VAULT_DEX_GHO_SUSDE_DEX_GHO_USDC = 0x0a90ED6964f6bA56902fD35EE11857A810Dd5543; // GHO smart debt/collateral
-    address public constant MAINNET_FLUID_VAULT_DEX_SUSDE_USDT_DEX_USDC_USDT = 0x91D5884a57E4A3718654B462B32cC628b2c6A39A; // sUSDe smart debt/collateral
+    address public constant MAINNET_FLUID_VAULT_DEX_SUSDE_USDT_DEX_USDC_USDT =
+        0x91D5884a57E4A3718654B462B32cC628b2c6A39A; // sUSDe smart debt/collateral
     address public constant MAINNET_FLUID_VAULT_DEX_USDE_USDT_DEX_USDC_USDT = 0x4B5fa15996C2E23b35E64f0ca62d30c4945E53Cb; // USDe smart debt/collateral
     address public constant MAINNET_FLUID_MERKLE_DISTRIBUTOR = 0xD833484b198D3d05707832cc1C2D62b520D95B8A;
     address public constant MAINNET_FLUID_TOKEN = 0x6f40d4A6237C257fff2dB00FA0510DeEECd303eb;
@@ -154,7 +155,6 @@ library RumpelConfig {
     address public constant MAINNET_YT_EBTC_25JUNE2025 = 0x6a162ea0F31dC63Cd154f4fcCDD43B612Df731e9;
     address public constant MAINNET_YT_SUSDE_30JUL2025 = 0xb7E51D15161C49C823f3951D579DEd61cD27272B;
     address public constant MAINNET_YT_EUSDE_28MAY2025 = 0x708dD9B344dDc7842f44C7b90492CF0e1E3eb868;
-    // eUSDe Yield Token expiring 13 Aug 2025
     address public constant MAINNET_YT_EUSDE_13AUG2025 = 0xe8eF806c8aaDc541408dcAd36107c7d26a391712;
     address public constant MAINNET_YT_USDE_30JUL2025 = 0x733Ee9Ba88f16023146EbC965b7A1Da18a322464;
     address public constant MAINNET_YT_LVLUSD_24SEP2025 = 0x946934554a2Bf59039661f971986F0223E906264;
@@ -445,8 +445,8 @@ library RumpelConfig {
             return getPendleLPMay25ProtocolGuardConfigs();
         } else if (tagHash == keccak256(bytes("morpho-transfer-and-claim"))) {
             return getMorphoProtocolConfigs();
-        } else if (tagHash == keccak256(bytes("fluid-smart-debt-vaults"))) {
-            return getFluidSmartDebtVaultsProtocolConfigs();
+        } else if (tagHash == keccak256(bytes("fluid-vaults-and-yt-06-03"))) {
+            return getFluidVaultsAndYT0603ProtocolConfigs();
         }
 
         revert("Unsupported tag");
@@ -543,8 +543,8 @@ library RumpelConfig {
             return getPendleLPMay25TokenConfigs();
         } else if (tagHash == keccak256(bytes("morpho-transfer-and-claim"))) {
             return getMorphoTokenConfigs();
-        } else if (tagHash == keccak256(bytes("fluid-smart-debt-vaults"))) {
-            return getFluidSmartDebtVaultsTokenConfigs();
+        } else if (tagHash == keccak256(bytes("fluid-vaults-and-yt-06-03"))) {
+            return getFluidVaultsAndYT0603TokenConfigs();
         }
 
         revert("Unsupported tag");
@@ -638,7 +638,7 @@ library RumpelConfig {
             return new TokenModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("morpho-transfer-and-claim"))) {
             return new TokenModuleConfig[](0);
-        } else if (tagHash == keccak256(bytes("fluid-smart-debt-vaults"))) {
+        } else if (tagHash == keccak256(bytes("fluid-vaults-and-yt-06-03"))) {
             return new TokenModuleConfig[](0);
         }
 
@@ -730,7 +730,7 @@ library RumpelConfig {
             return new ProtocolModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("morpho-transfer-and-claim"))) {
             return new ProtocolModuleConfig[](0);
-        } else if (tagHash == keccak256(bytes("fluid-smart-debt-vaults"))) {
+        } else if (tagHash == keccak256(bytes("fluid-vaults-and-yt-06-03"))) {
             return new ProtocolModuleConfig[](0);
         }
 
@@ -2385,7 +2385,7 @@ library RumpelConfig {
         return configs;
     }
 
-function getFluidSmartDebtVaultsProtocolConfigs() internal pure returns (ProtocolGuardConfig[] memory) {
+    function getFluidVaultsAndYT0603ProtocolConfigs() internal pure returns (ProtocolGuardConfig[] memory) {
         ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](3);
 
         configs[0] = ProtocolGuardConfig({
@@ -2412,7 +2412,7 @@ function getFluidSmartDebtVaultsProtocolConfigs() internal pure returns (Protoco
         return configs;
     }
 
-    function getFluidSmartDebtVaultsTokenConfigs() internal pure returns (TokenGuardConfig[] memory) {
+    function getFluidVaultsAndYT0603TokenConfigs() internal pure returns (TokenGuardConfig[] memory) {
         TokenGuardConfig[] memory configs = new TokenGuardConfig[](1);
 
         configs[0] = TokenGuardConfig({
