@@ -154,7 +154,8 @@ library RumpelConfig {
     address public constant MAINNET_YT_EBTC_25JUNE2025 = 0x6a162ea0F31dC63Cd154f4fcCDD43B612Df731e9;
     address public constant MAINNET_YT_SUSDE_30JUL2025 = 0xb7E51D15161C49C823f3951D579DEd61cD27272B;
     address public constant MAINNET_YT_EUSDE_28MAY2025 = 0x708dD9B344dDc7842f44C7b90492CF0e1E3eb868;
-    address public constant MAINNET_YT_EUSDE_29AUG2025 = 0xe8eF806c8aaDc541408dcAd36107c7d26a391712;
+    // eUSDe Yield Token expiring 13 Aug 2025
+    address public constant MAINNET_YT_EUSDE_13AUG2025 = 0xe8eF806c8aaDc541408dcAd36107c7d26a391712;
     address public constant MAINNET_YT_USDE_30JUL2025 = 0x733Ee9Ba88f16023146EbC965b7A1Da18a322464;
     address public constant MAINNET_YT_LVLUSD_24SEP2025 = 0x946934554a2Bf59039661f971986F0223E906264;
     address public constant MAINNET_YT_USR_28MAY2025 = 0x77DE4Be22Ecc633416D79371eF8e861Fb1d2cC39;
@@ -444,8 +445,8 @@ library RumpelConfig {
             return getPendleLPMay25ProtocolGuardConfigs();
         } else if (tagHash == keccak256(bytes("morpho-transfer-and-claim"))) {
             return getMorphoProtocolConfigs();
-        } else if (tagHash == keccak256(bytes("fluid-vaults-and-yts-06-03"))) {
-            return getFluidVaultsAndYTs0603ProtocolConfigs();
+        } else if (tagHash == keccak256(bytes("fluid-smart-debt-vaults"))) {
+            return getFluidSmartDebtVaultsProtocolConfigs();
         }
 
         revert("Unsupported tag");
@@ -542,8 +543,8 @@ library RumpelConfig {
             return getPendleLPMay25TokenConfigs();
         } else if (tagHash == keccak256(bytes("morpho-transfer-and-claim"))) {
             return getMorphoTokenConfigs();
-        } else if (tagHash == keccak256(bytes("fluid-vaults-and-yts-06-03"))) {
-            return getFluidVaultsAndYTs0603TokenConfigs();
+        } else if (tagHash == keccak256(bytes("fluid-smart-debt-vaults"))) {
+            return getFluidSmartDebtVaultsTokenConfigs();
         }
 
         revert("Unsupported tag");
@@ -637,7 +638,7 @@ library RumpelConfig {
             return new TokenModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("morpho-transfer-and-claim"))) {
             return new TokenModuleConfig[](0);
-        } else if (tagHash == keccak256(bytes("fluid-vaults-and-yts-06-03"))) {
+        } else if (tagHash == keccak256(bytes("fluid-smart-debt-vaults"))) {
             return new TokenModuleConfig[](0);
         }
 
@@ -729,7 +730,7 @@ library RumpelConfig {
             return new ProtocolModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("morpho-transfer-and-claim"))) {
             return new ProtocolModuleConfig[](0);
-        } else if (tagHash == keccak256(bytes("fluid-vaults-and-yts-06-03"))) {
+        } else if (tagHash == keccak256(bytes("fluid-smart-debt-vaults"))) {
             return new ProtocolModuleConfig[](0);
         }
 
@@ -2384,7 +2385,7 @@ library RumpelConfig {
         return configs;
     }
 
-function getFluidVaultsAndYTs0603ProtocolConfigs() internal pure returns (ProtocolGuardConfig[] memory) {
+function getFluidSmartDebtVaultsProtocolConfigs() internal pure returns (ProtocolGuardConfig[] memory) {
         ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](3);
 
         configs[0] = ProtocolGuardConfig({
@@ -2411,11 +2412,11 @@ function getFluidVaultsAndYTs0603ProtocolConfigs() internal pure returns (Protoc
         return configs;
     }
 
-    function getFluidVaultsAndYTs0603TokenConfigs() internal pure returns (TokenGuardConfig[] memory) {
-        TokenGuardConfig[] memory configs = new TokenGuardConfig[](2);
+    function getFluidSmartDebtVaultsTokenConfigs() internal pure returns (TokenGuardConfig[] memory) {
+        TokenGuardConfig[] memory configs = new TokenGuardConfig[](1);
 
         configs[0] = TokenGuardConfig({
-            token: MAINNET_YT_EUSDE_29AUG2025,
+            token: MAINNET_YT_EUSDE_13AUG2025,
             transferAllowState: RumpelGuard.AllowListState.ON,
             approveAllowState: RumpelGuard.AllowListState.OFF
         });
