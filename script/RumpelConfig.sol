@@ -81,6 +81,9 @@ library RumpelConfig {
     address public constant MAINNET_FLUID_VAULT_DEX_EBTC_CBBTC_WBTC = 0x43d1cA906c72f09D96291B4913D7255E241F428d; // EBTC-cbBTC/WBTC
     address public constant MAINNET_FLUID_VAULT_DEX_SUDE_USDT_DEX_USDC_USDT = 0xB170B94BeFe21098966aa9905Da6a2F569463A21; // sUSDe-USDT/USDC-USDT
     address public constant MAINNET_FLUID_VAULT_DEX_UDE_USDT_DEX_USDC_USDT = 0xaEac94D417BF8d8bb3A44507100Ab8c0D3b12cA1; // USDe-USDT/USDC-USDT
+    address public constant MAINNET_FLUID_VAULT_DEX_GHO_SUSDE_DEX_GHO_USDC = 0x0a90ED6964f6bA56902fD35EE11857A810Dd5543; // GHO smart debt/collateral
+    address public constant MAINNET_FLUID_VAULT_DEX_SUSDE_USDT_DEX_USDC_USDT = 0x91D5884a57E4A3718654B462B32cC628b2c6A39A; // sUSDe smart debt/collateral
+    address public constant MAINNET_FLUID_VAULT_DEX_USDE_USDT_DEX_USDC_USDT = 0x4B5fa15996C2E23b35E64f0ca62d30c4945E53Cb; // USDe smart debt/collateral
     address public constant MAINNET_FLUID_MERKLE_DISTRIBUTOR = 0xD833484b198D3d05707832cc1C2D62b520D95B8A;
     address public constant MAINNET_FLUID_TOKEN = 0x6f40d4A6237C257fff2dB00FA0510DeEECd303eb;
 
@@ -440,6 +443,8 @@ library RumpelConfig {
             return getPendleLPMay25ProtocolGuardConfigs();
         } else if (tagHash == keccak256(bytes("morpho-transfer-and-claim"))) {
             return getMorphoProtocolConfigs();
+        } else if (tagHash == keccak256(bytes("fluid-smart-vaults-06-03"))) {
+            return getFluidSmartVaults0603Configs();
         }
 
         revert("Unsupported tag");
@@ -536,6 +541,8 @@ library RumpelConfig {
             return getPendleLPMay25TokenConfigs();
         } else if (tagHash == keccak256(bytes("morpho-transfer-and-claim"))) {
             return getMorphoTokenConfigs();
+        } else if (tagHash == keccak256(bytes("fluid-smart-vaults-06-03"))) {
+            return new TokenGuardConfig[](0);
         }
 
         revert("Unsupported tag");
@@ -629,6 +636,8 @@ library RumpelConfig {
             return new TokenModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("morpho-transfer-and-claim"))) {
             return new TokenModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("fluid-smart-vaults-06-03"))) {
+            return new TokenModuleConfig[](0);
         }
 
         revert("Unsupported tag");
@@ -718,6 +727,8 @@ library RumpelConfig {
         } else if (tagHash == keccak256(bytes("may-25-pendle-lp-batch"))) {
             return new ProtocolModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("morpho-transfer-and-claim"))) {
+            return new ProtocolModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("fluid-smart-vaults-06-03"))) {
             return new ProtocolModuleConfig[](0);
         }
 
@@ -2368,6 +2379,33 @@ library RumpelConfig {
         });
         configs[3].selectorStates[0] =
             SelectorState({selector: IFluidVaultT2.operate.selector, state: RumpelGuard.AllowListState.ON});
+
+        return configs;
+    }
+
+    function getFluidSmartVaults0603Configs() internal pure returns (ProtocolGuardConfig[] memory) {
+        ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](3);
+
+        configs[0] = ProtocolGuardConfig({
+            target: MAINNET_FLUID_VAULT_DEX_GHO_SUSDE_DEX_GHO_USDC,
+            selectorStates: new SelectorState[](1)
+        });
+        configs[0].selectorStates[0] =
+            SelectorState({selector: IFluidVaultT4.operate.selector, state: RumpelGuard.AllowListState.ON});
+
+        configs[1] = ProtocolGuardConfig({
+            target: MAINNET_FLUID_VAULT_DEX_SUSDE_USDT_DEX_USDC_USDT,
+            selectorStates: new SelectorState[](1)
+        });
+        configs[1].selectorStates[0] =
+            SelectorState({selector: IFluidVaultT4.operate.selector, state: RumpelGuard.AllowListState.ON});
+
+        configs[2] = ProtocolGuardConfig({
+            target: MAINNET_FLUID_VAULT_DEX_USDE_USDT_DEX_USDC_USDT,
+            selectorStates: new SelectorState[](1)
+        });
+        configs[2].selectorStates[0] =
+            SelectorState({selector: IFluidVaultT4.operate.selector, state: RumpelGuard.AllowListState.ON});
 
         return configs;
     }
