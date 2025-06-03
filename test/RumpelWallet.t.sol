@@ -79,9 +79,32 @@ contract RumpelWalletTest is Test {
         vm.prank(admin);
         rumpelWalletFactory.unpauseWalletCreation();
 
+        // Expect the SafeCreated event
+        bytes memory initializer = abi.encodeWithSelector(
+            ISafe.setup.selector,
+            owners,
+            1,
+            rumpelWalletFactory.initializationScript(),
+            abi.encodeWithSelector(
+                InitializationScript.initialize.selector,
+                rumpelWalletFactory.rumpelModule(),
+                rumpelWalletFactory.rumpelGuard(),
+                initCalls
+            ),
+            rumpelWalletFactory.compatibilityFallback(),
+            address(0),
+            0,
+            address(0)
+        );
+        address expectedSafe = rumpelWalletFactory.precomputeAddress(
+            initializer, address(this), rumpelWalletFactory.saltNonce(address(this))
+        );
+        vm.expectEmit(true, false, false, true);
+        emit RumpelWalletFactory.SafeCreated(expectedSafe, owners, 1);
+
         // Create a wallet after unpausing
         address safe = rumpelWalletFactory.createWallet(owners, 1, initCalls);
-        assertTrue(safe != address(0));
+        assertEq(safe, expectedSafe);
     }
 
     function test_FactoryUpdateComponents() public {
