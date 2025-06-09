@@ -106,7 +106,7 @@ contract RumpelWalletEthenaStaking is Test {
         );
         this._execSafeTx(ISafe(safe), MAINNET_ETHENA_LP_STAKING, 0, withdrawData, Enum.Operation.Call);
 
-        scripts.updateGuardAndModuleLists(rumpelGuard, rumpelModule, "ethena-staking-lp-withdraw");
+        scripts.updateGuardAndModuleLists(1, "ethena-staking-lp-withdraw");
 
         // Withdraw USDe from ethena staking successfully after withdraw added
         _execSafeTx(ISafe(safe), MAINNET_ETHENA_LP_STAKING, 0, withdrawData, Enum.Operation.Call);
