@@ -93,6 +93,10 @@ library RumpelConfig {
     address public constant MAINNET_CONTANGO_POSITION_NFT = 0xC2462f03920D47fC5B9e2C5F0ba5D2ded058fD78;
     address public constant MAINNET_CONTANGO_MAESTRO = 0x79B2374Bd437D031A4561fac55d62aD3E6516276;
 
+    address public constant HYPEEVM_HYPERBEAT_VAULT_HYPE = 0x96C6cBB6251Ee1c257b2162ca0f39AA5Fa44B1FB;
+    address public constant HYPEEVM_SENTIMENT_POSITION_MANAGER = 0xE019Ce6e80dFe505bca229752A1ad727E14085a4;
+    address public constant HYPEEVM_SENTIMENT_POOL = 0x36BFD6b40e2c9BbCfD36a6B1F1Aa65974f4fFA5D;
+
     // Tokens
     address public constant MAINNET_RSUSDE = 0x82f5104b23FF2FA54C2345F821dAc9369e9E0B26;
     address public constant MAINNET_RSTETH = 0x7a4EffD87C2f3C55CA251080b1343b605f327E3a;
@@ -136,6 +140,11 @@ library RumpelConfig {
     address public constant MAINNET_PENDLE = 0x808507121B80c02388fAd14726482e061B8da827;
     address public constant MAINNET_VEPENDLE = 0x4f30A9D41B80ecC5B94306AB4364951AE3170210;
 
+    address public constant HYPEEVM_WHYPE = 0x5555555555555555555555555555555555555555;
+    address public constant HYPEEVM_HBHYPE = 0x96C6cBB6251Ee1c257b2162ca0f39AA5Fa44B1FB;
+    address public constant HYPEEVM_WSTHYPE = 0x94e8396e0869c9F2200760aF0621aFd240E1CF38;
+
+    // Pendle YTs
     address public constant MAINNET_YTEBTC_26DEC2024 = 0xeB993B610b68F2631f70CA1cf4Fe651dB81f368e;
     address public constant MAINNET_YT_WEETHK_26DEC2024 = 0x7B64b99A1fd80b6c012E354a14ADb352b5916CE1;
     address public constant MAINNET_YT_AGETH_26DEC2024 = 0x3568f1d2e8058F6D99Daa17051Cb4a2930C83978;
@@ -447,6 +456,8 @@ library RumpelConfig {
             return getMorphoProtocolConfigs();
         } else if (tagHash == keccak256(bytes("fluid-vaults-and-yt-06-03"))) {
             return getFluidVaultsAndYT0603ProtocolConfigs();
+        } else if (tagHash == keccak256(bytes("hype-evm-initial-strats"))) {
+            return getHypeEVMInitialProtocolConfigs();
         }
 
         revert("Unsupported tag");
@@ -545,6 +556,8 @@ library RumpelConfig {
             return getMorphoTokenConfigs();
         } else if (tagHash == keccak256(bytes("fluid-vaults-and-yt-06-03"))) {
             return getFluidVaultsAndYT0603TokenConfigs();
+        } else if (tagHash == keccak256(bytes("hype-evm-initial-strats"))) {
+            return getHypeEVMInitialTokenConfigs();
         }
 
         revert("Unsupported tag");
@@ -640,6 +653,8 @@ library RumpelConfig {
             return new TokenModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("fluid-vaults-and-yt-06-03"))) {
             return new TokenModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("hype-evm-initial-strats"))) {
+            return getHypeEVMInitialTokenModuleConfigs();
         }
 
         revert("Unsupported tag");
@@ -731,6 +746,8 @@ library RumpelConfig {
         } else if (tagHash == keccak256(bytes("morpho-transfer-and-claim"))) {
             return new ProtocolModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("fluid-vaults-and-yt-06-03"))) {
+            return new ProtocolModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("hype-evm-initial-strats"))) {
             return new ProtocolModuleConfig[](0);
         }
 
@@ -2849,6 +2866,69 @@ library RumpelConfig {
 
         return configs;
     }
+
+    function getHypeEVMInitialProtocolConfigs()internal pure returns (ProtocolGuardConfig[] memory){
+        // address public constant HYPEEVM_HYPERBEAT_VAULT_HYPE = 0x96C6cBB6251Ee1c257b2162ca0f39AA5Fa44B1FB;
+        // address public constant HYPEEVM_SENTIMENT_POSITION_MANAGER = 0xE019Ce6e80dFe505bca229752A1ad727E14085a4;
+
+        ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](3);
+        // hyperbeat vault - deposit & request redeem
+        configs[0] = ProtocolGuardConfig({target: HYPEEVM_HYPERBEAT_VAULT_HYPE, selectorStates: new SelectorState[](2)});
+        configs[0].selectorStates[0] =
+            SelectorState({selector: HyperbeatTokenizedAccount.deposit.selector, state: RumpelGuard.AllowListState.ON});
+        configs[0].selectorStates[1] =
+            SelectorState({selector: HyperbeatTokenizedAccount.requestRedeem.selector, state: RumpelGuard.AllowListState.ON});
+
+        // sentiment position manager - process & processBatch
+        configs[1] = ProtocolGuardConfig({target: HYPEEVM_SENTIMENT_POSITION_MANAGER, selectorStates: new SelectorState[](2)});
+        configs[1].selectorStates[0] =
+            SelectorState({selector: SentimentPositionManager.process.selector, state: RumpelGuard.AllowListState.ON});
+        configs[1].selectorStates[1] =
+            SelectorState({selector: SentimentPositionManager.processBatch.selector, state: RumpelGuard.AllowListState.ON});
+        
+        // sentiment pool muli-token.transfer
+        configs[2] = ProtocolGuardConfig({target: HYPEEVM_SENTIMENT_POOL, selectorStates: new SelectorState[](1)});
+        configs[2].selectorStates[0] =
+            SelectorState({selector: IERC6909.transfer.selector, state: RumpelGuard.AllowListState.ON});
+
+        return configs;
+    }
+
+    function getHypeEVMInitialTokenConfigs() internal pure returns (TokenGuardConfig[] memory) {
+        TokenGuardConfig[] memory configs = new TokenGuardConfig[](3);
+
+        // whype
+        configs[0] = TokenGuardConfig({
+            token: HYPEEVM_WHYPE,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.ON
+        });
+
+        // wstHype
+        configs[1] = TokenGuardConfig({
+            token: HYPEEVM_WSTHYPE,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.ON
+        });
+
+        // hbHype
+        configs[2] = TokenGuardConfig({
+            token: HYPEEVM_HBHYPE,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.ON
+        });
+
+        return configs;
+    }
+
+    function getHypeEVMInitialTokenModuleConfigs() internal pure returns (TokenModuleConfig[] memory) {
+        TokenModuleConfig[] memory configs = new TokenModuleConfig[](2);
+
+        configs[0] = TokenModuleConfig({token: HYPEEVM_WHYPE, blockTransfer: true, blockApprove: true});
+        configs[1] = TokenModuleConfig({token: HYPEEVM_WSTHYPE, blockTransfer: true, blockApprove: true});
+
+        return configs;
+    }
 }
 
 interface IKernelMerkleDistributor {
@@ -3272,4 +3352,41 @@ interface IPVotingEscrowMainchain {
     function increaseLockPosition(uint128 additionalAmountToLock, uint128 expiry) external returns (uint128);
 
     function withdraw() external returns (uint128);
+}
+
+contract SentimentPositionManager {
+    enum Operation {
+      NewPosition, // create2 a new position with a given type, no auth needed
+      // the following operations require msg.sender to be authorized
+      Exec, // execute arbitrary calldata on a position
+      Deposit, // Add collateral to a given position
+      Transfer, // transfer assets from the position to a external address
+      Approve, // allow a spender to transfer assets from a position
+      Repay, // decrease position debt
+      Borrow, // increase position debt
+      AddToken, // upsert collateral asset to position storage
+      RemoveToken // remove collateral asset from position storage
+    }
+
+    struct Action {      // operation type
+        Operation op;      // dynamic bytes data, interepreted differently across operation types
+        bytes data;
+    }
+    
+    function process(address position, Action calldata action) external {}
+    function processBatch(address position, Action[] calldata actions) external {}
+}
+
+interface IERC6909{
+    function transfer(address receiver, uint256 id, uint256 amount) external returns (bool);
+    function approve(address spender, uint256 id, uint256 amount) external returns (bool);
+}
+
+interface HyperbeatTokenizedAccount {
+    function deposit(uint256 assets, address receiver) external returns (uint256 shares);
+    function requestRedeem(
+         uint256 shares, 
+         address receiverAddr, 
+         address holderAddr
+     ) external;
 }
