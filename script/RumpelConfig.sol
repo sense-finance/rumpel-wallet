@@ -141,7 +141,6 @@ library RumpelConfig {
     address public constant MAINNET_VEPENDLE = 0x4f30A9D41B80ecC5B94306AB4364951AE3170210;
 
     address public constant HYPEEVM_WHYPE = 0x5555555555555555555555555555555555555555;
-    address public constant HYPEEVM_HBHYPE = 0x96C6cBB6251Ee1c257b2162ca0f39AA5Fa44B1FB;
     address public constant HYPEEVM_WSTHYPE = 0x94e8396e0869c9F2200760aF0621aFd240E1CF38;
 
     // Pendle YTs
@@ -2868,9 +2867,6 @@ library RumpelConfig {
     }
 
     function getHypeEVMInitialProtocolConfigs()internal pure returns (ProtocolGuardConfig[] memory){
-        // address public constant HYPEEVM_HYPERBEAT_VAULT_HYPE = 0x96C6cBB6251Ee1c257b2162ca0f39AA5Fa44B1FB;
-        // address public constant HYPEEVM_SENTIMENT_POSITION_MANAGER = 0xE019Ce6e80dFe505bca229752A1ad727E14085a4;
-
         ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](3);
         // hyperbeat vault - deposit & request redeem
         configs[0] = ProtocolGuardConfig({target: HYPEEVM_HYPERBEAT_VAULT_HYPE, selectorStates: new SelectorState[](2)});
@@ -2913,7 +2909,7 @@ library RumpelConfig {
 
         // hbHype
         configs[2] = TokenGuardConfig({
-            token: HYPEEVM_HBHYPE,
+            token: HYPEEVM_HYPERBEAT_VAULT_HYPE,
             transferAllowState: RumpelGuard.AllowListState.ON,
             approveAllowState: RumpelGuard.AllowListState.ON
         });
@@ -3379,7 +3375,6 @@ contract SentimentPositionManager {
 
 interface IERC6909{
     function transfer(address receiver, uint256 id, uint256 amount) external returns (bool);
-    function approve(address spender, uint256 id, uint256 amount) external returns (bool);
 }
 
 interface HyperbeatTokenizedAccount {
