@@ -21,6 +21,13 @@ contract RumpelWalletFactoryScripts is Script {
     address public MAINNET_SAFE_SINGLETON = 0xd9Db270c1B5E3Bd161E8c8503c55cEABeE709552; // 1.3.0
     address public MAINNET_SIGN_MESSAGE_LIB = 0xA65387F16B013cf2Af4605Ad8aA5ec25a2cbA3a2; // 1.3.0
     address public MAINNET_SAFE_PROXY_FACTORY = 0xa6B71E26C5e0845f74c812102Ca7114b6a896AB2; // 1.3.0
+    address public MAINNET_RUMPEL_GUARD = 0x9000FeF2846A5253fD2C6ed5241De0fddb404302;
+    address public MAINNET_RUMPEL_MODULE = 0x28c3498B4956f4aD8d4549ACA8F66260975D361a;
+
+    address public HYPEEVM_ADMIN = 0x3ffd3d3695Ee8D51A54b46e37bACAa86776A8CDA;
+    address public HYPEEVM_RUMPEL_VAULT = 0xEa333eb11FC6ea62F6f4c2d73Cd9F2d994Ff3587;
+    address public HYPEEVM_RUMPEL_GUARD = 0x33e3fcA5C2972781a32Ca0F034Ae293d77962210;
+    address public HYPEEVM_RUMPEL_MODULE = 0xa1804146617bFDb81dF7bf35a1dCC02f922559Fe;
 
     function setUp() public {}
 
@@ -75,8 +82,21 @@ contract RumpelWalletFactoryScripts is Script {
         return (rumpelModule, rumpelGuard, rumpelWalletFactory);
     }
 
-    function updateGuardAndModuleLists(RumpelGuard rumpelGuard, RumpelModule rumpelModule, string memory tag) public {
-        vm.startBroadcast(MAINNET_ADMIN); // Impersonating admin for safe tx building
+    function updateGuardAndModuleLists( uint256 networkId, string memory tag) public {
+        RumpelGuard rumpelGuard;
+        RumpelModule rumpelModule;
+        if(networkId == 1){
+            vm.startBroadcast(MAINNET_ADMIN); // Impersonating admin for safe tx building
+            rumpelGuard = RumpelGuard(MAINNET_RUMPEL_GUARD);
+            rumpelModule = RumpelModule(MAINNET_RUMPEL_MODULE);
+        } else if (networkId == 999) {
+            vm.startBroadcast(HYPEEVM_ADMIN);
+            rumpelGuard = RumpelGuard(HYPEEVM_RUMPEL_GUARD);
+            rumpelModule = RumpelModule(HYPEEVM_RUMPEL_MODULE);
+        } else {
+            revert ("Unknown ChainId");
+        }
+
         RumpelConfig.updateGuardAllowlist(rumpelGuard, tag);
         RumpelConfig.updateModuleBlocklist(rumpelModule, tag);
         vm.stopBroadcast();

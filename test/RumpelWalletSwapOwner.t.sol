@@ -59,7 +59,7 @@ contract RumpelWalletSwapOwnerTest is Test {
         assertEq(ISafe(safe).getOwners()[0], address(alice));
 
         // Run the script to enable the swapOwner call
-        scripts.updateGuardAndModuleLists(rumpelGuard, rumpelModule, "enable-swap-owner");
+        scripts.updateGuardAndModuleLists(1, "enable-swap-owner");
 
         this._execSafeTx(ISafe(safe), safe, 0, swapOwnerData, Enum.Operation.Call);
 

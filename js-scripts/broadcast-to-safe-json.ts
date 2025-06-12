@@ -5,6 +5,7 @@ import readline from "readline";
 import { TxBuilder } from "@morpho-labs/gnosis-tx-builder";
 
 const RUMPEL_ADMIN_SAFE = "0x9D89745fD63Af482ce93a9AdB8B0BbDbb98D3e06";
+const RUMPEL_ADMIN_SAFE_HYPEREVM = "0x3ffd3d3695Ee8D51A54b46e37bACAa86776A8CDA";
 
 // Function to get user input
 const getUserInput = async (question: string): Promise<string> => {
@@ -23,9 +24,10 @@ const getUserInput = async (question: string): Promise<string> => {
 
 // Function to list JSON files in the dry-run folder
 const listJsonFiles = (dirPath: string): string[] => {
-  return fs.readdirSync(dirPath)
-    .filter(file => file.endsWith('.json'))
-    .map(file => path.join(dirPath, file));
+  return fs
+    .readdirSync(dirPath)
+    .filter((file) => file.endsWith(".json"))
+    .map((file) => path.join(dirPath, file));
 };
 
 // Main function
@@ -37,7 +39,24 @@ async function main() {
     process.exit(1);
   }
 
-  const dryRunPath = process.env.DRYRUN_PATH || path.join(process.cwd(), "..", "broadcast", "RumpelWalletFactory.s.sol", "1", "dry-run");
+  const chainId = Number(process.argv[3]);
+  let rumpelAdminSafe;
+  if (rumpelAdminSafe == 1) {
+    rumpelAdminSafe = RUMPEL_ADMIN_SAFE;
+  } else if (rumpelAdminSafe == 999) {
+    rumpelAdminSafe = RUMPEL_ADMIN_SAFE_HYPEREVM;
+  }
+
+  const dryRunPath =
+    process.env.DRYRUN_PATH ||
+    path.join(
+      process.cwd(),
+      "..",
+      "broadcast",
+      "RumpelWalletFactory.s.sol",
+      chainId.toString(),
+      "dry-run"
+    );
   const jsonFiles = listJsonFiles(dryRunPath);
 
   console.log("Available JSON files:");
@@ -45,7 +64,9 @@ async function main() {
     console.log(`${index + 1}. ${path.basename(file)}`);
   });
 
-  const selection = await getUserInput("Enter the number of the file you want to use: ");
+  const selection = await getUserInput(
+    "Enter the number of the file you want to use: "
+  );
   const selectedFile = jsonFiles[parseInt(selection) - 1];
 
   if (!selectedFile) {
@@ -72,14 +93,18 @@ async function main() {
     console.log(`Data: ${tx.data.slice(0, 50)}...`);
   });
 
-  const confirm = await getUserInput("\nDo you want to proceed with these transactions? (y/n): ");
+  const confirm = await getUserInput(
+    "\nDo you want to proceed with these transactions? (y/n): "
+  );
 
-  if (confirm.toLowerCase() !== 'y') {
+  if (confirm.toLowerCase() !== "y") {
     console.log("Operation cancelled. Exiting.");
     process.exit(0);
   }
 
-  const batchJson = TxBuilder.batch(RUMPEL_ADMIN_SAFE, transactions);
+  const batchJson = TxBuilder.batch(RUMPEL_ADMIN_SAFE, transactions, {
+    chainId: Number(chainId),
+  });
   batchJson.meta.description = tagName;
 
   // Create safe-batches folder one level up from the current working directory if it doesn't exist
