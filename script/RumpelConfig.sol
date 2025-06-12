@@ -93,9 +93,11 @@ library RumpelConfig {
     address public constant MAINNET_CONTANGO_POSITION_NFT = 0xC2462f03920D47fC5B9e2C5F0ba5D2ded058fD78;
     address public constant MAINNET_CONTANGO_MAESTRO = 0x79B2374Bd437D031A4561fac55d62aD3E6516276;
 
+    // HyperEVM Tokens
     address public constant HYPEEVM_HYPERBEAT_VAULT_HYPE = 0x96C6cBB6251Ee1c257b2162ca0f39AA5Fa44B1FB;
     address public constant HYPEEVM_SENTIMENT_POSITION_MANAGER = 0xE019Ce6e80dFe505bca229752A1ad727E14085a4;
     address public constant HYPEEVM_SENTIMENT_POOL = 0x36BFD6b40e2c9BbCfD36a6B1F1Aa65974f4fFA5D;
+    address public constant HYPEEVM_HYPE_SENTIMENT_SUPER_POOL = 0x2831775cb5e64B1D892853893858A261E898FbEb;
 
     // Tokens
     address public constant MAINNET_RSUSDE = 0x82f5104b23FF2FA54C2345F821dAc9369e9E0B26;
@@ -140,6 +142,7 @@ library RumpelConfig {
     address public constant MAINNET_PENDLE = 0x808507121B80c02388fAd14726482e061B8da827;
     address public constant MAINNET_VEPENDLE = 0x4f30A9D41B80ecC5B94306AB4364951AE3170210;
 
+    // HyperEVM Tokens
     address public constant HYPEEVM_WHYPE = 0x5555555555555555555555555555555555555555;
     address public constant HYPEEVM_WSTHYPE = 0x94e8396e0869c9F2200760aF0621aFd240E1CF38;
 
@@ -457,6 +460,8 @@ library RumpelConfig {
             return getFluidVaultsAndYT0603ProtocolConfigs();
         } else if (tagHash == keccak256(bytes("hype-evm-initial-strats"))) {
             return getHypeEVMInitialProtocolConfigs();
+        } else if (tagHash == keccak256(bytes("hype-evm-update-sentiment-super-pool"))) {
+            return getSentimentHypeSuperPoolProtocolConfigs();
         }
 
         revert("Unsupported tag");
@@ -557,6 +562,8 @@ library RumpelConfig {
             return getFluidVaultsAndYT0603TokenConfigs();
         } else if (tagHash == keccak256(bytes("hype-evm-initial-strats"))) {
             return getHypeEVMInitialTokenConfigs();
+        } else if (tagHash == keccak256(bytes("hype-evm-update-sentiment-super-pool"))) {
+            return getSentimentHypeSuperPoolTokenConfigs();
         }
 
         revert("Unsupported tag");
@@ -654,6 +661,8 @@ library RumpelConfig {
             return new TokenModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("hype-evm-initial-strats"))) {
             return getHypeEVMInitialTokenModuleConfigs();
+        } else if (tagHash == keccak256(bytes("hype-evm-update-sentiment-super-pool"))) {
+                        return getHypeEVMInitialTokenModuleConfigs();
         }
 
         revert("Unsupported tag");
@@ -747,6 +756,8 @@ library RumpelConfig {
         } else if (tagHash == keccak256(bytes("fluid-vaults-and-yt-06-03"))) {
             return new ProtocolModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("hype-evm-initial-strats"))) {
+            return new ProtocolModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("hype-evm-update-sentiment-super-pool"))) {
             return new ProtocolModuleConfig[](0);
         }
 
@@ -2922,6 +2933,30 @@ library RumpelConfig {
 
         configs[0] = TokenModuleConfig({token: HYPEEVM_WHYPE, blockTransfer: true, blockApprove: true});
         configs[1] = TokenModuleConfig({token: HYPEEVM_WSTHYPE, blockTransfer: true, blockApprove: true});
+
+        return configs;
+    }
+
+    function getSentimentHypeSuperPoolProtocolConfigs()internal pure returns (ProtocolGuardConfig[] memory){
+        ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](1);
+
+        // sentiment pool muli-token.transfer
+        configs[0] = ProtocolGuardConfig({target: HYPEEVM_SENTIMENT_POOL, selectorStates: new SelectorState[](1)});
+        configs[0].selectorStates[0] =
+            SelectorState({selector: IERC6909.transfer.selector, state: RumpelGuard.AllowListState.OFF});
+
+        return configs;
+    }
+
+    function getSentimentHypeSuperPoolTokenConfigs() internal pure returns (TokenGuardConfig[] memory) {
+        TokenGuardConfig[] memory configs = new TokenGuardConfig[](1);
+
+        configs[0] = TokenGuardConfig({
+            token: HYPEEVM_HYPE_SENTIMENT_SUPER_POOL,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+
 
         return configs;
     }
