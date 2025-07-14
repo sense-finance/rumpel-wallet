@@ -701,7 +701,7 @@ library RumpelConfig {
         } else if (tagHash == keccak256(bytes("hyper-evm-felix"))) {
             return new TokenModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("hyper-evm-kinetiq"))) {
-            return getKinetiqModuleTokenConfigs();
+            return new TokenModuleConfig[](0);
         }
 
         revert("Unsupported tag");
@@ -3242,14 +3242,6 @@ library RumpelConfig {
             transferAllowState: RumpelGuard.AllowListState.ON,
             approveAllowState: RumpelGuard.AllowListState.ON
         });
-
-        return configs;
-    }
-
-    function getKinetiqModuleTokenConfigs() internal pure returns (TokenModuleConfig[] memory) {
-        TokenModuleConfig[] memory configs = new TokenModuleConfig[](1);
-
-        configs[0] = TokenModuleConfig({token: HYPEREVM_KHYPE, blockTransfer: true, blockApprove: true});
 
         return configs;
     }
