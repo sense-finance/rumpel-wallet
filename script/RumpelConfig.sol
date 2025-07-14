@@ -165,6 +165,7 @@ library RumpelConfig {
     address public constant HYPEREVM_UETH = 0xBe6727B535545C67d5cAa73dEa54865B92CF7907;
     address public constant HYPEREVM_USDE = 0x5d3a1Ff2b6BAb83b63cd9AD0787074081a52ef34;
     address public constant HYPEREVM_USDHL = 0xb50A96253aBDF803D85efcDce07Ad8becBc52BD5;
+    address public constant HYPEREVM_KHYPE = 0xfD739d4e423301CE9385c1fb8850539D657C296D;
 
     // Pendle YTs
     address public constant MAINNET_YTEBTC_26DEC2024 = 0xeB993B610b68F2631f70CA1cf4Fe651dB81f368e;
@@ -486,6 +487,8 @@ library RumpelConfig {
             return getHyperbeatExpansionProtocolConfigs();
         } else if (tagHash == keccak256(bytes("hyper-evm-felix"))) {
             return getHyperbeatFelixProtocolConfigs();
+        } else if (tagHash == keccak256(bytes("hyper-evm-kinetiq"))) {
+            return new ProtocolGuardConfig[](0);
         }
 
         revert("Unsupported tag");
@@ -592,6 +595,8 @@ library RumpelConfig {
             return getHyperbeatExpansionTokenConfigs();
         } else if (tagHash == keccak256(bytes("hyper-evm-felix"))) {
             return getHyperbeatFelixTokenConfigs();
+        } else if (tagHash == keccak256(bytes("hyper-evm-kinetiq"))) {
+            return getKinetiqTokenConfigs();
         }
 
         revert("Unsupported tag");
@@ -695,6 +700,8 @@ library RumpelConfig {
             return new TokenModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("hyper-evm-felix"))) {
             return new TokenModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("hyper-evm-kinetiq"))) {
+            return new TokenModuleConfig[](0);
         }
 
         revert("Unsupported tag");
@@ -794,6 +801,8 @@ library RumpelConfig {
         } else if (tagHash == keccak256(bytes("hyperbeat-expansion"))) {
             return new ProtocolModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("hyper-evm-felix"))) {
+            return new ProtocolModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("hyper-evm-kinetiq"))) {
             return new ProtocolModuleConfig[](0);
         }
 
@@ -3218,6 +3227,18 @@ library RumpelConfig {
 
         configs[4] = TokenGuardConfig({
             token: HYPEREVM_USDHL_FELIX_METAMORPHO_VAULT,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.ON
+        });
+
+        return configs;
+    }
+
+    function getKinetiqTokenConfigs() internal pure returns (TokenGuardConfig[] memory) {
+        TokenGuardConfig[] memory configs = new TokenGuardConfig[](1);
+
+        configs[0] = TokenGuardConfig({
+            token: HYPEREVM_KHYPE,
             transferAllowState: RumpelGuard.AllowListState.ON,
             approveAllowState: RumpelGuard.AllowListState.ON
         });
