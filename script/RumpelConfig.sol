@@ -486,6 +486,8 @@ library RumpelConfig {
             return getHyperbeatExpansionProtocolConfigs();
         } else if (tagHash == keccak256(bytes("hyper-evm-felix"))) {
             return getHyperbeatFelixProtocolConfigs();
+        } else if (tagHash == keccak256(bytes("hyperbeat-perm-allow"))) {
+            return getHyperEVMPermAllowHyperbeatProtocolConfig();
         }
 
         revert("Unsupported tag");
@@ -592,6 +594,8 @@ library RumpelConfig {
             return getHyperbeatExpansionTokenConfigs();
         } else if (tagHash == keccak256(bytes("hyper-evm-felix"))) {
             return getHyperbeatFelixTokenConfigs();
+        } else if (tagHash == keccak256(bytes("hyperbeat-perm-allow"))) {
+            return getHyperEVMPermAllowHyperbeatTokenConfigs();
         }
 
         revert("Unsupported tag");
@@ -695,6 +699,8 @@ library RumpelConfig {
             return new TokenModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("hyper-evm-felix"))) {
             return new TokenModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("hyperbeat-perm-allow"))) {
+            return getHyperEVMPermBlockTokenModuleConfigs();
         }
 
         revert("Unsupported tag");
@@ -795,6 +801,8 @@ library RumpelConfig {
             return new ProtocolModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("hyper-evm-felix"))) {
             return new ProtocolModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("hyperbeat-perm-allow"))) {
+            return getHyperEVMPermBlockProtocolModuleConfig();
         }
 
         revert("Unsupported tag");
@@ -3222,6 +3230,198 @@ library RumpelConfig {
             approveAllowState: RumpelGuard.AllowListState.ON
         });
 
+        return configs;
+    }
+
+    function getHyperEVMPermAllowHyperbeatProtocolConfig() internal pure returns (ProtocolGuardConfig[] memory) {
+        ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](7);
+
+        configs[0] = ProtocolGuardConfig({target: HYPEEVM_HYPERBEAT_VAULT_HYPE, selectorStates: new SelectorState[](2)});
+        configs[0].selectorStates[0] =
+            SelectorState({selector: HyperbeatTokenizedAccount.deposit.selector, state: RumpelGuard.AllowListState.PERMANENTLY_ON});
+        configs[0].selectorStates[1] = SelectorState({
+            selector: HyperbeatTokenizedAccount.requestRedeem.selector,
+            state: RumpelGuard.AllowListState.PERMANENTLY_ON
+        });
+
+        configs[1] =
+            ProtocolGuardConfig({target: HYPEREVM_HYPERBEAT_VAULT_UBTC, selectorStates: new SelectorState[](2)});
+        configs[1].selectorStates[0] =
+            SelectorState({selector: HyperbeatTokenizedAccount.deposit.selector, state: RumpelGuard.AllowListState.PERMANENTLY_ON});
+        configs[1].selectorStates[1] = SelectorState({
+            selector: HyperbeatTokenizedAccount.requestRedeem.selector,
+            state: RumpelGuard.AllowListState.PERMANENTLY_ON
+        });
+
+        configs[2] = ProtocolGuardConfig({
+            target: HYPEREVM_HYPERBEAT_VAULT_DEPOSIT_XUAT0,
+            selectorStates: new SelectorState[](1)
+        });
+        configs[2].selectorStates[0] = SelectorState({
+            selector: HyperbeatDepositVault.depositInstant.selector,
+            state: RumpelGuard.AllowListState.PERMANENTLY_ON
+        });
+
+        configs[3] = ProtocolGuardConfig({
+            target: HYPEREVM_HYPERBEAT_VAULT_REDEMPTION_XUAT0,
+            selectorStates: new SelectorState[](2)
+        });
+        configs[3].selectorStates[0] = SelectorState({
+            selector: HyperbeatRedemptionVault.redeemInstant.selector,
+            state: RumpelGuard.AllowListState.PERMANENTLY_ON
+        });
+        configs[3].selectorStates[1] = SelectorState({
+            selector: HyperbeatRedemptionVault.redeemRequest.selector,
+            state: RumpelGuard.AllowListState.PERMANENTLY_ON
+        });
+
+        configs[4] = ProtocolGuardConfig({
+            target: HYPEREVM_HYPERBEAT_GAUNTLET_VAULT_USDT0,
+            selectorStates: new SelectorState[](2)
+        });
+        configs[4].selectorStates[0] =
+            SelectorState({selector: IERC4626.deposit.selector, state: RumpelGuard.AllowListState.PERMANENTLY_ON});
+        configs[4].selectorStates[1] =
+            SelectorState({selector: IERC4626.redeem.selector, state: RumpelGuard.AllowListState.PERMANENTLY_ON});
+
+        configs[5] =
+            ProtocolGuardConfig({target: HYPEREVM_HYPERBEAT_MEV_VAULT_HYPE, selectorStates: new SelectorState[](2)});
+        configs[5].selectorStates[0] =
+            SelectorState({selector: IERC4626.deposit.selector, state: RumpelGuard.AllowListState.PERMANENTLY_ON});
+        configs[5].selectorStates[1] =
+            SelectorState({selector: IERC4626.redeem.selector, state: RumpelGuard.AllowListState.PERMANENTLY_ON});
+
+        configs[6] = ProtocolGuardConfig({
+            target: HYPEREVM_HYPERBEAT_GAUNTLET_VAULT_UETH,
+            selectorStates: new SelectorState[](2)
+        });
+        configs[6].selectorStates[0] =
+            SelectorState({selector: IERC4626.deposit.selector, state: RumpelGuard.AllowListState.PERMANENTLY_ON});
+        configs[6].selectorStates[1] =
+            SelectorState({selector: IERC4626.redeem.selector, state: RumpelGuard.AllowListState.PERMANENTLY_ON});
+
+        return configs;
+    }
+
+    function getHyperEVMPermAllowHyperbeatTokenConfigs() internal pure returns (TokenGuardConfig[] memory) {
+        TokenGuardConfig[] memory configs = new TokenGuardConfig[](12);
+        configs[0] = TokenGuardConfig({
+            token: HYPEEVM_WHYPE,
+            transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
+            approveAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON
+        });
+
+        configs[1] = TokenGuardConfig({
+            token: HYPEEVM_WSTHYPE,
+            transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
+            approveAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON
+        });
+
+        configs[2] = TokenGuardConfig({
+            token: HYPEEVM_HYPERBEAT_VAULT_HYPE,
+            transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
+            approveAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON
+        });
+
+        configs[3] = TokenGuardConfig({
+            token: HYPEREVM_UBTC,
+            transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
+            approveAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON
+        });
+
+        configs[4] = TokenGuardConfig({
+            token: HYPEREVM_HYPERBEAT_VAULT_UBTC,
+            transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
+            approveAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON
+        });
+
+        configs[5] = TokenGuardConfig({
+            token: HYPEREVM_XAUT0,
+            transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
+            approveAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON
+        });
+
+        configs[6] = TokenGuardConfig({
+            token: HYPEREVM_HYPERBEAT_VAULT_XUAT0,
+            transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
+            approveAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON
+        });
+
+        configs[7] = TokenGuardConfig({
+            token: HYPEREVM_USDT0,
+            transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
+            approveAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON
+        });
+
+        configs[8] = TokenGuardConfig({
+            token: HYPEREVM_HYPERBEAT_GAUNTLET_VAULT_USDT0,
+            transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
+            approveAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON
+        });
+
+        configs[9] = TokenGuardConfig({
+            token: HYPEREVM_HYPERBEAT_MEV_VAULT_HYPE,
+            transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
+            approveAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON
+        });
+
+        configs[10] = TokenGuardConfig({
+            token: HYPEREVM_UETH,
+            transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
+            approveAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON
+        });
+
+        configs[11] = TokenGuardConfig({
+            token: HYPEREVM_HYPERBEAT_GAUNTLET_VAULT_UETH,
+            transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
+            approveAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON
+        });
+
+        return configs;
+    }
+
+    function getHyperEVMPermBlockTokenModuleConfigs() internal pure returns (TokenModuleConfig[] memory) {
+        TokenModuleConfig[] memory configs = new TokenModuleConfig[](10);
+
+        configs[0] = TokenModuleConfig({token: HYPEEVM_HYPERBEAT_VAULT_HYPE, blockTransfer: true, blockApprove: true});
+        configs[1] = TokenModuleConfig({token: HYPEREVM_UBTC, blockTransfer: true, blockApprove: true});
+        configs[2] = TokenModuleConfig({token: HYPEREVM_HYPERBEAT_VAULT_UBTC, blockTransfer: true, blockApprove: true});
+        configs[3] = TokenModuleConfig({token: HYPEREVM_XAUT0, blockTransfer: true, blockApprove: true});
+        configs[4] = TokenModuleConfig({token: HYPEREVM_HYPERBEAT_VAULT_XUAT0, blockTransfer: true, blockApprove: true});
+        configs[5] = TokenModuleConfig({token: HYPEREVM_USDT0, blockTransfer: true, blockApprove: true});
+        configs[6] = TokenModuleConfig({token: HYPEREVM_HYPERBEAT_GAUNTLET_VAULT_USDT0, blockTransfer: true, blockApprove: true});
+        configs[7] = TokenModuleConfig({token: HYPEREVM_HYPERBEAT_MEV_VAULT_HYPE, blockTransfer: true, blockApprove: true});
+        configs[8] = TokenModuleConfig({token: HYPEREVM_UETH, blockTransfer: true, blockApprove: true});
+        configs[9] = TokenModuleConfig({token: HYPEREVM_HYPERBEAT_GAUNTLET_VAULT_UETH, blockTransfer: true, blockApprove: true});
+
+        return configs;
+    }
+
+    function getHyperEVMPermBlockProtocolModuleConfig() internal pure returns (ProtocolModuleConfig[] memory) {
+        ProtocolModuleConfig[] memory configs = new ProtocolModuleConfig[](6);
+
+        configs[0] = ProtocolModuleConfig({target: HYPEEVM_HYPERBEAT_VAULT_HYPE, blockedSelectors: new bytes4[](1)});
+        configs[0].blockedSelectors[0] = HyperbeatTokenizedAccount.requestRedeem.selector;
+
+        configs[1] = ProtocolModuleConfig({target: HYPEREVM_HYPERBEAT_VAULT_UBTC, blockedSelectors: new bytes4[](1)});
+        configs[1].blockedSelectors[0] = HyperbeatTokenizedAccount.requestRedeem.selector;
+
+        configs[2] = ProtocolModuleConfig({target: HYPEREVM_HYPERBEAT_VAULT_REDEMPTION_XUAT0, blockedSelectors: new bytes4[](2)});
+        configs[2].blockedSelectors[0] = HyperbeatRedemptionVault.redeemInstant.selector;
+        configs[2].blockedSelectors[1] = HyperbeatRedemptionVault.redeemRequest.selector;
+        
+        configs[3] = ProtocolModuleConfig({target: HYPEREVM_HYPERBEAT_GAUNTLET_VAULT_USDT0, blockedSelectors: new bytes4[](2)});
+        configs[3].blockedSelectors[0] = IERC4626.redeem.selector;
+        configs[3].blockedSelectors[1] = IERC4626.withdraw.selector;
+
+        configs[4] = ProtocolModuleConfig({target: HYPEREVM_HYPERBEAT_MEV_VAULT_HYPE, blockedSelectors: new bytes4[](2)});
+        configs[4].blockedSelectors[0] = IERC4626.redeem.selector;
+        configs[4].blockedSelectors[1] = IERC4626.withdraw.selector;
+
+        configs[5] = ProtocolModuleConfig({target: HYPEREVM_HYPERBEAT_GAUNTLET_VAULT_UETH, blockedSelectors: new bytes4[](2)});
+        configs[5].blockedSelectors[0] = IERC4626.redeem.selector;
+        configs[5].blockedSelectors[1] = IERC4626.withdraw.selector;
+        
         return configs;
     }
 }
