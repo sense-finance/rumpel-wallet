@@ -105,6 +105,9 @@ library RumpelConfig {
     address public constant HYPEEVM_SENTIMENT_POSITION_MANAGER = 0xE019Ce6e80dFe505bca229752A1ad727E14085a4;
     address public constant HYPEEVM_SENTIMENT_POOL = 0x36BFD6b40e2c9BbCfD36a6B1F1Aa65974f4fFA5D;
     address public constant HYPEEVM_HYPE_SENTIMENT_SUPER_POOL = 0x2831775cb5e64B1D892853893858A261E898FbEb;
+    address public constant HYPEEVM_HYPERBEAT_VAULT_LST = 0x81e064d0eB539de7c3170EDF38C1A42CBd752A76;
+    address public constant HYPEEVM_HYPERBEAT_VAULT_DEPOSIT_LST =  0x2b158D44eEbb03a025F75B79F1d8B3004Ac97737;
+    address public constant HYPEEVM_HYPERBEAT_VAULT_REDEMPTION_LST = 0x1eff01e0784ae8d06a17AF29A2300D2A9cdA5440;
 
     // HyperEVM Felix
     address public constant HYPEREVM_WHYPE_FELIX_STABILITY_POOL = 0x576c9c501473e01aE23748de28415a74425eFD6b;
@@ -491,6 +494,8 @@ library RumpelConfig {
             return getHyperEVMPermAllowHyperbeatProtocolConfig();
         } else if (tagHash == keccak256(bytes("hyper-evm-kinetiq"))) {
             return new ProtocolGuardConfig[](0);
+        } else if (tagHash == keccak256(bytes("hyper-evm-kinetiq-hyperbeat-lst"))){
+            return getKinetiqHyperbeatLstProtocolConfigs();
         }
 
         revert("Unsupported tag");
@@ -601,6 +606,8 @@ library RumpelConfig {
             return getHyperEVMPermAllowHyperbeatTokenConfigs();
         } else if (tagHash == keccak256(bytes("hyper-evm-kinetiq"))) {
             return getKinetiqTokenConfigs();
+        } else if (tagHash == keccak256(bytes("hyper-evm-kinetiq-hyperbeat-lst"))){
+            return getKinetiqHyperbeatLstTokenConfigs();
         }
 
         revert("Unsupported tag");
@@ -708,6 +715,8 @@ library RumpelConfig {
             return getHyperEVMPermBlockTokenModuleConfigs();
         } else if (tagHash == keccak256(bytes("hyper-evm-kinetiq"))) {
             return new TokenModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("hyper-evm-kinetiq-hyperbeat-lst"))){
+            return new TokenModuleConfig[](0);
         }
 
         revert("Unsupported tag");
@@ -811,6 +820,8 @@ library RumpelConfig {
         } else if (tagHash == keccak256(bytes("hyperbeat-perm-allow"))) {
             return getHyperEVMPermBlockProtocolModuleConfig();
         } else if (tagHash == keccak256(bytes("hyper-evm-kinetiq"))) {
+            return new ProtocolModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("hyper-evm-kinetiq-hyperbeat-lst"))){
             return new ProtocolModuleConfig[](0);
         }
 
@@ -3439,6 +3450,47 @@ library RumpelConfig {
 
         configs[0] = TokenGuardConfig({
             token: HYPEREVM_KHYPE,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.ON
+        });
+
+        return configs;
+    }
+
+    function getKinetiqHyperbeatLstProtocolConfigs() internal pure returns (ProtocolGuardConfig[] memory) {
+        ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](2);
+
+        configs[0] = ProtocolGuardConfig({
+            target: HYPEEVM_HYPERBEAT_VAULT_DEPOSIT_LST,
+            selectorStates: new SelectorState[](1)
+        });
+        configs[0].selectorStates[0] = SelectorState({
+            selector: HyperbeatDepositVault.depositInstant.selector,
+            state: RumpelGuard.AllowListState.ON
+        });
+
+        configs[1] = ProtocolGuardConfig({
+            target: HYPEEVM_HYPERBEAT_VAULT_REDEMPTION_LST,
+            selectorStates: new SelectorState[](2)
+        });
+        configs[1].selectorStates[0] = SelectorState({
+            selector: HyperbeatRedemptionVault.redeemInstant.selector,
+            state: RumpelGuard.AllowListState.ON
+        });
+        configs[1].selectorStates[1] = SelectorState({
+            selector: HyperbeatRedemptionVault.redeemRequest.selector,
+            state: RumpelGuard.AllowListState.ON
+        });
+
+
+        return configs;
+    }
+
+    function getKinetiqHyperbeatLstTokenConfigs() internal pure returns (TokenGuardConfig[] memory) {
+        TokenGuardConfig[] memory configs = new TokenGuardConfig[](1);
+
+        configs[0] = TokenGuardConfig({
+            token: HYPEEVM_HYPERBEAT_VAULT_LST,
             transferAllowState: RumpelGuard.AllowListState.ON,
             approveAllowState: RumpelGuard.AllowListState.ON
         });
