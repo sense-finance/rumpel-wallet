@@ -3520,7 +3520,7 @@ library RumpelConfig {
         configs[0].selectorStates[0] =
             SelectorState({selector: IStandardizedYield.redeem.selector, state: RumpelGuard.AllowListState.ON});
 
-        configs[1] = ProtocolGuardConfig({target: MAINNET_FLUID_VAULT_DEX_GHO_USDE_GHO, selectorStates: new SelectorState[](1)});
+        configs[1] = ProtocolGuardConfig({target: MAINNET_FLUID_VAULT_DEX_GHO_USDE_DEX_GHO, selectorStates: new SelectorState[](1)});
         configs[1].selectorStates[0] =
             SelectorState({selector: IFluidVaultT2.operate.selector, state: RumpelGuard.AllowListState.ON});
             
