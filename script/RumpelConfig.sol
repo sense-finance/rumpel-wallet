@@ -84,8 +84,8 @@ library RumpelConfig {
     address public constant MAINNET_FLUID_VAULT_DEX_GHO_SUSDE_DEX_GHO_USDC = 0x0a90ED6964f6bA56902fD35EE11857A810Dd5543; // GHO smart debt/collateral
     address public constant MAINNET_FLUID_VAULT_DEX_SUSDE_USDT_DEX_USDC_USDT =
         0x91D5884a57E4A3718654B462B32cC628b2c6A39A; // sUSDe smart debt/collateral
-    address public constant MAINNET_FLUID_VAULT_DEX_GHO_USDC_GHO = 0x4095a3A8efe779D283102377669778900212D856; // GHO-USDC/GHO
     address public constant MAINNET_FLUID_VAULT_DEX_USDE_USDT_DEX_USDC_USDT = 0x4B5fa15996C2E23b35E64f0ca62d30c4945E53Cb; // USDe smart debt/collateral
+    address public constant MAINNET_FLUID_VAULT_DEX_GHO_USDE_DEX_GHO = 0x4095a3A8efe779D283102377669778900212D856; // GHO-USDE/GHO
     address public constant MAINNET_FLUID_MERKLE_DISTRIBUTOR = 0xD833484b198D3d05707832cc1C2D62b520D95B8A;
     address public constant MAINNET_FLUID_TOKEN = 0x6f40d4A6237C257fff2dB00FA0510DeEECd303eb;
 
@@ -3520,7 +3520,7 @@ library RumpelConfig {
         configs[0].selectorStates[0] =
             SelectorState({selector: IStandardizedYield.redeem.selector, state: RumpelGuard.AllowListState.ON});
 
-        configs[1] = ProtocolGuardConfig({target: MAINNET_FLUID_VAULT_DEX_GHO_USDC_GHO, selectorStates: new SelectorState[](1)});
+        configs[1] = ProtocolGuardConfig({target: MAINNET_FLUID_VAULT_DEX_GHO_USDE_GHO, selectorStates: new SelectorState[](1)});
         configs[1].selectorStates[0] =
             SelectorState({selector: IFluidVaultT2.operate.selector, state: RumpelGuard.AllowListState.ON});
             
