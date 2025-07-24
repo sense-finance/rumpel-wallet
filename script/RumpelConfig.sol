@@ -109,6 +109,10 @@ library RumpelConfig {
     address public constant HYPEEVM_HYPERBEAT_VAULT_LST = 0x81e064d0eB539de7c3170EDF38C1A42CBd752A76;
     address public constant HYPEEVM_HYPERBEAT_VAULT_DEPOSIT_LST =  0x2b158D44eEbb03a025F75B79F1d8B3004Ac97737;
     address public constant HYPEEVM_HYPERBEAT_VAULT_REDEMPTION_LST = 0x1eff01e0784ae8d06a17AF29A2300D2A9cdA5440;
+    address public constant HYPEEVM_HYPERBEAT_VAULT_DEPOSIT_BEHYPE = 0xF538675D292d8b372712f44eaf306Cc66cF6d8DC;
+    address public constant HYPEEVM_HYPERBEAT_VAULT_DEPOSIT_ADAPTER_BEHYPE =  0xf8deEFa84b87b9702474b2D198bb8d21FA03Cd2D;
+    address public constant HYPEEVM_HYPERBEAT_VAULT_REDEMPTION_BEHYPE =  0x558806a80b42cAB4ED75c74bfB178EDc9087AA32;
+    address public constant HYPEEVM_HYPERBEAT_VAULT_BEHYPE =  0x441794D6a8F9A3739F5D4E98a728937b33489D29;
 
     // HyperEVM Felix
     address public constant HYPEREVM_WHYPE_FELIX_STABILITY_POOL = 0x576c9c501473e01aE23748de28415a74425eFD6b;
@@ -504,6 +508,8 @@ library RumpelConfig {
             return getKinetiqHyperbeatLstProtocolConfigs();
         } else if (tagHash == keccak256(bytes("ethereum-ethena-expansion-jul-25"))){
             return getEthereumEthenaExpansionJul25ProtocolConfigs();
+        } else if (tagHash == keccak256(bytes("hyper-evm-hyperbeat-behype"))){
+            return getHyperevmHyperbeatBeHYPEProtocolConfigs();
         }
 
         revert("Unsupported tag");
@@ -618,6 +624,8 @@ library RumpelConfig {
             return getKinetiqHyperbeatLstTokenConfigs();
         } else if (tagHash == keccak256(bytes("ethereum-ethena-expansion-jul-25"))){
             return getEthereumEthenaExpansionJul25TokenConfigs();
+        } else if (tagHash == keccak256(bytes("hyper-evm-hyperbeat-behype"))){
+            return getHyperevmHyperbeatBeHYPETokenConfigs();
         }
 
         revert("Unsupported tag");
@@ -729,6 +737,8 @@ library RumpelConfig {
             return new TokenModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("ethereum-ethena-expansion-jul-25"))){
             return new TokenModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("hyper-evm-hyperbeat-behype"))){
+            return new TokenModuleConfig[](0);
         }
 
         revert("Unsupported tag");
@@ -836,6 +846,8 @@ library RumpelConfig {
         } else if (tagHash == keccak256(bytes("hyper-evm-kinetiq-hyperbeat-lst"))){
             return new ProtocolModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("ethereum-ethena-expansion-jul-25"))){
+            return new ProtocolModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("hyper-evm-hyperbeat-behype"))){
             return new ProtocolModuleConfig[](0);
         }
 
@@ -3553,12 +3565,63 @@ library RumpelConfig {
         
         configs[4] = TokenGuardConfig({
             token: MAINNET_PENDLE_LP_SUSDE_24SEP2025,
+                        transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.ON
+        });
+
+        return configs;
+    }
+
+    function getHyperevmHyperbeatBeHYPEProtocolConfigs()  internal pure returns (ProtocolGuardConfig[] memory) {
+        ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](3);
+
+        configs[0] = ProtocolGuardConfig({
+            target: HYPEEVM_HYPERBEAT_VAULT_DEPOSIT_BEHYPE,
+            selectorStates: new SelectorState[](1)
+        });
+        configs[0].selectorStates[0] = SelectorState({
+            selector: HyperbeatDepositVault.depositInstant.selector,
+            state: RumpelGuard.AllowListState.ON
+        });
+
+        configs[1] = ProtocolGuardConfig({
+            target: HYPEEVM_HYPERBEAT_VAULT_DEPOSIT_ADAPTER_BEHYPE,
+            selectorStates: new SelectorState[](1)
+        });
+        configs[1].selectorStates[0] = SelectorState({
+            selector: HyperbeatDepositAdapter.depositInstantWithHype.selector,
+            state: RumpelGuard.AllowListState.ON
+        });
+
+        configs[2] = ProtocolGuardConfig({
+            target: HYPEEVM_HYPERBEAT_VAULT_REDEMPTION_BEHYPE,
+            selectorStates: new SelectorState[](2)
+        });
+        configs[2].selectorStates[0] = SelectorState({
+            selector: HyperbeatRedemptionVault.redeemInstant.selector,
+            state: RumpelGuard.AllowListState.ON
+        });
+        configs[2].selectorStates[1] = SelectorState({
+            selector: HyperbeatRedemptionVault.redeemRequest.selector,
+            state: RumpelGuard.AllowListState.ON
+        });
+
+        return configs;
+    }
+
+
+    function getHyperevmHyperbeatBeHYPETokenConfigs() internal pure returns (TokenGuardConfig[] memory) {
+        TokenGuardConfig[] memory configs = new TokenGuardConfig[](1);
+
+        configs[0] = TokenGuardConfig({
+            token: HYPEEVM_HYPERBEAT_VAULT_BEHYPE,
             transferAllowState: RumpelGuard.AllowListState.ON,
             approveAllowState: RumpelGuard.AllowListState.ON
         });
 
         return configs;
     }
+
 
 }
 
@@ -4036,4 +4099,13 @@ interface LiquityStabilityPool {
     // Sends all stashed collateral gains to the caller and zeros their stashed balance.
     // Used only when the caller has no current deposit yet has stashed collateral gains from the past.
     function claimAllCollGains() external;
+}
+
+interface HyperbeatDepositAdapter {
+    function depositInstantWithHype(
+        address tokenIn, 
+        uint256 amountToken, 
+        uint256 minReceiveAmount, 
+        bytes32 referrerId
+    ) external payable returns (uint256);
 }
