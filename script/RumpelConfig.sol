@@ -85,6 +85,7 @@ library RumpelConfig {
     address public constant MAINNET_FLUID_VAULT_DEX_SUSDE_USDT_DEX_USDC_USDT =
         0x91D5884a57E4A3718654B462B32cC628b2c6A39A; // sUSDe smart debt/collateral
     address public constant MAINNET_FLUID_VAULT_DEX_USDE_USDT_DEX_USDC_USDT = 0x4B5fa15996C2E23b35E64f0ca62d30c4945E53Cb; // USDe smart debt/collateral
+    address public constant MAINNET_FLUID_VAULT_DEX_GHO_USDE_DEX_GHO = 0x4095a3A8efe779D283102377669778900212D856; // GHO-USDE/GHO
     address public constant MAINNET_FLUID_MERKLE_DISTRIBUTOR = 0xD833484b198D3d05707832cc1C2D62b520D95B8A;
     address public constant MAINNET_FLUID_TOKEN = 0x6f40d4A6237C257fff2dB00FA0510DeEECd303eb;
 
@@ -108,7 +109,6 @@ library RumpelConfig {
     address public constant HYPEEVM_HYPERBEAT_VAULT_LST = 0x81e064d0eB539de7c3170EDF38C1A42CBd752A76;
     address public constant HYPEEVM_HYPERBEAT_VAULT_DEPOSIT_LST =  0x2b158D44eEbb03a025F75B79F1d8B3004Ac97737;
     address public constant HYPEEVM_HYPERBEAT_VAULT_REDEMPTION_LST = 0x1eff01e0784ae8d06a17AF29A2300D2A9cdA5440;
-
     address public constant HYPEEVM_HYPERBEAT_VAULT_DEPOSIT_BEHYPE = 0xF538675D292d8b372712f44eaf306Cc66cF6d8DC;
     address public constant HYPEEVM_HYPERBEAT_VAULT_DEPOSIT_ADAPTER_BEHYPE =  0xf8deEFa84b87b9702474b2D198bb8d21FA03Cd2D;
     address public constant HYPEEVM_HYPERBEAT_VAULT_REDEMPTION_BEHYPE =  0x558806a80b42cAB4ED75c74bfB178EDc9087AA32;
@@ -205,6 +205,8 @@ library RumpelConfig {
     address public constant MAINNET_YT_WEETHK_25JUNE2025 = 0x03722CE19e9F5828969D39474a8EfC35c4eA3987;
     address public constant MAINNET_YT_AGETH_25JUNE2025 = 0x0310A860CF7Efe8F54Ab9B4dE49Cd071C37fCBCB;
     address public constant MAINNET_PENDLE_YT_USDE_27MAR2025 = 0x4A8036EFA1307F1cA82d932C0895faa18dB0c9eE;
+    address public constant MAINNET_YT_USDE_24SEP2025 = 0x48bbbEdc4d2491cc08915D7a5c7cc8A8EdF165da;
+    address public constant MAINNET_YT_SUSDE_24SEP2025 = 0x029d6247ADb0A57138c62E3019C92d3dfC9c1840;
 
     // Pendle LPs
     address public constant MAINNET_PENDLE_LP_WSTUSR_24SEP2025 = 0x09fA04Aac9c6d1c6131352EE950CD67ecC6d4fB9;
@@ -216,6 +218,8 @@ library RumpelConfig {
     address public constant MAINNET_PENDLE_LP_EBTC_25JUNE2025 = 0x523f9441853467477b4dDE653c554942f8E17162;
     address public constant MAINNET_PENDLE_LP_AGETH_25JUNE2025 = 0xBe8549a20257917a0a9EF8911DAF18190A8842a4;
     address public constant MAINNET_PENDLE_LP_LVLUSD_24SEP2025 = 0x461bc2ac3f80801BC11B0F20d63B73feF60C8076;
+    address public constant MAINNET_PENDLE_LP_USDE_24SEP2025 = 0x6d98a2b6CDbF44939362a3E99793339Ba2016aF4;
+    address public constant MAINNET_PENDLE_LP_SUSDE_24SEP2025 = 0xA36b60A14A1A5247912584768C6e53E1a269a9F7;
 
     address public constant MAINNET_AMPHRETH = 0x5fD13359Ba15A84B76f7F87568309040176167cd;
     address public constant MAINNET_SYMBIOTIC_LBTC = 0x9C0823D3A1172F9DdF672d438dec79c39a64f448;
@@ -273,6 +277,7 @@ library RumpelConfig {
     address public constant MAINNET_SY_EETH_25JUNE2025 = 0xAC0047886a985071476a1186bE89222659970d65;
     address public constant MAINNET_SY_WEETHK_25JUNE2025 = 0xffC374D301F2EA381EE313Da0324ea7bf0dbFddF;
     address public constant MAINNET_SY_AGETH_25JUN2025 = 0xb1B9150f2085f6a553b547099977181CA802752A;
+    address public constant MAINNET_SY_SUSDE_24SEP2025 = 0xC01cde799245a25e6EabC550b36A47F6F83cc0f1;
 
     // Additional Reward Assets
     address public constant MAINNET_LRT2 = 0x8F08B70456eb22f6109F57b8fafE862ED28E6040;
@@ -501,6 +506,8 @@ library RumpelConfig {
             return new ProtocolGuardConfig[](0);
         } else if (tagHash == keccak256(bytes("hyper-evm-kinetiq-hyperbeat-lst"))){
             return getKinetiqHyperbeatLstProtocolConfigs();
+        } else if (tagHash == keccak256(bytes("ethereum-ethena-expansion-jul-25"))){
+            return getEthereumEthenaExpansionJul25ProtocolConfigs();
         } else if (tagHash == keccak256(bytes("hyper-evm-hyperbeat-behype"))){
             return getHyperevmHyperbeatBeHYPEProtocolConfigs();
         }
@@ -615,6 +622,8 @@ library RumpelConfig {
             return getKinetiqTokenConfigs();
         } else if (tagHash == keccak256(bytes("hyper-evm-kinetiq-hyperbeat-lst"))){
             return getKinetiqHyperbeatLstTokenConfigs();
+        } else if (tagHash == keccak256(bytes("ethereum-ethena-expansion-jul-25"))){
+            return getEthereumEthenaExpansionJul25TokenConfigs();
         } else if (tagHash == keccak256(bytes("hyper-evm-hyperbeat-behype"))){
             return getHyperevmHyperbeatBeHYPETokenConfigs();
         }
@@ -726,6 +735,8 @@ library RumpelConfig {
             return new TokenModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("hyper-evm-kinetiq-hyperbeat-lst"))){
             return new TokenModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("ethereum-ethena-expansion-jul-25"))){
+            return new TokenModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("hyper-evm-hyperbeat-behype"))){
             return new TokenModuleConfig[](0);
         }
@@ -834,12 +845,15 @@ library RumpelConfig {
             return new ProtocolModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("hyper-evm-kinetiq-hyperbeat-lst"))){
             return new ProtocolModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("ethereum-ethena-expansion-jul-25"))){
+            return new ProtocolModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("hyper-evm-hyperbeat-behype"))){
             return new ProtocolModuleConfig[](0);
         }
 
         revert("Unsupported tag");
     }
+    
 
     // Initial ----
     function getInitialGuardProtocolConfigs() internal pure returns (ProtocolGuardConfig[] memory) {
@@ -3505,6 +3519,53 @@ library RumpelConfig {
         configs[0] = TokenGuardConfig({
             token: HYPEEVM_HYPERBEAT_VAULT_LST,
             transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.ON
+        });
+
+        return configs;
+    }
+    
+    function getEthereumEthenaExpansionJul25ProtocolConfigs() internal pure returns (ProtocolGuardConfig[] memory) {
+        ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](2);
+
+        configs[0] = ProtocolGuardConfig({target: MAINNET_SY_SUSDE_24SEP2025, selectorStates: new SelectorState[](1)});
+        configs[0].selectorStates[0] =
+            SelectorState({selector: IStandardizedYield.redeem.selector, state: RumpelGuard.AllowListState.ON});
+
+        configs[1] = ProtocolGuardConfig({target: MAINNET_FLUID_VAULT_DEX_GHO_USDE_DEX_GHO, selectorStates: new SelectorState[](1)});
+        configs[1].selectorStates[0] =
+            SelectorState({selector: IFluidVaultT2.operate.selector, state: RumpelGuard.AllowListState.ON});
+            
+        return configs;
+    }
+
+    function getEthereumEthenaExpansionJul25TokenConfigs() internal pure returns (TokenGuardConfig[] memory) {
+        TokenGuardConfig[] memory configs = new TokenGuardConfig[](5);
+
+        configs[0] = TokenGuardConfig({
+            token: MAINNET_YT_USDE_24SEP2025,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+        configs[1] = TokenGuardConfig({
+            token: MAINNET_YT_SUSDE_24SEP2025,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+        configs[2] = TokenGuardConfig({
+            token: MAINNET_SY_SUSDE_24SEP2025,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.ON
+        });
+        configs[3] = TokenGuardConfig({
+            token: MAINNET_PENDLE_LP_USDE_24SEP2025,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.ON
+        });
+        
+        configs[4] = TokenGuardConfig({
+            token: MAINNET_PENDLE_LP_SUSDE_24SEP2025,
+                        transferAllowState: RumpelGuard.AllowListState.ON,
             approveAllowState: RumpelGuard.AllowListState.ON
         });
 
