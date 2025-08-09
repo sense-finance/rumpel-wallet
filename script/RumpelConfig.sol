@@ -116,7 +116,7 @@ library RumpelConfig {
     address public constant HYPEREVM_HYPERBEAT_VAULT_USDT = 0x5e105266db42f78FA814322Bce7f388B4C2e61eb;
     address public constant HYPEREVM_HYPERBEAT_VAULT_DEPOSIT_USDT = 0xbE8A4f1a312b94A712F8E5367B02ae6E378E6F19;
     address public constant HYPEREVM_HYPERBEAT_VAULT_REDEMPTION_USDT = 0xC898a5cbDb81F260bd5306D9F9B9A893D0FdF042;
-    address public constant HYPEREVM_HYPERBEAT_BORROW_HBHYPE_WHYPE = 0x68e37dE8d93d3496ae143F2E900490f6280C57cD; 
+    address public constant HYPEREVM_HYPERBEAT_BORROW = 0x68e37dE8d93d3496ae143F2E900490f6280C57cD; 
     address public constant HYPEREVM_KINETIQ_EARN_VAULT = 0x9BA2EDc44E0A4632EB4723E81d4142353e1bB160;
     address public constant HYPEREVM_KINETIQ_EARN_VAULT_DEPOSIT = 0x29C0C36eD3788F1549b6a1fd78F40c51F0f73158;
     address public constant HYPEREVM_KINETIQ_EARN_WITHDRAW_QUEUE = 0x08a9552688F8DEC4835f5396ca3D1fd2713f79A7;
@@ -3655,7 +3655,7 @@ library RumpelConfig {
 
         // hyperbeat borrow hbHYPE-whype
         configs[0] = ProtocolGuardConfig({
-            target: HYPEREVM_HYPERBEAT_BORROW_HBHYPE_WHYPE,
+            target: HYPEREVM_HYPERBEAT_BORROW,
             selectorStates: new SelectorState[](4)
         });
         configs[0].selectorStates[0] = SelectorState({
