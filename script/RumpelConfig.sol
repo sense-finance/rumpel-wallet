@@ -113,6 +113,26 @@ library RumpelConfig {
     address public constant HYPEEVM_HYPERBEAT_VAULT_DEPOSIT_ADAPTER_BEHYPE =  0xf8deEFa84b87b9702474b2D198bb8d21FA03Cd2D;
     address public constant HYPEEVM_HYPERBEAT_VAULT_REDEMPTION_BEHYPE =  0x558806a80b42cAB4ED75c74bfB178EDc9087AA32;
     address public constant HYPEEVM_HYPERBEAT_VAULT_BEHYPE =  0x441794D6a8F9A3739F5D4E98a728937b33489D29;
+    address public constant HYPEREVM_HYPERBEAT_VAULT_USDT = 0x5e105266db42f78FA814322Bce7f388B4C2e61eb;
+    address public constant HYPEREVM_HYPERBEAT_VAULT_DEPOSIT_USDT = 0xbE8A4f1a312b94A712F8E5367B02ae6E378E6F19;
+    address public constant HYPEREVM_HYPERBEAT_VAULT_REDEMPTION_USDT = 0xC898a5cbDb81F260bd5306D9F9B9A893D0FdF042;
+    address public constant HYPEREVM_HYPERBEAT_BORROW_HBHYPE_WHYPE = 0x68e37dE8d93d3496ae143F2E900490f6280C57cD; 
+    address public constant HYPEREVM_KINETIQ_EARN_VAULT = 0x9BA2EDc44E0A4632EB4723E81d4142353e1bB160;
+    address public constant HYPEREVM_KINETIQ_EARN_VAULT_DEPOSIT = 0x29C0C36eD3788F1549b6a1fd78F40c51F0f73158;
+    address public constant HYPEREVM_KINETIQ_EARN_WITHDRAW_QUEUE = 0x08a9552688F8DEC4835f5396ca3D1fd2713f79A7;
+
+    // HyperEVM Pendle-YTs
+    address public constant HYPEREVM_PENDLE_YT_BEHYPE_29OCT2025 = 0x8F454bFe03527E8a838002b5Bf7BFE5F296Aac09;
+    address public constant HYPEREVM_PENDLE_YT_HBHYPE_17DEC2025 = 0x2b55b35d9bE63d016eE902d87AF29D2C4F397Dc1;
+    address public constant HYPEREVM_PENDLE_YT_HBUSDT_17DEC2025 = 0x47dD54DFa68172E3354e3cBA2F59521d3dc9D9C7;
+    address public constant HYPEREVM_PENDLE_YT_KHYPE_12NOV2025 = 0x3f6583Ad479AB6020297ce12c9059D7480Ab6E5A;
+
+    // HyperEVM Pendle-SYs
+    address public constant HYPEREVM_PENDLE_ROUTERV4 = 0x888888888889758F76e7103c6CbF23ABbF58F946; // 0x0741a803 --> claim header
+    address public constant HYPEREVM_PENDLE_SY_BEHYPE_29OCT2025 = 0x41D81Daf401a0AA7422a769243fa933f351a0D64;
+    address public constant HYPEREVM_PENDLE_SY_HBHYPE_17DEC2025 = 0x0FcDe5a369c0D71ac932840C8654DB03681912Dd;
+    address public constant HYPEREVM_PENDLE_SY_HBUSDT_17DEC2025 = 0x642135Ff98C15cBA7fCF1766502bd493BE4D3492;
+    address public constant HYPEREVM_PENDLE_SY_KHYPE_12NOV2025 = 0x57FC55dFF8CeCa86EE94a6bF255af2f0ED90eB9e;
 
     // HyperEVM Felix
     address public constant HYPEREVM_WHYPE_FELIX_STABILITY_POOL = 0x576c9c501473e01aE23748de28415a74425eFD6b;
@@ -510,6 +530,8 @@ library RumpelConfig {
             return getEthereumEthenaExpansionJul25ProtocolConfigs();
         } else if (tagHash == keccak256(bytes("hyper-evm-hyperbeat-behype"))){
             return getHyperevmHyperbeatBeHYPEProtocolConfigs();
+        } else if (tagHash == keccak256(bytes("hyper-evm-hyperbeat-borrow-hbHYPE-and-more-aug25"))){
+            return getHyperevmHyperbeatBorrowAndMoreAug25ProtocolConfigs();
         }
 
         revert("Unsupported tag");
@@ -626,6 +648,8 @@ library RumpelConfig {
             return getEthereumEthenaExpansionJul25TokenConfigs();
         } else if (tagHash == keccak256(bytes("hyper-evm-hyperbeat-behype"))){
             return getHyperevmHyperbeatBeHYPETokenConfigs();
+        } else if (tagHash == keccak256(bytes("hyper-evm-hyperbeat-borrow-hbHYPE-and-more-aug25"))){
+            return getHyperevmHyperbeatBorrowAndMoreAug25TokenConfigs();
         }
 
         revert("Unsupported tag");
@@ -739,6 +763,8 @@ library RumpelConfig {
             return new TokenModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("hyper-evm-hyperbeat-behype"))){
             return new TokenModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("hyper-evm-hyperbeat-borrow-hbHYPE-and-more-aug25"))){
+            return new TokenModuleConfig[](0);
         }
 
         revert("Unsupported tag");
@@ -848,6 +874,8 @@ library RumpelConfig {
         } else if (tagHash == keccak256(bytes("ethereum-ethena-expansion-jul-25"))){
             return new ProtocolModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("hyper-evm-hyperbeat-behype"))){
+            return new ProtocolModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("hyper-evm-hyperbeat-borrow-hbHYPE-and-more-aug25"))){
             return new ProtocolModuleConfig[](0);
         }
 
@@ -3622,6 +3650,185 @@ library RumpelConfig {
         return configs;
     }
 
+    // address public constant HYPEREVM_HYPERBEAT_VAULT_USDT = 0x5e105266db42f78FA814322Bce7f388B4C2e61eb;
+    // address public constant HYPEREVM_HYPERBEAT_VAULT_DEPOSIT_USDT = 0xbE8A4f1a312b94A712F8E5367B02ae6E378E6F19;
+    // address public constant HYPEREVM_HYPERBEAT_VAULT_REDEMPTION_USDT = 0xC898a5cbDb81F260bd5306D9F9B9A893D0FdF042;
+
+    // address public constant HYPEREVM_HYPERBEAT_BORROW_HBHYPE_WHYPE = 0x68e37dE8d93d3496ae143F2E900490f6280C57cD;
+    // address public constant HYPEREVM_KINETIQ_EARN_VAULT = 0x29C0C36eD3788F1549b6a1fd78F40c51F0f73158;
+
+    // // HyperEVM Pendle-YTs
+    // address public constant HYPEREVM_PENDLE_YT_BEHYPE_29OCT2025 = 0x8F454bFe03527E8a838002b5Bf7BFE5F296Aac09;
+    // address public constant HYPEREVM_PENDLE_YT_HBHYPE_17DEC2025 = 0x2b55b35d9bE63d016eE902d87AF29D2C4F397Dc1;
+    // address public constant HYPEREVM_PENDLE_YT_HBUSDT_17DEC2025 = 0x47dD54DFa68172E3354e3cBA2F59521d3dc9D9C7;
+    // address public constant HYPEREVM_PENDLE_YT_KHYPE_12NOV2025 = 0x3f6583Ad479AB6020297ce12c9059D7480Ab6E5A;
+
+
+
+    // // HyperEVM Pendle-SYs
+    // address public constant HYPEREVM_PENDLE_ROUTERV4 = 0x888888888889758F76e7103c6CbF23ABbF58F946; // 0x0741a803 --> claim header
+    // address public constant HYPEREVM_PENDLE_SY_BEHYPE_29OCT2025 = 0x41D81Daf401a0AA7422a769243fa933f351a0D64;
+    // address public constant HYPEREVM_PENDLE_SY_HBHYPE_17DEC2025 = 0x0FcDe5a369c0D71ac932840C8654DB03681912Dd;
+    // address public constant HYPEREVM_PENDLE_SY_HBUSDT_17DEC2025 = 0x642135Ff98C15cBA7fCF1766502bd493BE4D3492;
+    // address public constant HYPEREVM_PENDLE_SY_KHYPE_12NOV2025 = 0x57FC55dFF8CeCa86EE94a6bF255af2f0ED90eB9e;
+
+    function getHyperevmHyperbeatBorrowAndMoreAug25ProtocolConfigs() internal pure returns (ProtocolGuardConfig[] memory) {
+        ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](10);
+
+        // hyperbeat borrow hbHYPE-whype
+        configs[0] = ProtocolGuardConfig({
+            target: HYPEREVM_HYPERBEAT_BORROW_HBHYPE_WHYPE,
+            selectorStates: new SelectorState[](4)
+        });
+        configs[0].selectorStates[0] = SelectorState({
+            selector: IMorphoBase.supplyCollateral.selector,
+            state: RumpelGuard.AllowListState.ON
+        });
+        configs[0].selectorStates[1] = SelectorState({
+            selector: IMorphoBase.borrow.selector,
+            state: RumpelGuard.AllowListState.ON
+        });
+        configs[0].selectorStates[2] = SelectorState({
+            selector: IMorphoBase.repay.selector,
+            state: RumpelGuard.AllowListState.ON
+        });
+        configs[0].selectorStates[3] = SelectorState({
+            selector: IMorphoBase.withdrawCollateral.selector,
+            state: RumpelGuard.AllowListState.ON
+        });
+
+        // kinetiq earn vault
+        configs[1] = ProtocolGuardConfig({
+            target: HYPEREVM_KINETIQ_EARN_VAULT_DEPOSIT,
+            selectorStates: new SelectorState[](1)
+        });
+        configs[1].selectorStates[0] = SelectorState({
+            selector: TellWithMultiAssetSupport.deposit.selector,
+            state: RumpelGuard.AllowListState.ON
+        });
+
+        configs[2] = ProtocolGuardConfig({
+            target: HYPEREVM_KINETIQ_EARN_WITHDRAW_QUEUE,
+            selectorStates: new SelectorState[](1)
+        });
+        configs[2].selectorStates[0] = SelectorState({
+            selector: BoringOnChainQueue.requestOnChainWithdraw.selector,
+            state: RumpelGuard.AllowListState.ON
+        });
+
+        // pendle strats
+        configs[3] = ProtocolGuardConfig({target: HYPEREVM_PENDLE_ROUTERV4, selectorStates: new SelectorState[](2)});
+        configs[3].selectorStates[0] =
+            SelectorState({selector: IPendleRouterV4.redeemDueInterestAndRewardsV2.selector, state: RumpelGuard.AllowListState.ON});
+
+        configs[4] = ProtocolGuardConfig({target: HYPEREVM_PENDLE_SY_BEHYPE_29OCT2025, selectorStates: new SelectorState[](1)});
+        configs[4].selectorStates[0] =
+            SelectorState({selector: IStandardizedYield.redeem.selector, state: RumpelGuard.AllowListState.ON});
+
+        configs[5] = ProtocolGuardConfig({target: HYPEREVM_PENDLE_SY_HBHYPE_17DEC2025, selectorStates: new SelectorState[](1)});
+        configs[5].selectorStates[0] =
+            SelectorState({selector: IStandardizedYield.redeem.selector, state: RumpelGuard.AllowListState.ON});
+
+        configs[6] = ProtocolGuardConfig({target: HYPEREVM_PENDLE_SY_HBUSDT_17DEC2025, selectorStates: new SelectorState[](1)});
+        configs[6].selectorStates[0] =
+            SelectorState({selector: IStandardizedYield.redeem.selector, state: RumpelGuard.AllowListState.ON});
+
+        configs[7] = ProtocolGuardConfig({target: HYPEREVM_PENDLE_SY_KHYPE_12NOV2025, selectorStates: new SelectorState[](1)});
+        configs[7].selectorStates[0] =
+            SelectorState({selector: IStandardizedYield.redeem.selector, state: RumpelGuard.AllowListState.ON});
+
+        // hyperbeat usdt vault
+        configs[8] = ProtocolGuardConfig({
+            target: HYPEREVM_HYPERBEAT_VAULT_DEPOSIT_USDT,
+            selectorStates: new SelectorState[](1)
+        });
+        configs[8].selectorStates[0] = SelectorState({
+            selector: HyperbeatDepositVault.depositInstant.selector,
+            state: RumpelGuard.AllowListState.ON
+        });
+        configs[9] = ProtocolGuardConfig({
+            target: HYPEREVM_HYPERBEAT_VAULT_REDEMPTION_USDT,
+            selectorStates: new SelectorState[](2)
+        });
+        configs[9].selectorStates[0] = SelectorState({
+            selector: HyperbeatRedemptionVault.redeemInstant.selector,
+            state: RumpelGuard.AllowListState.ON
+        });
+        configs[9].selectorStates[1] = SelectorState({
+            selector: HyperbeatRedemptionVault.redeemRequest.selector,
+            state: RumpelGuard.AllowListState.ON
+        });
+
+        return configs;
+    }
+    
+    function getHyperevmHyperbeatBorrowAndMoreAug25TokenConfigs() internal pure returns (TokenGuardConfig[] memory) {
+        TokenGuardConfig[] memory configs = new TokenGuardConfig[](10);
+
+        // hyperbeat borrow hbHYPE-whype - hbHYPE already approved
+        // intentionally no approvals
+
+        // kinetiq earn vault
+        configs[0] = TokenGuardConfig({
+            token: HYPEREVM_KINETIQ_EARN_VAULT,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.ON
+        });
+
+        // YTs
+        configs[1] = TokenGuardConfig({
+            token: HYPEREVM_PENDLE_YT_BEHYPE_29OCT2025,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+        configs[2] = TokenGuardConfig({
+            token: HYPEREVM_PENDLE_YT_HBHYPE_17DEC2025,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+        configs[3] = TokenGuardConfig({
+            token: HYPEREVM_PENDLE_YT_HBUSDT_17DEC2025,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+        configs[4] = TokenGuardConfig({
+            token: HYPEREVM_PENDLE_YT_KHYPE_12NOV2025,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+
+        // SYs
+        configs[5] = TokenGuardConfig({
+            token: HYPEREVM_PENDLE_SY_BEHYPE_29OCT2025,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.ON
+        });
+        configs[6] = TokenGuardConfig({
+            token: HYPEREVM_PENDLE_SY_HBHYPE_17DEC2025,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.ON
+        });
+        configs[7] = TokenGuardConfig({
+            token: HYPEREVM_PENDLE_SY_HBUSDT_17DEC2025,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.ON
+        });
+        configs[8] = TokenGuardConfig({
+            token: HYPEREVM_PENDLE_SY_KHYPE_12NOV2025,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.ON
+        });
+
+        // hyperbeat usdt vault
+        configs[9] = TokenGuardConfig({
+            token: HYPEREVM_HYPERBEAT_VAULT_USDT,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.ON
+        });
+
+        return configs;
+    }
+
 
 }
 
@@ -3635,8 +3842,38 @@ interface IMorphoBundler {
     function multicall(bytes[] memory data) external;
 }
 
+
+struct MarketParams {
+    address loanToken;
+    address collateralToken;
+    address oracle;
+    address irm;
+    uint256 lltv;
+} 
+
 interface IMorphoBase {
     function setAuthorization(address authorized, bool newIsAuthorized) external;
+    function borrow(
+        MarketParams memory marketParams,
+        uint256 assets,
+        uint256 shares,
+        address onBehalf,
+        address receiver
+    ) external returns (uint256 assetsBorrowed, uint256 sharesBorrowed);
+
+    function repay(
+        MarketParams memory marketParams,
+        uint256 assets,
+        uint256 shares,
+        address onBehalf,
+        bytes memory data
+    ) external returns (uint256 assetsRepaid, uint256 sharesRepaid);
+
+    function supplyCollateral(MarketParams memory marketParams, uint256 assets, address onBehalf, bytes memory data)
+        external;
+
+    function withdrawCollateral(MarketParams memory marketParams, uint256 assets, address onBehalf, address receiver)
+        external;
 }
 
 interface IMorphoDistributor {
@@ -4108,4 +4345,19 @@ interface HyperbeatDepositAdapter {
         uint256 minReceiveAmount, 
         bytes32 referrerId
     ) external payable returns (uint256);
+}
+
+// Kinetiq Earn
+interface TellWithMultiAssetSupport {
+    function deposit(ERC20 depositAsset, uint256 depositAmount, uint256 minimumMint)
+        external
+        payable
+        returns (uint256 shares);
+}
+
+// Kinetiq Earn withdraw queue
+interface BoringOnChainQueue {
+    function requestOnChainWithdraw(address assetOut, uint128 amountOfShares, uint16 discount, uint24 secondsToDeadline)
+        external
+        returns (bytes32 requestId);
 }
