@@ -3650,28 +3650,6 @@ library RumpelConfig {
         return configs;
     }
 
-    // address public constant HYPEREVM_HYPERBEAT_VAULT_USDT = 0x5e105266db42f78FA814322Bce7f388B4C2e61eb;
-    // address public constant HYPEREVM_HYPERBEAT_VAULT_DEPOSIT_USDT = 0xbE8A4f1a312b94A712F8E5367B02ae6E378E6F19;
-    // address public constant HYPEREVM_HYPERBEAT_VAULT_REDEMPTION_USDT = 0xC898a5cbDb81F260bd5306D9F9B9A893D0FdF042;
-
-    // address public constant HYPEREVM_HYPERBEAT_BORROW_HBHYPE_WHYPE = 0x68e37dE8d93d3496ae143F2E900490f6280C57cD;
-    // address public constant HYPEREVM_KINETIQ_EARN_VAULT = 0x29C0C36eD3788F1549b6a1fd78F40c51F0f73158;
-
-    // // HyperEVM Pendle-YTs
-    // address public constant HYPEREVM_PENDLE_YT_BEHYPE_29OCT2025 = 0x8F454bFe03527E8a838002b5Bf7BFE5F296Aac09;
-    // address public constant HYPEREVM_PENDLE_YT_HBHYPE_17DEC2025 = 0x2b55b35d9bE63d016eE902d87AF29D2C4F397Dc1;
-    // address public constant HYPEREVM_PENDLE_YT_HBUSDT_17DEC2025 = 0x47dD54DFa68172E3354e3cBA2F59521d3dc9D9C7;
-    // address public constant HYPEREVM_PENDLE_YT_KHYPE_12NOV2025 = 0x3f6583Ad479AB6020297ce12c9059D7480Ab6E5A;
-
-
-
-    // // HyperEVM Pendle-SYs
-    // address public constant HYPEREVM_PENDLE_ROUTERV4 = 0x888888888889758F76e7103c6CbF23ABbF58F946; // 0x0741a803 --> claim header
-    // address public constant HYPEREVM_PENDLE_SY_BEHYPE_29OCT2025 = 0x41D81Daf401a0AA7422a769243fa933f351a0D64;
-    // address public constant HYPEREVM_PENDLE_SY_HBHYPE_17DEC2025 = 0x0FcDe5a369c0D71ac932840C8654DB03681912Dd;
-    // address public constant HYPEREVM_PENDLE_SY_HBUSDT_17DEC2025 = 0x642135Ff98C15cBA7fCF1766502bd493BE4D3492;
-    // address public constant HYPEREVM_PENDLE_SY_KHYPE_12NOV2025 = 0x57FC55dFF8CeCa86EE94a6bF255af2f0ED90eB9e;
-
     function getHyperevmHyperbeatBorrowAndMoreAug25ProtocolConfigs() internal pure returns (ProtocolGuardConfig[] memory) {
         ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](10);
 
