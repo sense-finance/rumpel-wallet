@@ -548,6 +548,8 @@ library RumpelConfig {
             return getHyperevmHyperbeatBorrowAndMoreAug25ProtocolConfigs();
         } else if (tagHash == keccak256(bytes("hyper-evm-hyperbeat-hyperithm-hype-aug18"))) {
             return getHyperevmHyperbeatHyperithmHypeAug18ProtocolConfigs();
+        } else if (tagHash == keccak256(bytes("hyper-evm-hyperbeat-hyperithm-hype-aug18-blocklist"))) {
+            return new ProtocolGuardConfig[](0);
         }
 
         revert("Unsupported tag");
@@ -674,6 +676,8 @@ library RumpelConfig {
             return getHyperevmHyperbeatBorrowAndMoreAug25TokenConfigs();
         } else if (tagHash == keccak256(bytes("hyper-evm-hyperbeat-hyperithm-hype-aug18"))) {
             return getHyperevmHyperbeatHyperithmHypeAug18TokenConfigs();
+        } else if (tagHash == keccak256(bytes("hyper-evm-hyperbeat-hyperithm-hype-aug18-blocklist"))) {
+            return new TokenGuardConfig[](0);
         }
 
         revert("Unsupported tag");
