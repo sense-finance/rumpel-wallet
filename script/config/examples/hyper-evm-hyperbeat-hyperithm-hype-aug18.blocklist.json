@@ -1,0 +1,25 @@
+{
+  "guard": {
+    "protocols": [],
+    "tokens": []
+  },
+  "module": {
+    "protocols": [
+      {
+        "target": "0x92B518e1cD76dD70D3E20624AEdd7D107F332Cff",
+        "name": "HYPEREVM_HYPERBEAT_VAULT_HYPERITHM_HYPE",
+        "blockedSelectors": ["redeem", "withdraw"]
+      }
+    ],
+    "tokens": [
+      {
+        "token": "0x92B518e1cD76dD70D3E20624AEdd7D107F332Cff",
+        "name": "HYPEREVM_HYPERBEAT_VAULT_HYPERITHM_HYPE",
+        "blockTransfer": true,
+        "blockApprove": true
+      }
+    ]
+  }
+}
+
+
