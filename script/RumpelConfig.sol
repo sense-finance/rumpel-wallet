@@ -123,6 +123,7 @@ library RumpelConfig {
     address public constant HYPEREVM_HYPERBEAT_VAULT_REDEMPTION_USDT = 0xC898a5cbDb81F260bd5306D9F9B9A893D0FdF042;
     address public constant HYPEREVM_HYPERBEAT_VAULT_HYPERUSDT0 = 0xe5ADd96840F0B908ddeB3Bd144C0283Ac5ca7cA0;
     address public constant HYPEREVM_HYPERBEAT_BORROW = 0x68e37dE8d93d3496ae143F2E900490f6280C57cD;
+    address public constant HYPEREVM_HYPERBEAT_VAULT_HYPERITHM_HYPE = 0x92B518e1cD76dD70D3E20624AEdd7D107F332Cff;
     address public constant HYPEREVM_KINETIQ_EARN_VAULT = 0x9BA2EDc44E0A4632EB4723E81d4142353e1bB160;
     address public constant HYPEREVM_KINETIQ_EARN_VAULT_DEPOSIT = 0x29C0C36eD3788F1549b6a1fd78F40c51F0f73158;
     address public constant HYPEREVM_KINETIQ_EARN_WITHDRAW_QUEUE = 0x08a9552688F8DEC4835f5396ca3D1fd2713f79A7;
@@ -545,6 +546,10 @@ library RumpelConfig {
             return getEthFluidUsdeVaultsJul25ProtocolConfigs();
         } else if (tagHash == keccak256(bytes("hyper-evm-hyperbeat-borrow-hbHYPE-and-more-aug25"))) {
             return getHyperevmHyperbeatBorrowAndMoreAug25ProtocolConfigs();
+        } else if (tagHash == keccak256(bytes("hyper-evm-hyperbeat-hyperithm-hype-aug18"))) {
+            return getHyperevmHyperbeatHyperithmHypeAug18ProtocolConfigs();
+        } else if (tagHash == keccak256(bytes("hyper-evm-hyperbeat-hyperithm-hype-aug18-blocklist"))) {
+            return getHyperevmHyperbeatHyperithmHypeAug18ModulePermProtocolConfigs();
         }
 
         revert("Unsupported tag");
@@ -669,6 +674,10 @@ library RumpelConfig {
             return getEthFluidUsdeVaultsJul25TokenConfigs();
         } else if (tagHash == keccak256(bytes("hyper-evm-hyperbeat-borrow-hbHYPE-and-more-aug25"))) {
             return getHyperevmHyperbeatBorrowAndMoreAug25TokenConfigs();
+        } else if (tagHash == keccak256(bytes("hyper-evm-hyperbeat-hyperithm-hype-aug18"))) {
+            return getHyperevmHyperbeatHyperithmHypeAug18TokenConfigs();
+        } else if (tagHash == keccak256(bytes("hyper-evm-hyperbeat-hyperithm-hype-aug18-blocklist"))) {
+            return getHyperevmHyperbeatHyperithmHypeAug18ModulePermTokenConfigs();
         }
 
         revert("Unsupported tag");
@@ -790,6 +799,10 @@ library RumpelConfig {
             return new TokenModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("hyper-evm-hyperbeat-borrow-hbHYPE-and-more-aug25"))) {
             return new TokenModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("hyper-evm-hyperbeat-hyperithm-hype-aug18"))) {
+            return new TokenModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("hyper-evm-hyperbeat-hyperithm-hype-aug18-blocklist"))) {
+            return getHyperevmHyperbeatHyperithmHypeAug18ModuleTokenConfigs();
         }
 
         revert("Unsupported tag");
@@ -908,6 +921,10 @@ library RumpelConfig {
             return new ProtocolModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("hyper-evm-hyperbeat-borrow-hbHYPE-and-more-aug25"))) {
             return new ProtocolModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("hyper-evm-hyperbeat-hyperithm-hype-aug18"))) {
+            return new ProtocolModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("hyper-evm-hyperbeat-hyperithm-hype-aug18-blocklist"))) {
+            return getHyperevmHyperbeatHyperithmHypeAug18ModuleProtocolConfigs();
         }
 
         revert("Unsupported tag");
@@ -3905,6 +3922,100 @@ library RumpelConfig {
             transferAllowState: RumpelGuard.AllowListState.ON,
             approveAllowState: RumpelGuard.AllowListState.ON
         });
+
+        return configs;
+    }
+
+    function getHyperevmHyperbeatHyperithmHypeAug18TokenConfigs() internal pure returns (TokenGuardConfig[] memory) {
+        TokenGuardConfig[] memory configs = new TokenGuardConfig[](1);
+
+        configs[0] = TokenGuardConfig({
+            token: HYPEREVM_HYPERBEAT_VAULT_HYPERITHM_HYPE,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.ON
+        });
+
+        return configs;
+    }
+
+    function getHyperevmHyperbeatHyperithmHypeAug18ProtocolConfigs()
+        internal
+        pure
+        returns (ProtocolGuardConfig[] memory)
+    {
+        ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](1);
+
+        configs[0] = ProtocolGuardConfig({
+            target: HYPEREVM_HYPERBEAT_VAULT_HYPERITHM_HYPE,
+            selectorStates: new SelectorState[](2)
+        });
+        configs[0].selectorStates[0] =
+            SelectorState({selector: IERC4626.deposit.selector, state: RumpelGuard.AllowListState.ON});
+        configs[0].selectorStates[1] =
+            SelectorState({selector: IERC4626.redeem.selector, state: RumpelGuard.AllowListState.ON});
+
+        return configs;
+    }
+
+    function getHyperevmHyperbeatHyperithmHypeAug18ModuleTokenConfigs()
+        internal
+        pure
+        returns (TokenModuleConfig[] memory)
+    {
+        TokenModuleConfig[] memory configs = new TokenModuleConfig[](1);
+
+        configs[0] =
+            TokenModuleConfig({token: HYPEREVM_HYPERBEAT_VAULT_HYPERITHM_HYPE, blockTransfer: true, blockApprove: true});
+
+        return configs;
+    }
+
+    function getHyperevmHyperbeatHyperithmHypeAug18ModuleProtocolConfigs()
+        internal
+        pure
+        returns (ProtocolModuleConfig[] memory)
+    {
+        ProtocolModuleConfig[] memory configs = new ProtocolModuleConfig[](1);
+
+        configs[0] =
+            ProtocolModuleConfig({target: HYPEREVM_HYPERBEAT_VAULT_HYPERITHM_HYPE, blockedSelectors: new bytes4[](2)});
+        configs[0].blockedSelectors[0] = IERC4626.redeem.selector;
+        configs[0].blockedSelectors[1] = IERC4626.withdraw.selector;
+
+        return configs;
+    }
+
+    function getHyperevmHyperbeatHyperithmHypeAug18ModulePermTokenConfigs()
+        internal
+        pure
+        returns (TokenGuardConfig[] memory)
+    {
+        TokenGuardConfig[] memory configs = new TokenGuardConfig[](1);
+
+        configs[0] = TokenGuardConfig({
+            token: HYPEREVM_HYPERBEAT_VAULT_HYPERITHM_HYPE,
+            transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
+            approveAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON
+        });
+
+        return configs;
+    }
+
+    function getHyperevmHyperbeatHyperithmHypeAug18ModulePermProtocolConfigs()
+        internal
+        pure
+        returns (ProtocolGuardConfig[] memory)
+    {
+        ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](1);
+
+        configs[0] = ProtocolGuardConfig({
+            target: HYPEREVM_HYPERBEAT_VAULT_HYPERITHM_HYPE,
+            selectorStates: new SelectorState[](2)
+        });
+        configs[0].selectorStates[0] =
+            SelectorState({selector: IERC4626.deposit.selector, state: RumpelGuard.AllowListState.PERMANENTLY_ON});
+        configs[0].selectorStates[1] =
+            SelectorState({selector: IERC4626.redeem.selector, state: RumpelGuard.AllowListState.PERMANENTLY_ON});
 
         return configs;
     }
