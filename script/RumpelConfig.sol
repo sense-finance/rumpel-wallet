@@ -549,7 +549,7 @@ library RumpelConfig {
         } else if (tagHash == keccak256(bytes("hyper-evm-hyperbeat-hyperithm-hype-aug18"))) {
             return getHyperevmHyperbeatHyperithmHypeAug18ProtocolConfigs();
         } else if (tagHash == keccak256(bytes("hyper-evm-hyperbeat-hyperithm-hype-aug18-blocklist"))) {
-            return new ProtocolGuardConfig[](0);
+            return getHyperevmHyperbeatHyperithmHypeAug18ModulePermProtocolConfigs();
         }
 
         revert("Unsupported tag");
@@ -677,7 +677,7 @@ library RumpelConfig {
         } else if (tagHash == keccak256(bytes("hyper-evm-hyperbeat-hyperithm-hype-aug18"))) {
             return getHyperevmHyperbeatHyperithmHypeAug18TokenConfigs();
         } else if (tagHash == keccak256(bytes("hyper-evm-hyperbeat-hyperithm-hype-aug18-blocklist"))) {
-            return new TokenGuardConfig[](0);
+            return getHyperevmHyperbeatHyperithmHypeAug18ModulePermTokenConfigs();
         }
 
         revert("Unsupported tag");
@@ -3767,18 +3767,6 @@ library RumpelConfig {
         return configs;
     }
 
-    function getHyperevmHyperbeatHyperithmHypeAug18TokenConfigs() internal pure returns (TokenGuardConfig[] memory) {
-        TokenGuardConfig[] memory configs = new TokenGuardConfig[](1);
-
-        configs[0] = TokenGuardConfig({
-            token: HYPEREVM_HYPERBEAT_VAULT_HYPERITHM_HYPE,
-            transferAllowState: RumpelGuard.AllowListState.ON,
-            approveAllowState: RumpelGuard.AllowListState.ON
-        });
-
-        return configs;
-    }
-
     function getEthFluidUsdeVaultsJul25TokenConfigs() internal pure returns (TokenGuardConfig[] memory) {
         TokenGuardConfig[] memory configs = new TokenGuardConfig[](1);
         configs[0] = TokenGuardConfig({
@@ -3938,6 +3926,18 @@ library RumpelConfig {
         return configs;
     }
 
+    function getHyperevmHyperbeatHyperithmHypeAug18TokenConfigs() internal pure returns (TokenGuardConfig[] memory) {
+        TokenGuardConfig[] memory configs = new TokenGuardConfig[](1);
+
+        configs[0] = TokenGuardConfig({
+            token: HYPEREVM_HYPERBEAT_VAULT_HYPERITHM_HYPE,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.ON
+        });
+
+        return configs;
+    }
+
     function getHyperevmHyperbeatHyperithmHypeAug18ProtocolConfigs()
         internal
         pure
@@ -3981,6 +3981,41 @@ library RumpelConfig {
             ProtocolModuleConfig({target: HYPEREVM_HYPERBEAT_VAULT_HYPERITHM_HYPE, blockedSelectors: new bytes4[](2)});
         configs[0].blockedSelectors[0] = IERC4626.redeem.selector;
         configs[0].blockedSelectors[1] = IERC4626.withdraw.selector;
+
+        return configs;
+    }
+
+    function getHyperevmHyperbeatHyperithmHypeAug18ModulePermTokenConfigs()
+        internal
+        pure
+        returns (TokenGuardConfig[] memory)
+    {
+        TokenGuardConfig[] memory configs = new TokenGuardConfig[](1);
+
+        configs[0] = TokenGuardConfig({
+            token: HYPEREVM_HYPERBEAT_VAULT_HYPERITHM_HYPE,
+            transferAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON,
+            approveAllowState: RumpelGuard.AllowListState.PERMANENTLY_ON
+        });
+
+        return configs;
+    }
+
+    function getHyperevmHyperbeatHyperithmHypeAug18ModulePermProtocolConfigs()
+        internal
+        pure
+        returns (ProtocolGuardConfig[] memory)
+    {
+        ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](1);
+
+        configs[0] = ProtocolGuardConfig({
+            target: HYPEREVM_HYPERBEAT_VAULT_HYPERITHM_HYPE,
+            selectorStates: new SelectorState[](2)
+        });
+        configs[0].selectorStates[0] =
+            SelectorState({selector: IERC4626.deposit.selector, state: RumpelGuard.AllowListState.PERMANENTLY_ON});
+        configs[0].selectorStates[1] =
+            SelectorState({selector: IERC4626.redeem.selector, state: RumpelGuard.AllowListState.PERMANENTLY_ON});
 
         return configs;
     }
