@@ -6,7 +6,6 @@ import {RumpelModule} from "../src/RumpelModule.sol";
 import {ERC20} from "solmate/tokens/ERC20.sol";
 import {ERC721} from "solmate/tokens/ERC721.sol";
 import {console} from "forge-std/console.sol";
-import {Interface as ActionMiscV3_RumpelV2} from "./dependencies/interfaces/IPendle_ActionMiscV3.sol";
 
 struct SelectorState {
     bytes4 selector;
