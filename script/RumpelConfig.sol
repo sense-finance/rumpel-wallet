@@ -6,6 +6,7 @@ import {RumpelModule} from "../src/RumpelModule.sol";
 import {ERC20} from "solmate/tokens/ERC20.sol";
 import {ERC721} from "solmate/tokens/ERC721.sol";
 import {console} from "forge-std/console.sol";
+import {Interface as ActionMiscV3_RumpelV2} from "./dependencies/interfaces/IPendle_ActionMiscV3.sol";
 
 struct SelectorState {
     bytes4 selector;
@@ -554,6 +555,8 @@ library RumpelConfig {
             return getHyperevmHyperbeatHyperithmHypeAug18ModulePermProtocolConfigs();
         } else if (tagHash == keccak256(bytes("eth-allow-eul"))) {
             return new ProtocolGuardConfig[](0);
+        } else if (tagHash == keccak256(bytes("hyperevm-pendle-claim-update"))) {
+            return getHyperevmPendleClaimUpdateProtocolConfigs();
         }
 
         revert("Unsupported tag");
@@ -684,6 +687,8 @@ library RumpelConfig {
             return getHyperevmHyperbeatHyperithmHypeAug18ModulePermTokenConfigs();
         } else if (tagHash == keccak256(bytes("eth-allow-eul"))) {
             return getEthAllowEulTokenConfigs();
+        } else if (tagHash == keccak256(bytes("hyperevm-pendle-claim-update"))) {
+            return new TokenGuardConfig[](0);
         }
 
         revert("Unsupported tag");
@@ -811,6 +816,8 @@ library RumpelConfig {
             return getHyperevmHyperbeatHyperithmHypeAug18ModuleTokenConfigs();
         } else if (tagHash == keccak256(bytes("eth-allow-eul"))) {
             return new TokenModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("hyperevm-pendle-claim-update"))) {
+            return new TokenModuleConfig[](0);
         }
 
         revert("Unsupported tag");
@@ -934,6 +941,8 @@ library RumpelConfig {
         } else if (tagHash == keccak256(bytes("hyper-evm-hyperbeat-hyperithm-hype-aug18-blocklist"))) {
             return getHyperevmHyperbeatHyperithmHypeAug18ModuleProtocolConfigs();
         } else if (tagHash == keccak256(bytes("eth-allow-eul"))) {
+            return new ProtocolModuleConfig[](0);
+        }  else if (tagHash == keccak256(bytes("hyperevm-pendle-claim-update"))) {
             return new ProtocolModuleConfig[](0);
         }
 
@@ -4041,6 +4050,27 @@ library RumpelConfig {
             token: MAINNET_EUL,
             transferAllowState: RumpelGuard.AllowListState.ON,
             approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+
+        return configs;
+    }
+
+        function getHyperevmPendleClaimUpdateProtocolConfigs()internal
+        pure
+        returns (ProtocolGuardConfig[] memory)
+    {
+        ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](2);
+
+        configs[0] = ProtocolGuardConfig({target: MAINNET_PENDLE_ROUTERV4, selectorStates: new SelectorState[](1)});
+        configs[0].selectorStates[0] = SelectorState({
+            selector: IPendleRouterV4.redeemDueInterestAndRewardsV2.selector,
+            state: RumpelGuard.AllowListState.OFF
+        });
+
+        configs[1] = ProtocolGuardConfig({target: MAINNET_PENDLE_ROUTERV4, selectorStates: new SelectorState[](1)});
+        configs[1].selectorStates[0] = SelectorState({
+            selector: ActionMiscV3_RumpelV2.redeemDueInterestAndRewardsV2.selector,
+            state: RumpelGuard.AllowListState.ON
         });
 
         return configs;
