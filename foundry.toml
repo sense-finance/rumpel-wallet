@@ -4,6 +4,7 @@ out = "out"
 libs = ["lib"]
 optimize = true
 optimizer_runs = 100
+fs_permissions = [{ access = "read", path = "script/config/" }]
 
 [fuzz]
 runs = 10

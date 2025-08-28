@@ -12,6 +12,7 @@ import {CompatibilityFallbackHandler, ValidationBeacon} from "../src/external/Co
 import {ISafeProxyFactory} from "../src/interfaces/external/ISafeProxyFactory.sol";
 import {ISafe} from "../src/interfaces/external/ISafe.sol";
 import {RumpelConfig} from "./RumpelConfig.sol";
+import {ApplyJsonConfig} from "./ApplyJsonConfig.s.sol";
 
 contract RumpelWalletFactoryScripts is Script {
     address public MAINNET_ADMIN = 0x9D89745fD63Af482ce93a9AdB8B0BbDbb98D3e06;
@@ -82,10 +83,10 @@ contract RumpelWalletFactoryScripts is Script {
         return (rumpelModule, rumpelGuard, rumpelWalletFactory);
     }
 
-    function updateGuardAndModuleLists( uint256 networkId, string memory tag) public {
+    function updateGuardAndModuleLists(uint256 networkId, string memory tag) public {
         RumpelGuard rumpelGuard;
         RumpelModule rumpelModule;
-        if(networkId == 1){
+        if (networkId == 1) {
             vm.startBroadcast(MAINNET_ADMIN); // Impersonating admin for safe tx building
             rumpelGuard = RumpelGuard(MAINNET_RUMPEL_GUARD);
             rumpelModule = RumpelModule(MAINNET_RUMPEL_MODULE);
@@ -94,11 +95,27 @@ contract RumpelWalletFactoryScripts is Script {
             rumpelGuard = RumpelGuard(HYPEEVM_RUMPEL_GUARD);
             rumpelModule = RumpelModule(HYPEEVM_RUMPEL_MODULE);
         } else {
-            revert ("Unknown ChainId");
+            revert("Unknown ChainId");
         }
 
         RumpelConfig.updateGuardAllowlist(rumpelGuard, tag);
         RumpelConfig.updateModuleBlocklist(rumpelModule, tag);
+        vm.stopBroadcast();
+    }
+
+    // Data-driven variant using JSON instead of Solidity tags.
+    // Usage:
+    //  forge script script/ApplyJsonConfig.s.sol:ApplyJsonConfig \
+    //    --rpc-url $RPC \
+    //    --broadcast \
+    //    -vvvv \
+    //    --sig "applyAll(address,address,string)" \
+    //    0xRUMPEL_GUARD 0xRUMPEL_MODULE script/config/examples/hyper-evm-hyperbeat-hyperithm-hype-aug18.allow.json
+    function updateUsingJson(address rumpelGuard, address rumpelModule, string memory jsonPath) public {
+        uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
+        vm.startBroadcast(deployerPrivateKey);
+        ApplyJsonConfig applier = new ApplyJsonConfig();
+        applier.applyAll(RumpelGuard(rumpelGuard), RumpelModule(rumpelModule), jsonPath);
         vm.stopBroadcast();
     }
 

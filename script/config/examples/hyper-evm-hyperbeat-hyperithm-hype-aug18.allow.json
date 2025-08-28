@@ -1,0 +1,26 @@
+{
+  "guard": {
+    "protocols": [
+      {
+        "target": "0x92B518e1cD76dD70D3E20624AEdd7D107F332Cff",
+        "name": "HYPEREVM_HYPERBEAT_VAULT_HYPERITHM_HYPE",
+        "selectors": ["deposit", "redeem"],
+        "state": "ON"
+      }
+    ],
+    "tokens": [
+      {
+        "token": "0x92B518e1cD76dD70D3E20624AEdd7D107F332Cff",
+        "name": "HYPEREVM_HYPERBEAT_VAULT_HYPERITHM_HYPE",
+        "transfer": "ON",
+        "approve": "ON"
+      }
+    ]
+  },
+  "module": {
+    "protocols": [],
+    "tokens": []
+  }
+}
+
+
