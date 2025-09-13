@@ -192,6 +192,8 @@ library RumpelConfig {
     address public constant MAINNET_PENDLE = 0x808507121B80c02388fAd14726482e061B8da827;
     address public constant MAINNET_VEPENDLE = 0x4f30A9D41B80ecC5B94306AB4364951AE3170210;
 
+    address public constant MAINNET_EUL = 0xd9Fcd98c322942075A5C3860693e9f4f03AAE07b;
+
     // HyperEVM Tokens
     address public constant HYPEEVM_WHYPE = 0x5555555555555555555555555555555555555555;
     address public constant HYPEEVM_WSTHYPE = 0x94e8396e0869c9F2200760aF0621aFd240E1CF38;
@@ -550,6 +552,8 @@ library RumpelConfig {
             return getHyperevmHyperbeatHyperithmHypeAug18ProtocolConfigs();
         } else if (tagHash == keccak256(bytes("hyper-evm-hyperbeat-hyperithm-hype-aug18-blocklist"))) {
             return getHyperevmHyperbeatHyperithmHypeAug18ModulePermProtocolConfigs();
+        } else if (tagHash == keccak256(bytes("eth-allow-eul"))) {
+            return new ProtocolGuardConfig[](0);
         }
 
         revert("Unsupported tag");
@@ -678,6 +682,8 @@ library RumpelConfig {
             return getHyperevmHyperbeatHyperithmHypeAug18TokenConfigs();
         } else if (tagHash == keccak256(bytes("hyper-evm-hyperbeat-hyperithm-hype-aug18-blocklist"))) {
             return getHyperevmHyperbeatHyperithmHypeAug18ModulePermTokenConfigs();
+        } else if (tagHash == keccak256(bytes("eth-allow-eul"))) {
+            return getEthAllowEulTokenConfigs();
         }
 
         revert("Unsupported tag");
@@ -803,6 +809,8 @@ library RumpelConfig {
             return new TokenModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("hyper-evm-hyperbeat-hyperithm-hype-aug18-blocklist"))) {
             return getHyperevmHyperbeatHyperithmHypeAug18ModuleTokenConfigs();
+        } else if (tagHash == keccak256(bytes("eth-allow-eul"))) {
+            return new TokenModuleConfig[](0);
         }
 
         revert("Unsupported tag");
@@ -925,6 +933,8 @@ library RumpelConfig {
             return new ProtocolModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("hyper-evm-hyperbeat-hyperithm-hype-aug18-blocklist"))) {
             return getHyperevmHyperbeatHyperithmHypeAug18ModuleProtocolConfigs();
+        } else if (tagHash == keccak256(bytes("eth-allow-eul"))) {
+            return new ProtocolModuleConfig[](0);
         }
 
         revert("Unsupported tag");
@@ -4016,6 +4026,22 @@ library RumpelConfig {
             SelectorState({selector: IERC4626.deposit.selector, state: RumpelGuard.AllowListState.PERMANENTLY_ON});
         configs[0].selectorStates[1] =
             SelectorState({selector: IERC4626.redeem.selector, state: RumpelGuard.AllowListState.PERMANENTLY_ON});
+
+        return configs;
+    }
+    
+    function getEthAllowEulTokenConfigs()
+        internal
+        pure
+        returns (TokenGuardConfig[] memory)
+    {
+        TokenGuardConfig[] memory configs = new TokenGuardConfig[](1);
+
+        configs[0] = TokenGuardConfig({
+            token: MAINNET_EUL,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
 
         return configs;
     }
