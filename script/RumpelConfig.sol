@@ -238,7 +238,7 @@ library RumpelConfig {
     address public constant MAINNET_PENDLE_YT_USDE_27MAR2025 = 0x4A8036EFA1307F1cA82d932C0895faa18dB0c9eE;
     address public constant MAINNET_YT_USDE_24SEP2025 = 0x48bbbEdc4d2491cc08915D7a5c7cc8A8EdF165da;
     address public constant MAINNET_YT_SUSDE_24SEP2025 = 0x029d6247ADb0A57138c62E3019C92d3dfC9c1840;
-    address public constant MAINNET_YT_CUSD_28JAN2026 = 0x06f946d590010eaB6a5556AD29D9979EB1A7fA3A;
+    address public constant MAINNET_YT_CUSD_29JAN2026 = 0x06f946d590010eaB6a5556AD29D9979EB1A7fA3A;
 
     // Pendle LPs
     address public constant MAINNET_PENDLE_LP_WSTUSR_24SEP2025 = 0x09fA04Aac9c6d1c6131352EE950CD67ecC6d4fB9;
@@ -4085,7 +4085,7 @@ library RumpelConfig {
         TokenGuardConfig[] memory configs = new TokenGuardConfig[](3);
 
         configs[0] = TokenGuardConfig({
-            token: MAINNET_YT_CUSD_28JAN2026,
+            token: MAINNET_YT_CUSD_29JAN2026,
             transferAllowState: RumpelGuard.AllowListState.ON,
             approveAllowState: RumpelGuard.AllowListState.OFF
         });
