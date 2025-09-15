@@ -238,6 +238,7 @@ library RumpelConfig {
     address public constant MAINNET_PENDLE_YT_USDE_27MAR2025 = 0x4A8036EFA1307F1cA82d932C0895faa18dB0c9eE;
     address public constant MAINNET_YT_USDE_24SEP2025 = 0x48bbbEdc4d2491cc08915D7a5c7cc8A8EdF165da;
     address public constant MAINNET_YT_SUSDE_24SEP2025 = 0x029d6247ADb0A57138c62E3019C92d3dfC9c1840;
+    address public constant MAINNET_YT_CUSD_28JAN2026 = 0x06f946d590010eaB6a5556AD29D9979EB1A7fA3A;
 
     // Pendle LPs
     address public constant MAINNET_PENDLE_LP_WSTUSR_24SEP2025 = 0x09fA04Aac9c6d1c6131352EE950CD67ecC6d4fB9;
@@ -294,6 +295,9 @@ library RumpelConfig {
     address public constant MAINNET_MELLOW_RSTUSR = 0x617895460004821C8DE800d4a644593cAb0aD40c;
 
     address public constant MAINNET_POND = 0x57B946008913B82E4dF85f501cbAeD910e58D26C;
+
+    address public constant MAINNET_CUSD = 0xcCcc62962d17b8914c62D74FfB843d73B2a3cccC;
+    address public constant MAINNET_STCUSD = 0x88887bE419578051FF9F4eb6C858A951921D8888;
 
     // YT Yield Claiming
     address public constant MAINNET_SY_SUSDE = 0xD288755556c235afFfb6316702719C32bD8706e8;
@@ -557,6 +561,8 @@ library RumpelConfig {
             return new ProtocolGuardConfig[](0);
         } else if (tagHash == keccak256(bytes("hyperevm-pendle-claim-update"))) {
             return getHyperevmPendleClaimUpdateProtocolConfigs();
+        } else if (tagHash == keccak256(bytes("cap-money-expansion-sep-15"))) {
+            return getCapMoneyExpansionSep15ProtocolConfigs();
         }
 
         revert("Unsupported tag");
@@ -689,6 +695,8 @@ library RumpelConfig {
             return getEthAllowEulTokenConfigs();
         } else if (tagHash == keccak256(bytes("hyperevm-pendle-claim-update"))) {
             return new TokenGuardConfig[](0);
+        } else if (tagHash == keccak256(bytes("cap-money-expansion-sep-15"))) {
+            return getCapMoneyExpansionSep15TokenConfigs();
         }
 
         revert("Unsupported tag");
@@ -818,6 +826,8 @@ library RumpelConfig {
             return new TokenModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("hyperevm-pendle-claim-update"))) {
             return new TokenModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("cap-money-expansion-sep-15"))) {
+            return new TokenModuleConfig[](0);
         }
 
         revert("Unsupported tag");
@@ -942,7 +952,9 @@ library RumpelConfig {
             return getHyperevmHyperbeatHyperithmHypeAug18ModuleProtocolConfigs();
         } else if (tagHash == keccak256(bytes("eth-allow-eul"))) {
             return new ProtocolModuleConfig[](0);
-        }  else if (tagHash == keccak256(bytes("hyperevm-pendle-claim-update"))) {
+        } else if (tagHash == keccak256(bytes("hyperevm-pendle-claim-update"))) {
+            return new ProtocolModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("cap-money-expansion-sep-15"))) {
             return new ProtocolModuleConfig[](0);
         }
 
@@ -4038,12 +4050,8 @@ library RumpelConfig {
 
         return configs;
     }
-    
-    function getEthAllowEulTokenConfigs()
-        internal
-        pure
-        returns (TokenGuardConfig[] memory)
-    {
+
+    function getEthAllowEulTokenConfigs() internal pure returns (TokenGuardConfig[] memory) {
         TokenGuardConfig[] memory configs = new TokenGuardConfig[](1);
 
         configs[0] = TokenGuardConfig({
@@ -4055,10 +4063,7 @@ library RumpelConfig {
         return configs;
     }
 
-        function getHyperevmPendleClaimUpdateProtocolConfigs()internal
-        pure
-        returns (ProtocolGuardConfig[] memory)
-    {
+    function getHyperevmPendleClaimUpdateProtocolConfigs() internal pure returns (ProtocolGuardConfig[] memory) {
         ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](2);
 
         configs[0] = ProtocolGuardConfig({target: MAINNET_PENDLE_ROUTERV4, selectorStates: new SelectorState[](1)});
@@ -4072,6 +4077,46 @@ library RumpelConfig {
             selector: ActionMiscV3_RumpelV2.redeemDueInterestAndRewardsV2.selector,
             state: RumpelGuard.AllowListState.ON
         });
+
+        return configs;
+    }
+
+    function getCapMoneyExpansionSep15TokenConfigs() internal pure returns (TokenGuardConfig[] memory) {
+        TokenGuardConfig[] memory configs = new TokenGuardConfig[](3);
+
+        configs[0] = TokenGuardConfig({
+            token: MAINNET_YT_CUSD_28JAN2026,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+
+        configs[1] = TokenGuardConfig({
+            token: MAINNET_CUSD,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.ON
+        });
+
+        configs[2] = TokenGuardConfig({
+            token: MAINNET_STCUSD,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+
+        return configs;
+    }
+
+    function getCapMoneyExpansionSep15ProtocolConfigs() internal pure returns (ProtocolGuardConfig[] memory) {
+        ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](1);
+
+        configs[0] = ProtocolGuardConfig({target: MAINNET_STCUSD, selectorStates: new SelectorState[](4)});
+        configs[0].selectorStates[0] =
+            SelectorState({selector: IERC4626.deposit.selector, state: RumpelGuard.AllowListState.ON});
+        configs[0].selectorStates[1] =
+            SelectorState({selector: IERC4626.mint.selector, state: RumpelGuard.AllowListState.ON});
+        configs[0].selectorStates[2] =
+            SelectorState({selector: IERC4626.withdraw.selector, state: RumpelGuard.AllowListState.ON});
+        configs[0].selectorStates[3] =
+            SelectorState({selector: IERC4626.redeem.selector, state: RumpelGuard.AllowListState.ON});
 
         return configs;
     }
