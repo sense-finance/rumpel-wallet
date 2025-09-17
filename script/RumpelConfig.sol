@@ -259,6 +259,7 @@ library RumpelConfig {
 
     // Spectra PTs
     address public constant HYPEREVM_SPECTRA_PT_USDT0_17DEC2025 = 0xa78FB3bEd7287D1dA861D7f83963E13A35290362;
+    address public constant HYPEREVM_SPECTRA_PT_LIQUID_HYPE_29OCT2025 = 0x72CbA05d7D155366b65D95522eE964dE819E84f8;
     address public constant HYPEREVM_SPECTRA_PT_BEHYPE_07DEC2025 = 0xe610daF18b56701b4b3a420efAC2277f0521876C;
 
     // Pendle LPs
@@ -4279,7 +4280,7 @@ library RumpelConfig {
     }
 
     function getHyperEVMSpectraExpansionSep17ProtocolConfigs() internal pure returns (ProtocolGuardConfig[] memory) {
-        ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](2);
+        ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](3);
 
         configs[0] =
             ProtocolGuardConfig({target: HYPEREVM_SPECTRA_PT_USDT0_17DEC2025, selectorStates: new SelectorState[](2)});
@@ -4288,11 +4289,20 @@ library RumpelConfig {
         configs[0].selectorStates[1] =
             SelectorState({selector: ISpectraPT.claimYieldInIBT.selector, state: RumpelGuard.AllowListState.ON});
 
-        configs[1] =
-            ProtocolGuardConfig({target: HYPEREVM_SPECTRA_PT_BEHYPE_07DEC2025, selectorStates: new SelectorState[](2)});
+        configs[1] = ProtocolGuardConfig({
+            target: HYPEREVM_SPECTRA_PT_LIQUID_HYPE_29OCT2025,
+            selectorStates: new SelectorState[](2)
+        });
         configs[1].selectorStates[0] =
             SelectorState({selector: ISpectraPT.claimYield.selector, state: RumpelGuard.AllowListState.ON});
         configs[1].selectorStates[1] =
+            SelectorState({selector: ISpectraPT.claimYieldInIBT.selector, state: RumpelGuard.AllowListState.ON});
+
+        configs[2] =
+            ProtocolGuardConfig({target: HYPEREVM_SPECTRA_PT_BEHYPE_07DEC2025, selectorStates: new SelectorState[](2)});
+        configs[2].selectorStates[0] =
+            SelectorState({selector: ISpectraPT.claimYield.selector, state: RumpelGuard.AllowListState.ON});
+        configs[2].selectorStates[1] =
             SelectorState({selector: ISpectraPT.claimYieldInIBT.selector, state: RumpelGuard.AllowListState.ON});
 
         return configs;
