@@ -247,6 +247,8 @@ library RumpelConfig {
     address public constant MAINNET_PENDLE_YT_USDE_27MAR2025 = 0x4A8036EFA1307F1cA82d932C0895faa18dB0c9eE;
     address public constant MAINNET_YT_USDE_24SEP2025 = 0x48bbbEdc4d2491cc08915D7a5c7cc8A8EdF165da;
     address public constant MAINNET_YT_SUSDE_24SEP2025 = 0x029d6247ADb0A57138c62E3019C92d3dfC9c1840;
+    address public constant MAINNET_YT_CUSD_29JAN2026 = 0x06f946d590010eaB6a5556AD29D9979EB1A7fA3A;
+    address public constant MAINNET_YT_STCUSD_29JAN2026 = 0x8B4A52d28E49a9e8994D563420422e1a26a83df1;
     address public constant MAINNET_YT_USDE_26NOV2025 = 0x99C92D4Da7a81c7698EF33a39D7538d0f92623f7;
     address public constant MAINNET_YT_SUSDE_26NOV2025 = 0x28E626b560F1FaaC01544770425e2De8FD179c79;
 
@@ -306,6 +308,9 @@ library RumpelConfig {
 
     address public constant MAINNET_POND = 0x57B946008913B82E4dF85f501cbAeD910e58D26C;
 
+    address public constant MAINNET_CUSD = 0xcCcc62962d17b8914c62D74FfB843d73B2a3cccC;
+    address public constant MAINNET_STCUSD = 0x88887bE419578051FF9F4eb6C858A951921D8888;
+
     // YT Yield Claiming
     address public constant MAINNET_SY_SUSDE = 0xD288755556c235afFfb6316702719C32bD8706e8;
     address public constant MAINNET_PENDLE_ROUTERV4 = 0x888888888889758F76e7103c6CbF23ABbF58F946;
@@ -320,6 +325,7 @@ library RumpelConfig {
     address public constant MAINNET_SY_WEETHK_25JUNE2025 = 0xffC374D301F2EA381EE313Da0324ea7bf0dbFddF;
     address public constant MAINNET_SY_AGETH_25JUN2025 = 0xb1B9150f2085f6a553b547099977181CA802752A;
     address public constant MAINNET_SY_SUSDE_24SEP2025 = 0xC01cde799245a25e6EabC550b36A47F6F83cc0f1;
+    address public constant MAINNET_SY_STCUSD_29JAN2026 = 0x27010cE8D14B4E73Ef48aF1CF9a5A91e8356d10f;
     address public constant MAINNET_SY_SUSDE_26NOV2025 = 0xAbf8165dD7a90ab75878161db15Bf85F6F781d9b;
 
     // Additional Reward Assets
@@ -569,6 +575,8 @@ library RumpelConfig {
             return new ProtocolGuardConfig[](0);
         } else if (tagHash == keccak256(bytes("hyperevm-pendle-claim-update"))) {
             return getHyperevmPendleClaimUpdateProtocolConfigs();
+        } else if (tagHash == keccak256(bytes("cap-money-expansion-sep-15"))) {
+            return getCapMoneyExpansionSep15ProtocolConfigs();
         } else if (tagHash == keccak256(bytes("ethereum-ethena-expansion-sep-15"))) {
             return getEthereumEthenaExpansionSep15ProtocolConfigs();
         } else if (tagHash == keccak256(bytes("hyperevm-behype-update"))) {
@@ -705,6 +713,8 @@ library RumpelConfig {
             return getEthAllowEulTokenConfigs();
         } else if (tagHash == keccak256(bytes("hyperevm-pendle-claim-update"))) {
             return new TokenGuardConfig[](0);
+        } else if (tagHash == keccak256(bytes("cap-money-expansion-sep-15"))) {
+            return getCapMoneyExpansionSep15TokenConfigs();
         } else if (tagHash == keccak256(bytes("ethereum-ethena-expansion-sep-15"))) {
             return getEthereumEthenaExpansionSep15TokenConfigs();
         } else if (tagHash == keccak256(bytes("hyperevm-behype-update"))) {
@@ -838,6 +848,8 @@ library RumpelConfig {
             return new TokenModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("hyperevm-pendle-claim-update"))) {
             return new TokenModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("cap-money-expansion-sep-15"))) {
+            return new TokenModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("ethereum-ethena-expansion-sep-15"))) {
             return new TokenModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("hyperevm-behype-update"))) {
@@ -967,6 +979,8 @@ library RumpelConfig {
         } else if (tagHash == keccak256(bytes("eth-allow-eul"))) {
             return new ProtocolModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("hyperevm-pendle-claim-update"))) {
+            return new ProtocolModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("cap-money-expansion-sep-15"))) {
             return new ProtocolModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("ethereum-ethena-expansion-sep-15"))) {
             return new ProtocolModuleConfig[](0);
@@ -4097,6 +4111,68 @@ library RumpelConfig {
         return configs;
     }
 
+    function getCapMoneyExpansionSep15TokenConfigs() internal pure returns (TokenGuardConfig[] memory) {
+        TokenGuardConfig[] memory configs = new TokenGuardConfig[](5);
+
+        configs[0] = TokenGuardConfig({
+            token: MAINNET_YT_CUSD_29JAN2026,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+
+        configs[1] = TokenGuardConfig({
+            token: MAINNET_CUSD,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.ON
+        });
+
+        configs[2] = TokenGuardConfig({
+            token: MAINNET_STCUSD,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+
+        configs[3] = TokenGuardConfig({
+            token: MAINNET_SY_STCUSD_29JAN2026,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.ON
+        });
+
+        configs[4] = TokenGuardConfig({
+            token: MAINNET_YT_STCUSD_29JAN2026,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+
+        return configs;
+    }
+
+    function getCapMoneyExpansionSep15ProtocolConfigs() internal pure returns (ProtocolGuardConfig[] memory) {
+        ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](3);
+
+        configs[0] = ProtocolGuardConfig({target: MAINNET_STCUSD, selectorStates: new SelectorState[](4)});
+        configs[0].selectorStates[0] =
+            SelectorState({selector: IERC4626.deposit.selector, state: RumpelGuard.AllowListState.ON});
+        configs[0].selectorStates[1] =
+            SelectorState({selector: IERC4626.mint.selector, state: RumpelGuard.AllowListState.ON});
+        configs[0].selectorStates[2] =
+            SelectorState({selector: IERC4626.withdraw.selector, state: RumpelGuard.AllowListState.ON});
+        configs[0].selectorStates[3] =
+            SelectorState({selector: IERC4626.redeem.selector, state: RumpelGuard.AllowListState.ON});
+
+        configs[1] = ProtocolGuardConfig({target: MAINNET_CUSD, selectorStates: new SelectorState[](2)});
+        configs[1].selectorStates[0] =
+            SelectorState({selector: ICapUSDVault.mint.selector, state: RumpelGuard.AllowListState.ON});
+        configs[1].selectorStates[1] =
+            SelectorState({selector: ICapUSDVault.burn.selector, state: RumpelGuard.AllowListState.ON});
+
+        configs[2] = ProtocolGuardConfig({target: MAINNET_SY_STCUSD_29JAN2026, selectorStates: new SelectorState[](1)});
+        configs[2].selectorStates[0] =
+            SelectorState({selector: IStandardizedYield.redeem.selector, state: RumpelGuard.AllowListState.ON});
+
+        return configs;
+    }
+
     function getEthereumEthenaExpansionSep15TokenConfigs() internal pure returns (TokenGuardConfig[] memory) {
         TokenGuardConfig[] memory configs = new TokenGuardConfig[](3);
 
@@ -4230,6 +4306,13 @@ interface IERC4626 {
     function mint(uint256 shares, address receiver) external returns (uint256);
     function withdraw(uint256 assets, address receiver, address owner) external returns (uint256);
     function redeem(uint256 shares, address receiver, address owner) external returns (uint256);
+}
+
+interface ICapUSDVault {
+    function mint(address _asset, uint256 _amountIn, uint256 _minAmountOut, address _receiver, uint256 _deadline)
+        external;
+    function burn(address _asset, uint256 _amountIn, uint256 _minAmountOut, address _receiver, uint256 _deadline)
+        external;
 }
 
 interface ISUSDE {
