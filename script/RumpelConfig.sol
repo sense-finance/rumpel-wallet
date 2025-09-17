@@ -252,6 +252,15 @@ library RumpelConfig {
     address public constant MAINNET_YT_USDE_26NOV2025 = 0x99C92D4Da7a81c7698EF33a39D7538d0f92623f7;
     address public constant MAINNET_YT_SUSDE_26NOV2025 = 0x28E626b560F1FaaC01544770425e2De8FD179c79;
 
+    // Spectra YTs
+    address public constant HYPEREVM_SPECTRA_YT_USDT0_17DEC2025 = 0xD2516EB8D219E704F3444b5793c1031631e02B27;
+    address public constant HYPEREVM_SPECTRA_YT_LIQUID_HYPE_29OCT2025 = 0x6b08Af3B5f0E34B1Fa800a58613D8716f77F58aE;
+    address public constant HYPEREVM_SPECTRA_YT_BEHYPE_07DEC2025 = 0xABE8e8E01a51eB8feCF828686FE50f63D0389266;
+
+    // Spectra PTs
+    address public constant HYPEREVM_SPECTRA_PT_USDT0_17DEC2025 = 0xa78FB3bEd7287D1dA861D7f83963E13A35290362;
+    address public constant HYPEREVM_SPECTRA_PT_BEHYPE_07DEC2025 = 0xe610daF18b56701b4b3a420efAC2277f0521876C;
+
     // Pendle LPs
     address public constant MAINNET_PENDLE_LP_WSTUSR_24SEP2025 = 0x09fA04Aac9c6d1c6131352EE950CD67ecC6d4fB9;
     address public constant MAINNET_PENDLE_LP_USDE_30JUL2025 = 0x9Df192D13D61609D1852461c4850595e1F56E714;
@@ -581,6 +590,8 @@ library RumpelConfig {
             return getEthereumEthenaExpansionSep15ProtocolConfigs();
         } else if (tagHash == keccak256(bytes("hyperevm-behype-update"))) {
             return getHyperevmBeHypeProtocolConfigs();
+        } else if (tagHash == keccak256(bytes("hyperevm-spectra-yt-sep-17"))) {
+            return getHyperEVMSpectraExpansionSep17ProtocolConfigs();
         }
 
         revert("Unsupported tag");
@@ -719,6 +730,8 @@ library RumpelConfig {
             return getEthereumEthenaExpansionSep15TokenConfigs();
         } else if (tagHash == keccak256(bytes("hyperevm-behype-update"))) {
             return getHyperevmBeHypeTokenConfigs();
+        } else if (tagHash == keccak256(bytes("hyperevm-spectra-yt-sep-17"))) {
+            return getHyperEVMSpectraExpansionSep17TokenConfigs();
         }
 
         revert("Unsupported tag");
@@ -854,6 +867,10 @@ library RumpelConfig {
             return new TokenModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("hyperevm-behype-update"))) {
             return new TokenModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("hyperevm-behype-update"))) {
+            return new TokenModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("hyperevm-spectra-yt-sep-17"))) {
+            return new TokenModuleConfig[](0);
         }
 
         revert("Unsupported tag");
@@ -985,6 +1002,8 @@ library RumpelConfig {
         } else if (tagHash == keccak256(bytes("ethereum-ethena-expansion-sep-15"))) {
             return new ProtocolModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("hyperevm-behype-update"))) {
+            return new ProtocolModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("hyperevm-spectra-yt-sep-17"))) {
             return new ProtocolModuleConfig[](0);
         }
 
@@ -4236,6 +4255,48 @@ library RumpelConfig {
 
         return configs;
     }
+
+    function getHyperEVMSpectraExpansionSep17TokenConfigs() internal pure returns (TokenGuardConfig[] memory) {
+        TokenGuardConfig[] memory configs = new TokenGuardConfig[](3);
+
+        configs[0] = TokenGuardConfig({
+            token: HYPEREVM_SPECTRA_YT_USDT0_17DEC2025,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+        configs[1] = TokenGuardConfig({
+            token: HYPEREVM_SPECTRA_YT_LIQUID_HYPE_29OCT2025,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+        configs[2] = TokenGuardConfig({
+            token: HYPEREVM_SPECTRA_YT_BEHYPE_07DEC2025,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+
+        return configs;
+    }
+
+    function getHyperEVMSpectraExpansionSep17ProtocolConfigs() internal pure returns (ProtocolGuardConfig[] memory) {
+        ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](2);
+
+        configs[0] =
+            ProtocolGuardConfig({target: HYPEREVM_SPECTRA_PT_USDT0_17DEC2025, selectorStates: new SelectorState[](2)});
+        configs[0].selectorStates[0] =
+            SelectorState({selector: ISpectraPT.claimYield.selector, state: RumpelGuard.AllowListState.ON});
+        configs[0].selectorStates[1] =
+            SelectorState({selector: ISpectraPT.claimYieldInIBT.selector, state: RumpelGuard.AllowListState.ON});
+
+        configs[1] =
+            ProtocolGuardConfig({target: HYPEREVM_SPECTRA_PT_BEHYPE_07DEC2025, selectorStates: new SelectorState[](2)});
+        configs[1].selectorStates[0] =
+            SelectorState({selector: ISpectraPT.claimYield.selector, state: RumpelGuard.AllowListState.ON});
+        configs[1].selectorStates[1] =
+            SelectorState({selector: ISpectraPT.claimYieldInIBT.selector, state: RumpelGuard.AllowListState.ON});
+
+        return configs;
+    }
 }
 
 interface IKernelMerkleDistributor {
@@ -4782,4 +4843,22 @@ interface WithdrawManager {
 // behype staking
 interface StakingCore {
     function stake(string memory communityCode) external payable;
+}
+
+interface ISpectraPT {
+    /**
+     * @notice Claims caller's unclaimed yield in asset
+     * @param _receiver The receiver of yield
+     * @param _minAssets The minimum amount of assets that should be received
+     * @return yieldInAsset The amount of yield claimed in asset
+     */
+    function claimYield(address _receiver, uint256 _minAssets) external returns (uint256 yieldInAsset);
+
+    /**
+     * @notice Claims caller's unclaimed yield in IBT
+     * @param _receiver The receiver of yield
+     * @param _minIBT The minimum amount of IBT that should be received
+     * @return yieldInIBT The amount of yield claimed in IBT
+     */
+    function claimYieldInIBT(address _receiver, uint256 _minIBT) external returns (uint256 yieldInIBT);
 }
