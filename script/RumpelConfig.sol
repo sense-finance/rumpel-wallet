@@ -118,13 +118,14 @@ library RumpelConfig {
 
     // Hyperbeat liquidHYPE Vaults were initially incorrectly named beHYPE Vaults
     address public constant HYPEEVM_HYPERBEAT_VAULT_DEPOSIT_LIQUIDHYPE = 0xF538675D292d8b372712f44eaf306Cc66cF6d8DC;
-    address public constant HYPEEVM_HYPERBEAT_VAULT_DEPOSIT_ADAPTER_LIQUIDHYPE = 0xf8deEFa84b87b9702474b2D198bb8d21FA03Cd2D;  
+    address public constant HYPEEVM_HYPERBEAT_VAULT_DEPOSIT_ADAPTER_LIQUIDHYPE =
+        0xf8deEFa84b87b9702474b2D198bb8d21FA03Cd2D;
     address public constant HYPEEVM_HYPERBEAT_VAULT_REDEMPTION_LIQUIDHYPE = 0x558806a80b42cAB4ED75c74bfB178EDc9087AA32;
     address public constant HYPEEVM_HYPERBEAT_VAULT_LIQUIDHYPE = 0x441794D6a8F9A3739F5D4E98a728937b33489D29;
-    
+
     // Actual Hyperbeat BEHYPE Token and vaults
     address public constant HYPEREVM_HYPERBEAT_VAULT_DEPOSIT_BEHYPE = 0xCeaD893b162D38e714D82d06a7fe0b0dc3c38E0b;
-    address public constant HYPEREVM_HYPERBEAT_VAULT_REDEMPTION_BEHYPE = 0x9d0B0877b9f2204CF414Ca7862E4f03506822538; 
+    address public constant HYPEREVM_HYPERBEAT_VAULT_REDEMPTION_BEHYPE = 0x9d0B0877b9f2204CF414Ca7862E4f03506822538;
     address public constant HYPEREVM_HYPERBEAT_BEHYPE = 0xd8FC8F0b03eBA61F64D08B0bef69d80916E5DdA9;
 
     address public constant HYPEREVM_HYPERBEAT_VAULT_USDT = 0x5e105266db42f78FA814322Bce7f388B4C2e61eb;
@@ -246,6 +247,8 @@ library RumpelConfig {
     address public constant MAINNET_PENDLE_YT_USDE_27MAR2025 = 0x4A8036EFA1307F1cA82d932C0895faa18dB0c9eE;
     address public constant MAINNET_YT_USDE_24SEP2025 = 0x48bbbEdc4d2491cc08915D7a5c7cc8A8EdF165da;
     address public constant MAINNET_YT_SUSDE_24SEP2025 = 0x029d6247ADb0A57138c62E3019C92d3dfC9c1840;
+    address public constant MAINNET_YT_USDE_26NOV2025 = 0x99C92D4Da7a81c7698EF33a39D7538d0f92623f7;
+    address public constant MAINNET_YT_SUSDE_26NOV2025 = 0x28E626b560F1FaaC01544770425e2De8FD179c79;
 
     // Pendle LPs
     address public constant MAINNET_PENDLE_LP_WSTUSR_24SEP2025 = 0x09fA04Aac9c6d1c6131352EE950CD67ecC6d4fB9;
@@ -317,6 +320,7 @@ library RumpelConfig {
     address public constant MAINNET_SY_WEETHK_25JUNE2025 = 0xffC374D301F2EA381EE313Da0324ea7bf0dbFddF;
     address public constant MAINNET_SY_AGETH_25JUN2025 = 0xb1B9150f2085f6a553b547099977181CA802752A;
     address public constant MAINNET_SY_SUSDE_24SEP2025 = 0xC01cde799245a25e6EabC550b36A47F6F83cc0f1;
+    address public constant MAINNET_SY_SUSDE_26NOV2025 = 0xAbf8165dD7a90ab75878161db15Bf85F6F781d9b;
 
     // Additional Reward Assets
     address public constant MAINNET_LRT2 = 0x8F08B70456eb22f6109F57b8fafE862ED28E6040;
@@ -565,6 +569,8 @@ library RumpelConfig {
             return new ProtocolGuardConfig[](0);
         } else if (tagHash == keccak256(bytes("hyperevm-pendle-claim-update"))) {
             return getHyperevmPendleClaimUpdateProtocolConfigs();
+        } else if (tagHash == keccak256(bytes("ethereum-ethena-expansion-sep-15"))) {
+            return getEthereumEthenaExpansionSep15ProtocolConfigs();
         } else if (tagHash == keccak256(bytes("hyperevm-behype-update"))) {
             return getHyperevmBeHypeProtocolConfigs();
         }
@@ -699,6 +705,8 @@ library RumpelConfig {
             return getEthAllowEulTokenConfigs();
         } else if (tagHash == keccak256(bytes("hyperevm-pendle-claim-update"))) {
             return new TokenGuardConfig[](0);
+        } else if (tagHash == keccak256(bytes("ethereum-ethena-expansion-sep-15"))) {
+            return getEthereumEthenaExpansionSep15TokenConfigs();
         } else if (tagHash == keccak256(bytes("hyperevm-behype-update"))) {
             return getHyperevmBeHypeTokenConfigs();
         }
@@ -830,6 +838,8 @@ library RumpelConfig {
             return new TokenModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("hyperevm-pendle-claim-update"))) {
             return new TokenModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("ethereum-ethena-expansion-sep-15"))) {
+            return new TokenModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("hyperevm-behype-update"))) {
             return new TokenModuleConfig[](0);
         }
@@ -956,8 +966,10 @@ library RumpelConfig {
             return getHyperevmHyperbeatHyperithmHypeAug18ModuleProtocolConfigs();
         } else if (tagHash == keccak256(bytes("eth-allow-eul"))) {
             return new ProtocolModuleConfig[](0);
-        }  else if (tagHash == keccak256(bytes("hyperevm-pendle-claim-update"))) {
-
+        } else if (tagHash == keccak256(bytes("hyperevm-pendle-claim-update"))) {
+            return new ProtocolModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("ethereum-ethena-expansion-sep-15"))) {
+            return new ProtocolModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("hyperevm-behype-update"))) {
             return new ProtocolModuleConfig[](0);
         }
@@ -4054,12 +4066,8 @@ library RumpelConfig {
 
         return configs;
     }
-    
-    function getEthAllowEulTokenConfigs()
-        internal
-        pure
-        returns (TokenGuardConfig[] memory)
-    {
+
+    function getEthAllowEulTokenConfigs() internal pure returns (TokenGuardConfig[] memory) {
         TokenGuardConfig[] memory configs = new TokenGuardConfig[](1);
 
         configs[0] = TokenGuardConfig({
@@ -4071,10 +4079,7 @@ library RumpelConfig {
         return configs;
     }
 
-    function getHyperevmPendleClaimUpdateProtocolConfigs() internal
-        pure
-        returns (ProtocolGuardConfig[] memory)
-    {
+    function getHyperevmPendleClaimUpdateProtocolConfigs() internal pure returns (ProtocolGuardConfig[] memory) {
         ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](2);
 
         configs[0] = ProtocolGuardConfig({target: MAINNET_PENDLE_ROUTERV4, selectorStates: new SelectorState[](1)});
@@ -4092,10 +4097,40 @@ library RumpelConfig {
         return configs;
     }
 
-    function getHyperevmBeHypeProtocolConfigs() internal
-        pure
-        returns (ProtocolGuardConfig[] memory) {
-                    ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](2);
+    function getEthereumEthenaExpansionSep15TokenConfigs() internal pure returns (TokenGuardConfig[] memory) {
+        TokenGuardConfig[] memory configs = new TokenGuardConfig[](3);
+
+        configs[0] = TokenGuardConfig({
+            token: MAINNET_YT_USDE_26NOV2025,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+        configs[1] = TokenGuardConfig({
+            token: MAINNET_YT_SUSDE_26NOV2025,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+        configs[2] = TokenGuardConfig({
+            token: MAINNET_SY_SUSDE_26NOV2025,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.ON
+        });
+
+        return configs;
+    }
+
+    function getEthereumEthenaExpansionSep15ProtocolConfigs() internal pure returns (ProtocolGuardConfig[] memory) {
+        ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](1);
+
+        configs[0] = ProtocolGuardConfig({target: MAINNET_SY_SUSDE_26NOV2025, selectorStates: new SelectorState[](1)});
+        configs[0].selectorStates[0] =
+            SelectorState({selector: IStandardizedYield.redeem.selector, state: RumpelGuard.AllowListState.ON});
+
+        return configs;
+    }
+
+    function getHyperevmBeHypeProtocolConfigs() internal pure returns (ProtocolGuardConfig[] memory) {
+        ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](2);
 
         configs[0] = ProtocolGuardConfig({
             target: HYPEREVM_HYPERBEAT_VAULT_DEPOSIT_BEHYPE,
@@ -4105,7 +4140,7 @@ library RumpelConfig {
             SelectorState({selector: StakingCore.stake.selector, state: RumpelGuard.AllowListState.ON});
 
         configs[1] = ProtocolGuardConfig({
-            target:HYPEREVM_HYPERBEAT_VAULT_REDEMPTION_BEHYPE,
+            target: HYPEREVM_HYPERBEAT_VAULT_REDEMPTION_BEHYPE,
             selectorStates: new SelectorState[](1)
         });
         configs[1].selectorStates[0] =
@@ -4114,12 +4149,9 @@ library RumpelConfig {
         return configs;
     }
 
-    function getHyperevmBeHypeTokenConfigs() internal
-        pure
-        returns (TokenGuardConfig[] memory)
-    {
+    function getHyperevmBeHypeTokenConfigs() internal pure returns (TokenGuardConfig[] memory) {
         TokenGuardConfig[] memory configs = new TokenGuardConfig[](1);
-        
+
         configs[0] = TokenGuardConfig({
             token: HYPEREVM_HYPERBEAT_BEHYPE,
             transferAllowState: RumpelGuard.AllowListState.ON,
@@ -4659,9 +4691,9 @@ interface BoringOnChainQueue {
 
 // behype withdrawals
 interface WithdrawManager {
-     function withdraw(
-        uint256 beHypeAmount, bool instant, uint256 minAmountOut
-    ) external returns (uint256 withdrawalId);
+    function withdraw(uint256 beHypeAmount, bool instant, uint256 minAmountOut)
+        external
+        returns (uint256 withdrawalId);
 }
 
 // behype staking
