@@ -100,6 +100,9 @@ library RumpelConfig {
     address public constant MAINNET_CONTANGO_POSITION_NFT = 0xC2462f03920D47fC5B9e2C5F0ba5D2ded058fD78;
     address public constant MAINNET_CONTANGO_MAESTRO = 0x79B2374Bd437D031A4561fac55d62aD3E6516276;
 
+    address public constant MAINNET_BARD_CLAIM = 0x6fF742845D45d29cb38fa075EFc889247A52Eb02;
+    address public constant MAINNET_BARD = 0xf0DB65D17e30a966C2ae6A21f6BBA71cea6e9754;
+
     // HyperEVM Tokens
     address public constant HYPEEVM_HYPERBEAT_VAULT_HYPE = 0x96C6cBB6251Ee1c257b2162ca0f39AA5Fa44B1FB;
     address public constant HYPEREVM_HYPERBEAT_VAULT_UBTC = 0xc061d38903b99aC12713B550C2CB44B221674F94;
@@ -581,6 +584,8 @@ library RumpelConfig {
             return getEthereumEthenaExpansionSep15ProtocolConfigs();
         } else if (tagHash == keccak256(bytes("hyperevm-behype-update"))) {
             return getHyperevmBeHypeProtocolConfigs();
+        } else if (tagHash == keccak256(bytes("eth-bard-claim"))) {
+            return getEthBardClaimProtocolConfigs();
         }
 
         revert("Unsupported tag");
@@ -719,6 +724,8 @@ library RumpelConfig {
             return getEthereumEthenaExpansionSep15TokenConfigs();
         } else if (tagHash == keccak256(bytes("hyperevm-behype-update"))) {
             return getHyperevmBeHypeTokenConfigs();
+        } else if (tagHash == keccak256(bytes("eth-bard-claim"))) {
+            return getEthBardClaimTokenConfigs();
         }
 
         revert("Unsupported tag");
@@ -854,7 +861,10 @@ library RumpelConfig {
             return new TokenModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("hyperevm-behype-update"))) {
             return new TokenModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("eth-bard-claim"))) {
+            return new TokenModuleConfig[](0);
         }
+
 
         revert("Unsupported tag");
     }
@@ -985,6 +995,8 @@ library RumpelConfig {
         } else if (tagHash == keccak256(bytes("ethereum-ethena-expansion-sep-15"))) {
             return new ProtocolModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("hyperevm-behype-update"))) {
+            return new ProtocolModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("eth-bard-claim"))) {
             return new ProtocolModuleConfig[](0);
         }
 
@@ -4236,6 +4248,23 @@ library RumpelConfig {
 
         return configs;
     }
+
+    function getEthBardClaimProtocolConfigs() internal pure returns (ProtocolGuardConfig[] memory) {
+        ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](1);
+
+        configs[0] = ProtocolGuardConfig({target: MAINNET_BARD_CLAIM, selectorStates: new SelectorState[](1)});
+        configs[0].selectorStates[0] = SelectorState({selector: IBardClaim.claim.selector, state: RumpelGuard.AllowListState.ON});
+
+        return configs;
+    }
+
+    function getEthBardClaimTokenConfigs() internal pure returns (TokenGuardConfig[] memory) {
+        TokenGuardConfig[] memory configs = new TokenGuardConfig[](1);
+
+        configs[0] = TokenGuardConfig({token: MAINNET_BARD, transferAllowState: RumpelGuard.AllowListState.ON, approveAllowState: RumpelGuard.AllowListState.OFF});
+
+        return configs;
+    }
 }
 
 interface IKernelMerkleDistributor {
@@ -4782,4 +4811,13 @@ interface WithdrawManager {
 // behype staking
 interface StakingCore {
     function stake(string memory communityCode) external payable;
+}
+
+// actual contract name = TokenDistributor
+interface IBardClaim {
+    function claim(
+        address _account,
+        uint256 _amount,
+        bytes32[] calldata _merkleProof
+    ) external;
 }
