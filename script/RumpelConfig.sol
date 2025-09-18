@@ -102,7 +102,6 @@ library RumpelConfig {
 
     address public constant MAINNET_BARD_CLAIM = 0x6fF742845D45d29cb38fa075EFc889247A52Eb02;
     address public constant MAINNET_BARD = 0xf0DB65D17e30a966C2ae6A21f6BBA71cea6e9754;
-    // address public constant MAINNET_STAKED_BARD = 0x4B266366dc8fF4c0007943a679CBa1fDB845f98D;
 
     // HyperEVM Tokens
     address public constant HYPEEVM_HYPERBEAT_VAULT_HYPE = 0x96C6cBB6251Ee1c257b2162ca0f39AA5Fa44B1FB;
