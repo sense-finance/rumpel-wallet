@@ -206,6 +206,7 @@ library RumpelConfig {
     address public constant MAINNET_VEPENDLE = 0x4f30A9D41B80ecC5B94306AB4364951AE3170210;
 
     address public constant MAINNET_EUL = 0xd9Fcd98c322942075A5C3860693e9f4f03AAE07b;
+    address public constant MAINNET_SRUSD = 0x738d1115B90efa71AE468F1287fc864775e23a31;
 
     // HyperEVM Tokens
     address public constant HYPEEVM_WHYPE = 0x5555555555555555555555555555555555555555;
@@ -586,6 +587,8 @@ library RumpelConfig {
             return getHyperevmBeHypeProtocolConfigs();
         } else if (tagHash == keccak256(bytes("eth-bard-claim"))) {
             return getEthBardClaimProtocolConfigs();
+        } else if (tagHash == keccak256(bytes("eth-king-claim-and-srusd"))) {
+            return getEthKingClaimAndSRUSDProtocolConfigs();
         }
 
         revert("Unsupported tag");
@@ -726,6 +729,8 @@ library RumpelConfig {
             return getHyperevmBeHypeTokenConfigs();
         } else if (tagHash == keccak256(bytes("eth-bard-claim"))) {
             return getEthBardClaimTokenConfigs();
+        } else if (tagHash == keccak256(bytes("eth-king-claim-and-srusd"))) {
+            return getEthKingClaimAndSRUSDTokenConfigs();
         }
 
         revert("Unsupported tag");
@@ -863,6 +868,8 @@ library RumpelConfig {
             return new TokenModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("eth-bard-claim"))) {
             return new TokenModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("eth-king-claim-and-srusd"))) {
+            return new TokenModuleConfig[](0);
         }
 
 
@@ -997,6 +1004,8 @@ library RumpelConfig {
         } else if (tagHash == keccak256(bytes("hyperevm-behype-update"))) {
             return new ProtocolModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("eth-bard-claim"))) {
+            return new ProtocolModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("eth-king-claim-and-srusd"))) {
             return new ProtocolModuleConfig[](0);
         }
 
@@ -4262,6 +4271,23 @@ library RumpelConfig {
         TokenGuardConfig[] memory configs = new TokenGuardConfig[](1);
 
         configs[0] = TokenGuardConfig({token: MAINNET_BARD, transferAllowState: RumpelGuard.AllowListState.ON, approveAllowState: RumpelGuard.AllowListState.OFF});
+
+        return configs;
+    }
+
+    function getEthKingClaimAndSRUSDProtocolConfigs() internal pure returns (ProtocolGuardConfig[] memory) {
+        ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](1);
+
+        configs[0] = ProtocolGuardConfig({target: MAINNET_ETHERFI_LRT2_CLAIM, selectorStates: new SelectorState[](1)});
+        configs[0].selectorStates[0] =
+            SelectorState({selector: ILRT2Claim.claim.selector, state: RumpelGuard.AllowListState.ON});
+        return configs;
+    }
+
+    function getEthKingClaimAndSRUSDTokenConfigs() internal pure returns (TokenGuardConfig[] memory) {
+        TokenGuardConfig[] memory configs = new TokenGuardConfig[](1);
+
+        configs[0] = TokenGuardConfig({token: MAINNET_SRUSD, transferAllowState: RumpelGuard.AllowListState.ON, approveAllowState: RumpelGuard.AllowListState.OFF});
 
         return configs;
     }
