@@ -4287,7 +4287,7 @@ library RumpelConfig {
     function getEthKingClaimAndSRUSDTokenConfigs() internal pure returns (TokenGuardConfig[] memory) {
         TokenGuardConfig[] memory configs = new TokenGuardConfig[](1);
 
-        configs[0] = TokenGuardConfig({token: MAINNET_SRUSD, transferAllowState: RumpelGuard.AllowListState.ON, approveAllowState: RumpelGuard.AllowListState.ON});
+        configs[0] = TokenGuardConfig({token: MAINNET_SRUSD, transferAllowState: RumpelGuard.AllowListState.ON, approveAllowState: RumpelGuard.AllowListState.OFF});
 
         return configs;
     }
