@@ -12,6 +12,7 @@ import {CompatibilityFallbackHandler, ValidationBeacon} from "../src/external/Co
 import {ISafeProxyFactory} from "../src/interfaces/external/ISafeProxyFactory.sol";
 import {ISafe} from "../src/interfaces/external/ISafe.sol";
 import {RumpelConfig} from "./RumpelConfig.sol";
+import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 
 contract RumpelWalletFactoryScripts is Script {
     address public MAINNET_ADMIN = 0x9D89745fD63Af482ce93a9AdB8B0BbDbb98D3e06;
@@ -29,20 +30,32 @@ contract RumpelWalletFactoryScripts is Script {
     address public HYPEEVM_RUMPEL_GUARD = 0x33e3fcA5C2972781a32Ca0F034Ae293d77962210;
     address public HYPEEVM_RUMPEL_MODULE = 0xa1804146617bFDb81dF7bf35a1dCC02f922559Fe;
 
+    // Hype addresses
+    ISafeProxyFactory public HYPE_SAFE_PROXY_FACTORY = ISafeProxyFactory(0xC22834581EbC8527d974F8a1c97E1bEA4EF910BC);
+    address public HYPE_SAFE_SINGLETON = 0xfb1bffC9d739B8D520DaF37dF666da4C687191EA;
+    address public HYPE_SIGN_MESSAGE_LIB = 0x98FFBBF51bb33A056B08ddf711f289936AafF717;
+
+    address public HYPE_ADMIN = 0x3ffd3d3695Ee8D51A54b46e37bACAa86776A8CDA;
+
+    address public HYPE_RUMPEL_VAULT = 0xEa333eb11FC6ea62F6f4c2d73Cd9F2d994Ff3587;
+    address public HYPE_FEUSD = 0x02c6a2fA58cC01A18B8D9E00eA48d65E4dF26c70;
+
     function setUp() public {}
 
     function run() public {
-        uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
-
-        vm.startBroadcast(deployerPrivateKey);
-        run(MAINNET_ADMIN);
+        vm.startBroadcast(vm.envUint("PRIVATE_KEY"));
+        run(HYPE_ADMIN);
         vm.stopBroadcast();
     }
 
     function run(address admin) public returns (RumpelModule, RumpelGuard, RumpelWalletFactory) {
-        RumpelModule rumpelModule = new RumpelModule(MAINNET_SIGN_MESSAGE_LIB);
+        uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
+        address deployer = vm.addr(deployerPrivateKey);
+        console.log("Deployer:", deployer);
 
-        RumpelGuard rumpelGuard = new RumpelGuard(MAINNET_SIGN_MESSAGE_LIB);
+        RumpelModule rumpelModule = new RumpelModule(address(HYPE_SIGN_MESSAGE_LIB));
+
+        RumpelGuard rumpelGuard = new RumpelGuard(address(HYPE_SIGN_MESSAGE_LIB));
 
         ValidationBeacon validationBeacon = new ValidationBeacon();
         CompatibilityFallbackHandler compatibilityFallbackHandler =
@@ -52,9 +65,9 @@ contract RumpelWalletFactoryScripts is Script {
         InitializationScript initializationScript = new InitializationScript();
 
         RumpelWalletFactory rumpelWalletFactory = new RumpelWalletFactory(
-            ISafeProxyFactory(MAINNET_SAFE_PROXY_FACTORY),
+            ISafeProxyFactory(HYPE_SAFE_PROXY_FACTORY),
             address(compatibilityFallbackHandler),
-            MAINNET_SAFE_SINGLETON,
+            HYPE_SAFE_SINGLETON,
             address(rumpelModule),
             address(rumpelGuard),
             address(initializationScript)
@@ -67,11 +80,14 @@ contract RumpelWalletFactoryScripts is Script {
 
         // Allow Safes to delegate pToken claiming
         rumpelGuard.setCallAllowed(
-            MAINNET_RUMPEL_VAULT, PointTokenVault.trustClaimer.selector, RumpelGuard.AllowListState.ON
+            HYPE_RUMPEL_VAULT, PointTokenVault.trustClaimer.selector, RumpelGuard.AllowListState.ON
         );
 
+        rumpelGuard.setCallAllowed(HYPE_FEUSD, IERC20.transfer.selector, RumpelGuard.AllowListState.ON);
+        rumpelGuard.setCallAllowed(HYPE_FEUSD, IERC20.approve.selector, RumpelGuard.AllowListState.ON);
+
         // Populate initial allowlist
-        RumpelConfig.updateGuardAllowlist(rumpelGuard, "initial");
+        // RumpelConfig.updateGuardAllowlist(rumpelGuard, "initial");
 
         rumpelGuard.transferOwnership(admin);
         rumpelModule.transferOwnership(admin);
