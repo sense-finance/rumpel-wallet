@@ -24,7 +24,7 @@ contract RumpelModule is Ownable {
     error ExecFailed(ISafe safe, address target, bytes data);
     error CallBlocked(address target, bytes4 functionSelector);
 
-    constructor(address _signMessageLib) Ownable(msg.sender) {
+    constructor(address _signMessageLib, address owner_) Ownable(owner_) {
         signMessageLib = _signMessageLib;
     }
 
