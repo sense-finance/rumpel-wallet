@@ -107,6 +107,50 @@ contract RumpelWalletTest is Test {
         assertEq(safe, expectedSafe);
     }
 
+    function test_FactoryCreateWalletFor() public {
+        address[] memory owners = new address[](1);
+        owners[0] = address(alice);
+        InitializationScript.InitCall[] memory initCalls = new InitializationScript.InitCall[](0);
+
+        bytes memory initializer = abi.encodeWithSelector(
+            ISafe.setup.selector,
+            owners,
+            1,
+            rumpelWalletFactory.initializationScript(),
+            abi.encodeWithSelector(
+                InitializationScript.initialize.selector,
+                rumpelWalletFactory.rumpelModule(),
+                rumpelWalletFactory.rumpelGuard(),
+                initCalls
+            ),
+            rumpelWalletFactory.compatibilityFallback(),
+            address(0),
+            0,
+            address(0)
+        );
+
+        address expectedSafe = rumpelWalletFactory.precomputeAddress(initializer, address(alice), 0);
+
+        vm.prank(admin);
+        address safe = rumpelWalletFactory.createWalletFor(address(alice), 0, owners, 1, initCalls);
+
+        assertEq(safe, expectedSafe);
+        assertEq(rumpelWalletFactory.saltNonce(address(alice)), 1);
+
+        vm.expectRevert(abi.encodeWithSelector(RumpelWalletFactory.InvalidSaltNonce.selector, 1, 0));
+        vm.prank(admin);
+        rumpelWalletFactory.createWalletFor(address(alice), 0, owners, 1, initCalls);
+    }
+
+    function test_FactoryCreateWalletForOnlyOwner() public {
+        address[] memory owners = new address[](1);
+        owners[0] = address(alice);
+        InitializationScript.InitCall[] memory initCalls = new InitializationScript.InitCall[](0);
+
+        vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, address(this)));
+        rumpelWalletFactory.createWalletFor(address(alice), 0, owners, 1, initCalls);
+    }
+
     function test_FactoryUpdateComponents() public {
         address newGuard = makeAddr("newGuard");
         address newModule = makeAddr("newModule");
@@ -658,7 +702,7 @@ contract RumpelWalletTest is Test {
         InitializationScript.InitCall[] memory initCalls = new InitializationScript.InitCall[](0);
         ISafe safe = ISafe(rumpelWalletFactory.createWallet(owners, 1, initCalls));
 
-        RumpelModule newRumpelModule = new RumpelModule(rumpelModule.signMessageLib());
+        RumpelModule newRumpelModule = new RumpelModule(rumpelModule.signMessageLib(), address(this));
 
         // Attempt to execute "enableModule" on the safe itself, a function disabled by the deployment script
         vm.expectRevert(
