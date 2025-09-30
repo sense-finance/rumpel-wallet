@@ -179,8 +179,8 @@ contract RumpelWalletDeterminismForkTest is Test {
     }
 
     function test_MainnetVsHypeSafeInfra() public {
-        string memory rpcMainnet = _requireRpc("RPC_MAINNET");
-        string memory rpcHype = _requireRpc("RPC_HYPEREVM");
+        string memory rpcMainnet = vm.envString("RPC_MAINNET");
+        string memory rpcHype = vm.envString("RPC_HYPEREVM");
 
         uint256 forkMainnet = vm.createFork(rpcMainnet);
         uint256 forkHype = vm.createFork(rpcHype);
@@ -210,8 +210,8 @@ contract RumpelWalletDeterminismForkTest is Test {
     }
 
     function test_MainnetMatchesArbitrumSafeInfra() public {
-        string memory rpcMainnet = _requireRpc("RPC_MAINNET");
-        string memory rpcArbitrum = _requireRpc("RPC_ARBITRUM");
+        string memory rpcMainnet = vm.envString("RPC_MAINNET");
+        string memory rpcArbitrum = vm.envString("RPC_ARBITRUM");
 
         uint256 forkMainnet = vm.createFork(rpcMainnet);
         uint256 forkArbitrum = vm.createFork(rpcArbitrum);
@@ -246,14 +246,6 @@ contract RumpelWalletDeterminismForkTest is Test {
         cfg.guard = address(factory.rumpelGuard());
         cfg.initializationScript = factory.initializationScript();
         cfg.fallbackHandler = factory.compatibilityFallback();
-    }
-
-    function _requireRpc(string memory key) internal returns (string memory value) {
-        string memory defaultValue = "";
-        value = vm.envOr(key, defaultValue);
-        if (bytes(value).length == 0) {
-            vm.skip(true);
-        }
     }
 
     function _precomputeForFork(uint256 forkId, RumpelWalletFactory factory, FactoryConfig memory config)
