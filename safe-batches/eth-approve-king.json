@@ -1,0 +1,20 @@
+{
+  "version": "1.0",
+  "chainId": "1",
+  "createdAt": 1759281736357,
+  "meta": {
+    "name": "Transactions Batch",
+    "description": "eth-approve-king",
+    "txBuilderVersion": "1.10.0",
+    "createdFromSafeAddress": "0x9D89745fD63Af482ce93a9AdB8B0BbDbb98D3e06",
+    "createdFromOwnerAddress": "",
+    "checksum": "0xb1ae5b75839ee52ee657fffc3d7f33822d57ff02b188e96202589e2ffaa68395"
+  },
+  "transactions": [
+    {
+      "to": "0x9000fef2846a5253fd2c6ed5241de0fddb404302",
+      "value": "0x0",
+      "data": "0x5534fa0c0000000000000000000000008f08b70456eb22f6109f57b8fafe862ed28e6040a9059cbb000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001"
+    }
+  ]
+}
