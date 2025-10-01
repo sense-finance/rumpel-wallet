@@ -589,6 +589,8 @@ library RumpelConfig {
             return getEthBardClaimProtocolConfigs();
         } else if (tagHash == keccak256(bytes("eth-king-claim-and-srusd"))) {
             return getEthKingClaimAndSRUSDProtocolConfigs();
+        } else if (tagHash == keccak256(bytes("eth-approve-king"))) {
+            return new ProtocolGuardConfig[](0);
         }
 
         revert("Unsupported tag");
@@ -731,6 +733,8 @@ library RumpelConfig {
             return getEthBardClaimTokenConfigs();
         } else if (tagHash == keccak256(bytes("eth-king-claim-and-srusd"))) {
             return getEthKingClaimAndSRUSDTokenConfigs();
+        } else if (tagHash == keccak256(bytes("eth-approve-king"))) {
+            return getEthApproveKingTokenConfigs();
         }
 
         revert("Unsupported tag");
@@ -870,6 +874,8 @@ library RumpelConfig {
             return new TokenModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("eth-king-claim-and-srusd"))) {
             return new TokenModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("eth-approve-king"))) {
+            return new TokenModuleConfig[](0);
         }
 
 
@@ -1006,6 +1012,8 @@ library RumpelConfig {
         } else if (tagHash == keccak256(bytes("eth-bard-claim"))) {
             return new ProtocolModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("eth-king-claim-and-srusd"))) {
+            return new ProtocolModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("eth-approve-king"))) {
             return new ProtocolModuleConfig[](0);
         }
 
@@ -4288,6 +4296,14 @@ library RumpelConfig {
         TokenGuardConfig[] memory configs = new TokenGuardConfig[](1);
 
         configs[0] = TokenGuardConfig({token: MAINNET_SRUSD, transferAllowState: RumpelGuard.AllowListState.ON, approveAllowState: RumpelGuard.AllowListState.OFF});
+
+        return configs;
+    }
+
+    function getEthApproveKingTokenConfigs() internal pure returns (TokenGuardConfig[] memory) {
+        TokenGuardConfig[] memory configs = new TokenGuardConfig[](1);
+
+        configs[0] = TokenGuardConfig({token: MAINNET_LRT2, transferAllowState: RumpelGuard.AllowListState.ON, approveAllowState: RumpelGuard.AllowListState.OFF});
 
         return configs;
     }
