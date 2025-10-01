@@ -2,7 +2,7 @@ import { readFileSync, existsSync } from 'fs';
 import { join, dirname } from 'path';
 import { flattenAllowlist, loadAllAllowlists } from './allowlist.js';
 const ROOT = findRepoRoot();
-const SNAPSHOT_PATH = join(ROOT, 'tmp', 'rumpel_config_dump.jsonl');
+const SNAPSHOT_PATH = join(ROOT, 'legacy', 'rumpel_config_dump.jsonl');
 const TAG_DIR = join(ROOT, 'list-sync', 'tags');
 function toSelectorState(value, context) {
     if (!value) {
@@ -72,8 +72,6 @@ function canonicalize(record) {
         parts.push(`blockTransfer:${record.blockTransfer}`);
     if (record.blockApprove !== undefined)
         parts.push(`blockApprove:${record.blockApprove}`);
-    if (record.signature)
-        parts.push(`sig:${record.signature}`);
     return parts.join('|');
 }
 function loadSnapshot(path) {

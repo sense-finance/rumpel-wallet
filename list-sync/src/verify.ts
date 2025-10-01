@@ -3,7 +3,7 @@ import { join, dirname } from 'path';
 import { FlattenedRecord, flattenAllowlist, loadAllAllowlists, SelectorState } from './allowlist.js';
 
 const ROOT = findRepoRoot();
-const SNAPSHOT_PATH = join(ROOT, 'tmp', 'rumpel_config_dump.jsonl');
+const SNAPSHOT_PATH = join(ROOT, 'legacy', 'rumpel_config_dump.jsonl');
 const TAG_DIR = join(ROOT, 'list-sync', 'tags');
 
 type SnapshotRecord = {
@@ -82,7 +82,6 @@ function canonicalize(record: FlattenedRecord): string {
   if (record.approveState) parts.push(`approve:${record.approveState}`);
   if (record.blockTransfer !== undefined) parts.push(`blockTransfer:${record.blockTransfer}`);
   if (record.blockApprove !== undefined) parts.push(`blockApprove:${record.blockApprove}`);
-  if (record.signature) parts.push(`sig:${record.signature}`);
   return parts.join('|');
 }
 

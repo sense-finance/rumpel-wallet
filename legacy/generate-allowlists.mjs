@@ -1,8 +1,11 @@
 import { readFileSync, writeFileSync, mkdirSync } from 'fs';
-import { dirname } from 'path';
+import { dirname, join } from 'path';
+import { fileURLToPath } from 'url';
 
-const INPUT = 'tmp/rumpel_config_dump.jsonl';
-const OUTPUT_DIR = 'list-sync/tags';
+const LEGACY_DIR = dirname(fileURLToPath(import.meta.url));
+const ROOT = dirname(LEGACY_DIR);
+const INPUT = join(LEGACY_DIR, 'rumpel_config_dump.jsonl');
+const OUTPUT_DIR = join(ROOT, 'list-sync', 'tags');
 
 function ensureDir(path) {
   mkdirSync(path, { recursive: true });
@@ -143,7 +146,7 @@ function writeYamlFiles(groups) {
 
   for (const [tag, data] of groups) {
     const yaml = emitYaml(tag, data);
-    const outputPath = `${OUTPUT_DIR}/${tag}.yaml`;
+    const outputPath = join(OUTPUT_DIR, `${tag}.yaml`);
     ensureDir(dirname(outputPath));
     writeFileSync(outputPath, yaml, 'utf8');
   }
