@@ -72,6 +72,8 @@ function canonicalize(record) {
         parts.push(`blockTransfer:${record.blockTransfer}`);
     if (record.blockApprove !== undefined)
         parts.push(`blockApprove:${record.blockApprove}`);
+    if (record.signature)
+        parts.push(`sig:${record.signature}`);
     return parts.join('|');
 }
 function loadSnapshot(path) {

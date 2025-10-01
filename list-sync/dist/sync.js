@@ -103,11 +103,11 @@ function parseArgs() {
     return args;
 }
 function printHelp() {
-    console.log(`Usage: node registry/dist/sync.js --tag <slug> [--chain ethereum,hyperEVM] [--dry-run]
+    console.log(`Usage: node list-sync/dist/sync.js --tag <slug> [--chain ethereum,hyperEVM] [--dry-run]
 
 Examples:
-  RPC_MAINNET=... RPC_HYPEREVM=... node registry/dist/sync.js --tag cap-money-expansion-sep-15
-  node registry/dist/sync.js --tag new-tag --dry-run
+  node list-sync/dist/sync.js --tag cap-money-expansion-sep-15 --dry-run
+  node list-sync/dist/sync.js --tag cap-money-expansion-sep-15
 `);
 }
 function loadChains(path) {
@@ -141,10 +141,11 @@ async function buildPlan(chain, tag, allowlist, provider) {
         if (current === 'PERMANENTLY_ON' && call.state !== 'PERMANENTLY_ON') {
             throw new Error(`Cannot downgrade permanently allowed call ${target}.${selector} on ${chain.slug}`);
         }
+        const selectorLabel = call.signature ? `${selector} (${call.signature})` : selector;
         actions.push({
             to: chain.guard,
             data: GUARD_SET_IFACE.encodeFunctionData('setCallAllowed', [target, selector, stateToNumber(call.state)]),
-            description: `guard ${target}.${selector} -> ${call.state}`,
+            description: `guard ${target}.${selectorLabel} -> ${call.state}`,
         });
     }
     for (const token of allowlist.guard.tokens) {
@@ -176,10 +177,11 @@ async function buildPlan(chain, tag, allowlist, provider) {
         const blocked = await moduleQuery.blockedModuleCalls(block.target, block.selector);
         if (blocked)
             continue;
+        const selectorLabel = block.signature ? `${block.selector} (${block.signature})` : block.selector;
         actions.push({
             to: chain.module,
             data: MODULE_ADD_IFACE.encodeFunctionData('addBlockedModuleCall', [block.target, block.selector]),
-            description: `module block ${block.target}.${block.selector}`,
+            description: `module block ${block.target}.${selectorLabel}`,
         });
     }
     for (const token of allowlist.module.tokens) {

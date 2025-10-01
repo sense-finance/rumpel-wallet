@@ -17,7 +17,7 @@ function normalizeSelector(selector, context) {
     if (!/^0x[0-9a-fA-F]{8}$/.test(selector)) {
         throw new Error(`Invalid selector ${selector} (${context})`);
     }
-    return selector.toLowerCase();
+    return { selector: selector.toLowerCase() };
 }
 function loadChainsConfig(path) {
     const raw = parse(readFileSync(path, 'utf8'));
@@ -44,17 +44,17 @@ function buildAllowlistIndex(dir) {
     }
     return index;
 }
-function setGuardState(map, target, selector, state) {
+function setGuardState(map, target, selector, info) {
     if (!map.has(target)) {
         map.set(target, new Map());
     }
-    map.get(target).set(selector, state);
+    map.get(target).set(selector, info);
 }
-function addModuleBlock(map, target, selector) {
+function addModuleBlock(map, target, selector, info) {
     if (!map.has(target)) {
-        map.set(target, new Set());
+        map.set(target, new Map());
     }
-    map.get(target).add(selector);
+    map.get(target).set(selector, info);
 }
 function computeDesiredStates(chain, allowlists) {
     const guard = new Map();
@@ -65,23 +65,21 @@ function computeDesiredStates(chain, allowlists) {
             throw new Error(`No allowlist data for tag ${tag}`);
         }
         for (const call of allowlist.guard.calls) {
-            setGuardState(guard, normalizeAddress(call.target, `${tag} guard`), normalizeSelector(call.selector, `${tag} guard selector`), call.state);
+            setGuardState(guard, call.target, call.selector, { state: call.state, signature: call.signature });
         }
         for (const token of allowlist.guard.tokens) {
-            const addr = normalizeAddress(token.token, `${tag} guard token`);
-            setGuardState(guard, addr, TRANSFER_SELECTOR, token.transfer);
-            setGuardState(guard, addr, APPROVE_SELECTOR, token.approve);
+            setGuardState(guard, token.token, TRANSFER_SELECTOR, { state: token.transfer });
+            setGuardState(guard, token.token, APPROVE_SELECTOR, { state: token.approve });
         }
         for (const block of allowlist.module.blocks) {
-            addModuleBlock(module, normalizeAddress(block.target, `${tag} module target`), normalizeSelector(block.selector, `${tag} module selector`));
+            addModuleBlock(module, block.target, block.selector, { signature: block.signature });
         }
         for (const token of allowlist.module.tokens) {
-            const addr = normalizeAddress(token.token, `${tag} module token`);
             if (token.transfer) {
-                addModuleBlock(module, addr, TRANSFER_SELECTOR);
+                addModuleBlock(module, token.token, TRANSFER_SELECTOR, {});
             }
             if (token.approve) {
-                addModuleBlock(module, addr, APPROVE_SELECTOR);
+                addModuleBlock(module, token.token, APPROVE_SELECTOR, {});
             }
         }
     }
@@ -113,7 +111,7 @@ async function fetchGuardState(provider, chain, desired) {
         const responses = await Promise.all(slice.map(({ target, selector }) => contract.allowedCalls(target, selector)));
         responses.forEach((value, index) => {
             const { target, selector } = slice[index];
-            setGuardState(result, target, selector, mapGuardState(Number(value)));
+            setGuardState(result, target, selector, { state: mapGuardState(Number(value)) });
         });
     }
     return result;
@@ -122,7 +120,7 @@ async function fetchModuleState(provider, chain, desired) {
     const contract = new Contract(chain.module, MODULE_ABI, provider);
     const pairs = [];
     for (const [target, selectors] of desired.entries()) {
-        for (const selector of selectors.values()) {
+        for (const selector of selectors.keys()) {
             pairs.push({ target, selector });
         }
     }
@@ -134,7 +132,7 @@ async function fetchModuleState(provider, chain, desired) {
         responses.forEach((value, index) => {
             if (value) {
                 const { target, selector } = slice[index];
-                addModuleBlock(result, target, selector);
+                addModuleBlock(result, target, selector, {});
             }
         });
     }
@@ -145,29 +143,32 @@ function diffGuardStates(desired, actual) {
     const mismatched = [];
     const extra = [];
     for (const [target, selectors] of desired.entries()) {
-        for (const [selector, desiredState] of selectors.entries()) {
-            const actualState = actual.get(target)?.get(selector) ?? 'OFF';
+        for (const [selector, desiredInfo] of selectors.entries()) {
+            const actualInfo = actual.get(target)?.get(selector);
+            const actualState = actualInfo?.state ?? 'OFF';
+            const desiredState = desiredInfo.state;
             if (actualState === desiredState) {
                 continue;
             }
             if (actualState === 'OFF') {
-                missing.push({ target, selector, desired: desiredState });
+                missing.push({ target, selector, desired: desiredState, signature: desiredInfo.signature });
             }
             else if (desiredState === 'OFF') {
-                extra.push({ target, selector, actual: actualState, desired: desiredState });
+                extra.push({ target, selector, actual: actualState, desired: desiredState, signature: desiredInfo.signature });
             }
             else {
-                mismatched.push({ target, selector, desired: desiredState, actual: actualState });
+                mismatched.push({ target, selector, desired: desiredState, actual: actualState, signature: desiredInfo.signature });
             }
         }
     }
     for (const [target, selectors] of actual.entries()) {
-        for (const [selector, actualState] of selectors.entries()) {
-            if (actualState === 'OFF')
+        for (const [selector, actualInfo] of selectors.entries()) {
+            if (actualInfo.state === 'OFF')
                 continue;
-            const desiredState = desired.get(target)?.get(selector) ?? 'OFF';
+            const desiredInfo = desired.get(target)?.get(selector);
+            const desiredState = desiredInfo?.state ?? 'OFF';
             if (desiredState === 'OFF') {
-                extra.push({ target, selector, actual: actualState, desired: desiredState });
+                extra.push({ target, selector, actual: actualInfo.state, desired: desiredState, signature: desiredInfo?.signature });
             }
         }
     }
@@ -177,16 +178,16 @@ function diffModuleStates(desired, actual) {
     const missing = [];
     const extra = [];
     for (const [target, selectors] of desired.entries()) {
-        for (const selector of selectors.values()) {
-            if (!actual.get(target)?.has(selector)) {
-                missing.push({ target, selector });
+        for (const [selector, info] of selectors.entries()) {
+            if (!actual.get(target)?.get(selector)) {
+                missing.push({ target, selector, signature: info.signature });
             }
         }
     }
     for (const [target, selectors] of actual.entries()) {
-        for (const selector of selectors.values()) {
-            if (!desired.get(target)?.has(selector)) {
-                extra.push({ target, selector });
+        for (const [selector, info] of selectors.entries()) {
+            if (!desired.get(target)?.get(selector)) {
+                extra.push({ target, selector, signature: info.signature });
             }
         }
     }
@@ -236,7 +237,8 @@ function dedupeGuardEntries(entries) {
     const map = new Map();
     for (const entry of entries) {
         const key = `${entry.target}.${entry.selector}`;
-        if (!map.has(key)) {
+        const existing = map.get(key);
+        if (!existing || (!existing.signature && entry.signature)) {
             map.set(key, entry);
         }
     }
@@ -246,7 +248,8 @@ function dedupeModuleEntries(entries) {
     const map = new Map();
     for (const entry of entries) {
         const key = `${entry.target}.${entry.selector}`;
-        if (!map.has(key)) {
+        const existing = map.get(key);
+        if (!existing || (!existing.signature && entry.signature)) {
             map.set(key, entry);
         }
     }
@@ -261,21 +264,23 @@ async function fetchGuardStateFromEvents(provider, chain, desired) {
         const targetHex = `0x${log.topics[1].slice(-40)}`;
         const selectorHex = `0x${log.topics[2].slice(-8)}`;
         const target = normalizeAddress(targetHex, 'guard event target');
-        const selector = normalizeSelector(selectorHex, 'guard event selector');
+        const selectorInfo = normalizeSelector(selectorHex, 'guard event selector');
+        const selector = selectorInfo.selector;
         if (selector === ZERO_SELECTOR || target === ZERO_ADDRESS) {
             return;
         }
         const state = mapGuardState(Number(BigInt(log.data)));
-        setGuardState(actual, target, selector, state);
+        setGuardState(actual, target, selector, { state, signature: selectorInfo.signature });
     });
     const extra = [];
     for (const [target, selectors] of actual.entries()) {
-        for (const [selector, state] of selectors.entries()) {
-            if (state === 'OFF' || selector === ZERO_SELECTOR || target === ZERO_ADDRESS)
+        for (const [selector, info] of selectors.entries()) {
+            if (info.state === 'OFF' || selector === ZERO_SELECTOR || target === ZERO_ADDRESS)
                 continue;
-            const desiredState = desired.get(target)?.get(selector) ?? 'OFF';
+            const desiredInfo = desired.get(target)?.get(selector);
+            const desiredState = desiredInfo?.state ?? 'OFF';
             if (desiredState === 'OFF') {
-                extra.push({ target, selector, actual: state, desired: desiredState });
+                extra.push({ target, selector, actual: info.state, desired: desiredState, signature: desiredInfo?.signature });
             }
         }
     }
@@ -288,20 +293,21 @@ async function fetchModuleStateFromEvents(provider, chain, desired) {
         const targetHex = `0x${log.topics[1].slice(-40)}`;
         const selectorHex = `0x${log.topics[2].slice(-8)}`;
         const target = normalizeAddress(targetHex, 'module event target');
-        const selector = normalizeSelector(selectorHex, 'module event selector');
+        const selectorInfo = normalizeSelector(selectorHex, 'module event selector');
+        const selector = selectorInfo.selector;
         if (selector === ZERO_SELECTOR || target === ZERO_ADDRESS) {
             return;
         }
-        addModuleBlock(actual, target, selector);
+        addModuleBlock(actual, target, selector, { signature: selectorInfo.signature });
     });
     const extra = [];
     for (const [target, selectors] of actual.entries()) {
-        for (const selector of selectors.values()) {
+        for (const [selector, info] of selectors.entries()) {
             if (selector === ZERO_SELECTOR || target === ZERO_ADDRESS) {
                 continue;
             }
-            if (!desired.get(target)?.has(selector)) {
-                extra.push({ target, selector });
+            if (!desired.get(target)?.get(selector)) {
+                extra.push({ target, selector, signature: info.signature });
             }
         }
     }

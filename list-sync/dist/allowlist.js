@@ -1,6 +1,7 @@
 import { readdirSync, readFileSync } from 'fs';
 import { join } from 'path';
 import { parse } from 'yaml';
+import { keccak256, toUtf8Bytes } from 'ethers';
 const VALID_STATES = ['OFF', 'ON', 'PERMANENTLY_ON'];
 function normalizeState(value, context) {
     if (VALID_STATES.includes(value)) {
@@ -24,10 +25,15 @@ function normalizeSelector(value, context) {
     if (typeof value !== 'string') {
         throw new Error(`Expected selector string for ${context}`);
     }
-    if (!/^0x[0-9a-fA-F]{8}$/.test(value)) {
-        throw new Error(`Selector must be 4-byte hex for ${context}: ${value}`);
+    const trimmed = value.trim();
+    if (/^0x[0-9a-fA-F]{8}$/.test(trimmed)) {
+        return { selector: trimmed.toLowerCase() };
     }
-    return value.toLowerCase();
+    if (trimmed.includes('(') && trimmed.endsWith(')')) {
+        const hash = keccak256(toUtf8Bytes(trimmed));
+        return { selector: hash.slice(0, 10), signature: trimmed };
+    }
+    throw new Error(`Selector must be 4-byte hex or signature for ${context}: ${value}`);
 }
 export function loadAllowlistFile(path) {
     const raw = parse(readFileSync(path, 'utf8'));
@@ -47,7 +53,7 @@ export function loadAllowlistFile(path) {
             for (const selector of entry.selectors ?? []) {
                 guardCalls.push({
                     target,
-                    selector: normalizeSelector(selector.selector, `${raw.slug} guard.allow selector`),
+                    ...normalizeSelector(selector.selector, `${raw.slug} guard.allow selector`),
                     state: normalizeState(selector.state, `${raw.slug} guard.allow state`),
                 });
             }
@@ -69,7 +75,7 @@ export function loadAllowlistFile(path) {
             for (const selector of entry.selectors ?? []) {
                 moduleBlocks.push({
                     target,
-                    selector: normalizeSelector(selector, `${raw.slug} module.block selector`),
+                    ...normalizeSelector(selector, `${raw.slug} module.block selector`),
                 });
             }
         }
@@ -106,6 +112,7 @@ export function flattenAllowlist(data) {
             target: call.target,
             selector: call.selector,
             state: call.state,
+            signature: call.signature,
         });
     }
     for (const token of data.guard.tokens) {
@@ -123,6 +130,7 @@ export function flattenAllowlist(data) {
             kind: 'module.call',
             target: block.target,
             selector: block.selector,
+            signature: block.signature,
         });
     }
     for (const token of data.module.tokens) {

@@ -82,6 +82,7 @@ function canonicalize(record: FlattenedRecord): string {
   if (record.approveState) parts.push(`approve:${record.approveState}`);
   if (record.blockTransfer !== undefined) parts.push(`blockTransfer:${record.blockTransfer}`);
   if (record.blockApprove !== undefined) parts.push(`blockApprove:${record.blockApprove}`);
+  if (record.signature) parts.push(`sig:${record.signature}`);
   return parts.join('|');
 }
 

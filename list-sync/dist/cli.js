@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 import { diffChains } from './diff.js';
 function formatGuard(entry) {
-    const base = `${entry.target}.${entry.selector}`;
+    const selectorLabel = entry.signature ? `${entry.selector} (${entry.signature})` : entry.selector;
+    const base = `${entry.target}.${selectorLabel}`;
     if (entry.desired && entry.actual && entry.desired !== entry.actual) {
         return `${base} (desired=${entry.desired}, actual=${entry.actual})`;
     }
@@ -14,7 +15,8 @@ function formatGuard(entry) {
     return base;
 }
 function formatModule(entry) {
-    return `${entry.target}.${entry.selector}`;
+    const selectorLabel = entry.signature ? `${entry.selector} (${entry.signature})` : entry.selector;
+    return `${entry.target}.${selectorLabel}`;
 }
 async function main() {
     const args = process.argv.slice(2);

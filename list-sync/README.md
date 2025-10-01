@@ -14,7 +14,7 @@ Declarative tag files for the Rumpel guard and module live here. Each YAML captu
 ### 1. Add or edit an allowlist tag
 
 1. Create/edit the appropriate file in `tags/`. Slug names should match the historical naming pattern (e.g. `something-useful.yaml`).
-2. Populate the `guard.allow` section with any protocol selectors (4-byte selectors) and target addresses being enabled.
+2. Populate the `guard.allow` section with any protocol selectors (either 4-byte hex like `0xabcdef01` or full signatures such as `deposit(uint256,address)`) and target addresses being enabled.
 3. Populate the `guard.tokens` section for ERC20 transfer/approve states – these translate to `transfer(address,uint256)` / `approve(address,uint256)` selectors.
 4. Populate the `module.block` and `module.tokens` sections for module-level blocklist entries as needed.
 5. Run `npm run typecheck` (from `list-sync/`) to ensure the schema stays valid.

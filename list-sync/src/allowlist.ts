@@ -1,6 +1,7 @@
 import { readdirSync, readFileSync } from 'fs';
 import { join } from 'path';
 import { parse } from 'yaml';
+import { keccak256, toUtf8Bytes } from 'ethers';
 
 export type SelectorState = 'OFF' | 'ON' | 'PERMANENTLY_ON';
 
@@ -8,6 +9,7 @@ export interface GuardCall {
   target: string;
   selector: string;
   state: SelectorState;
+  signature?: string;
 }
 
 export interface GuardToken {
@@ -19,6 +21,7 @@ export interface GuardToken {
 export interface ModuleBlock {
   target: string;
   selector: string;
+  signature?: string;
 }
 
 export interface ModuleToken {
@@ -89,6 +92,7 @@ export interface FlattenedRecord {
   approveState?: SelectorState;
   blockTransfer?: boolean;
   blockApprove?: boolean;
+  signature?: string;
 }
 
 const VALID_STATES: SelectorState[] = ['OFF', 'ON', 'PERMANENTLY_ON'];
@@ -113,14 +117,23 @@ function normalizeAddress(value: string, context: string): string {
   return value.toLowerCase();
 }
 
-function normalizeSelector(value: string, context: string): string {
+function normalizeSelector(value: string, context: string): { selector: string; signature?: string } {
   if (typeof value !== 'string') {
     throw new Error(`Expected selector string for ${context}`);
   }
-  if (!/^0x[0-9a-fA-F]{8}$/.test(value)) {
-    throw new Error(`Selector must be 4-byte hex for ${context}: ${value}`);
+
+  const trimmed = value.trim();
+
+  if (/^0x[0-9a-fA-F]{8}$/.test(trimmed)) {
+    return { selector: trimmed.toLowerCase() };
   }
-  return value.toLowerCase();
+
+  if (trimmed.includes('(') && trimmed.endsWith(')')) {
+    const hash = keccak256(toUtf8Bytes(trimmed));
+    return { selector: hash.slice(0, 10), signature: trimmed };
+  }
+
+  throw new Error(`Selector must be 4-byte hex or signature for ${context}: ${value}`);
 }
 
 export function loadAllowlistFile(path: string): AllowlistNormalized {
@@ -144,8 +157,8 @@ export function loadAllowlistFile(path: string): AllowlistNormalized {
       for (const selector of entry.selectors ?? []) {
         guardCalls.push({
           target,
-          selector: normalizeSelector(selector.selector, `${raw.slug} guard.allow selector`),
-          state: normalizeState(selector.state, `${raw.slug} guard.allow state`),
+    ...normalizeSelector(selector.selector, `${raw.slug} guard.allow selector`),
+    state: normalizeState(selector.state, `${raw.slug} guard.allow state`),
         });
       }
     }
@@ -168,7 +181,7 @@ export function loadAllowlistFile(path: string): AllowlistNormalized {
       for (const selector of entry.selectors ?? []) {
         moduleBlocks.push({
           target,
-          selector: normalizeSelector(selector, `${raw.slug} module.block selector`),
+          ...normalizeSelector(selector, `${raw.slug} module.block selector`),
         });
       }
     }
@@ -210,6 +223,7 @@ export function flattenAllowlist(data: AllowlistNormalized): FlattenedRecord[] {
       target: call.target,
       selector: call.selector,
       state: call.state,
+      signature: call.signature,
     });
   }
 
@@ -229,6 +243,7 @@ export function flattenAllowlist(data: AllowlistNormalized): FlattenedRecord[] {
       kind: 'module.call',
       target: block.target,
       selector: block.selector,
+      signature: block.signature,
     });
   }
 

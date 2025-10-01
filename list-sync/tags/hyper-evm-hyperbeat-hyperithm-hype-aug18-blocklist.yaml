@@ -3,9 +3,9 @@ guard:
   allow:
     - target: "0x92B518e1cD76dD70D3E20624AEdd7D107F332Cff"
       selectors:
-        - selector: "0x6e553f65"
+        - selector: "deposit(uint256,address)"
           state: "PERMANENTLY_ON"
-        - selector: "0xba087652"
+        - selector: "redeem(uint256,address,address)"
           state: "PERMANENTLY_ON"
   tokens:
     - token: "0x92B518e1cD76dD70D3E20624AEdd7D107F332Cff"
@@ -15,8 +15,8 @@ module:
   block:
     - target: "0x92B518e1cD76dD70D3E20624AEdd7D107F332Cff"
       selectors:
-        - "0xb460af94"
-        - "0xba087652"
+        - "withdraw(uint256,address,address)"
+        - "redeem(uint256,address,address)"
   tokens:
     - token: "0x92B518e1cD76dD70D3E20624AEdd7D107F332Cff"
       transfer: true
