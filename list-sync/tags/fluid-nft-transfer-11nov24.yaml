@@ -1,0 +1,9 @@
+slug: fluid-nft-transfer-11nov24
+guard:
+  allow:
+    - target: "0x324c5Dc1fC42c7a4D43d92df1eBA58a54d13Bf2d"
+      selectors:
+        - selector: "0x23b872dd"
+          state: "ON"
+        - selector: "0x42842e0e"
+          state: "ON"

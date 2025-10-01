@@ -1,0 +1,6 @@
+slug: pendle-usde-yts
+guard:
+  tokens:
+    - token: "0x4A8036EFA1307F1cA82d932C0895faa18dB0c9eE"
+      transfer: "ON"
+      approve: "OFF"

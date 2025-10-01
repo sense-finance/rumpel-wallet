@@ -1,0 +1,11 @@
+slug: morpho-transfer-and-claim
+guard:
+  allow:
+    - target: "0x330eefa8a787552DC5cAd3C3cA644844B1E61Ddb"
+      selectors:
+        - selector: "0xfabed412"
+          state: "ON"
+  tokens:
+    - token: "0x58D97B57BB95320F9a05dC918Aef65434969c2B2"
+      transfer: "ON"
+      approve: "ON"

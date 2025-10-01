@@ -1,0 +1,39 @@
+slug: cap-money-expansion-sep-15
+guard:
+  allow:
+    - target: "0x27010cE8D14B4E73Ef48aF1CF9a5A91e8356d10f"
+      selectors:
+        - selector: "0x769f8e5d"
+          state: "ON"
+    - target: "0x88887bE419578051FF9F4eb6C858A951921D8888"
+      selectors:
+        - selector: "0x6e553f65"
+          state: "ON"
+        - selector: "0x94bf804d"
+          state: "ON"
+        - selector: "0xb460af94"
+          state: "ON"
+        - selector: "0xba087652"
+          state: "ON"
+    - target: "0xcCcc62962d17b8914c62D74FfB843d73B2a3cccC"
+      selectors:
+        - selector: "0x56127987"
+          state: "ON"
+        - selector: "0xa4450587"
+          state: "ON"
+  tokens:
+    - token: "0x06f946d590010eaB6a5556AD29D9979EB1A7fA3A"
+      transfer: "ON"
+      approve: "OFF"
+    - token: "0x27010cE8D14B4E73Ef48aF1CF9a5A91e8356d10f"
+      transfer: "ON"
+      approve: "ON"
+    - token: "0x88887bE419578051FF9F4eb6C858A951921D8888"
+      transfer: "ON"
+      approve: "OFF"
+    - token: "0x8B4A52d28E49a9e8994D563420422e1a26a83df1"
+      transfer: "ON"
+      approve: "OFF"
+    - token: "0xcCcc62962d17b8914c62D74FfB843d73B2a3cccC"
+      transfer: "ON"
+      approve: "ON"

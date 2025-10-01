@@ -1,0 +1,23 @@
+slug: hyper-evm-hyperbeat-hyperithm-hype-aug18-blocklist
+guard:
+  allow:
+    - target: "0x92B518e1cD76dD70D3E20624AEdd7D107F332Cff"
+      selectors:
+        - selector: "0x6e553f65"
+          state: "PERMANENTLY_ON"
+        - selector: "0xba087652"
+          state: "PERMANENTLY_ON"
+  tokens:
+    - token: "0x92B518e1cD76dD70D3E20624AEdd7D107F332Cff"
+      transfer: "PERMANENTLY_ON"
+      approve: "PERMANENTLY_ON"
+module:
+  block:
+    - target: "0x92B518e1cD76dD70D3E20624AEdd7D107F332Cff"
+      selectors:
+        - "0xb460af94"
+        - "0xba087652"
+  tokens:
+    - token: "0x92B518e1cD76dD70D3E20624AEdd7D107F332Cff"
+      transfer: true
+      approve: true

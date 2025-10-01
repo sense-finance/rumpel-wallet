@@ -1,0 +1,17 @@
+slug: hyper-evm-kinetiq-hyperbeat-lst
+guard:
+  allow:
+    - target: "0x1eff01e0784ae8d06a17AF29A2300D2A9cdA5440"
+      selectors:
+        - selector: "0x8b53f75e"
+          state: "ON"
+        - selector: "0xbfc2d46a"
+          state: "ON"
+    - target: "0x2b158D44eEbb03a025F75B79F1d8B3004Ac97737"
+      selectors:
+        - selector: "0xc02dd27a"
+          state: "ON"
+  tokens:
+    - token: "0x81e064d0eB539de7c3170EDF38C1A42CBd752A76"
+      transfer: "ON"
+      approve: "ON"

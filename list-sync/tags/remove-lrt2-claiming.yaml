@@ -1,0 +1,11 @@
+slug: remove-lrt2-claiming
+guard:
+  allow:
+    - target: "0x6Db24Ee656843E3fE03eb8762a54D86186bA6B64"
+      selectors:
+        - selector: "0x1d7d4ebc"
+          state: "OFF"
+  tokens:
+    - token: "0x8F08B70456eb22f6109F57b8fafE862ED28E6040"
+      transfer: "OFF"
+      approve: "OFF"

@@ -1,0 +1,11 @@
+slug: claim-rsusde-yield
+guard:
+  allow:
+    - target: "0xBCD9522EEf626dD0363347BDE6cAB105c2C7797e"
+      selectors:
+        - selector: "0x769f8e5d"
+          state: "ON"
+  tokens:
+    - token: "0xBCD9522EEf626dD0363347BDE6cAB105c2C7797e"
+      transfer: "ON"
+      approve: "ON"

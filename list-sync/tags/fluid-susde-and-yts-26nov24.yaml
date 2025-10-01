@@ -1,0 +1,36 @@
+slug: fluid-susde-and-yts-26nov24
+guard:
+  allow:
+    - target: "0x2F3780e21cAba1bEdFB24E37C97917def304dFFA"
+      selectors:
+        - selector: "0x032d2276"
+          state: "ON"
+    - target: "0x3996464c0fCCa8183e13ea5E5e74375e2c8744Dd"
+      selectors:
+        - selector: "0x032d2276"
+          state: "ON"
+    - target: "0xBc345229C1b52e4c30530C614BB487323BA38Da5"
+      selectors:
+        - selector: "0x032d2276"
+          state: "ON"
+  tokens:
+    - token: "0x079F21309eB9cbD2a387972eB2168d57C8542e32"
+      transfer: "PERMANENTLY_ON"
+      approve: "OFF"
+    - token: "0x1caE47aA3e10A77C55Ee32f8623D6B5ACC947344"
+      transfer: "PERMANENTLY_ON"
+      approve: "OFF"
+    - token: "0x27f6F2f5e87A383471C79296c64E4e82269877f7"
+      transfer: "PERMANENTLY_ON"
+      approve: "OFF"
+module:
+  tokens:
+    - token: "0x079F21309eB9cbD2a387972eB2168d57C8542e32"
+      transfer: true
+      approve: true
+    - token: "0x1caE47aA3e10A77C55Ee32f8623D6B5ACC947344"
+      transfer: true
+      approve: true
+    - token: "0x27f6F2f5e87A383471C79296c64E4e82269877f7"
+      transfer: true
+      approve: true
