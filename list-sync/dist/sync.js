@@ -141,7 +141,7 @@ async function buildPlan(chain, tag, allowlist, provider) {
         if (current === 'PERMANENTLY_ON' && call.state !== 'PERMANENTLY_ON') {
             throw new Error(`Cannot downgrade permanently allowed call ${target}.${selector} on ${chain.slug}`);
         }
-        const selectorLabel = call.signature ? `${selector} (${call.signature})` : selector;
+        const selectorLabel = call.signature ? `${selector} [${call.signature}]` : selector;
         actions.push({
             to: chain.guard,
             data: GUARD_SET_IFACE.encodeFunctionData('setCallAllowed', [target, selector, stateToNumber(call.state)]),
@@ -177,7 +177,7 @@ async function buildPlan(chain, tag, allowlist, provider) {
         const blocked = await moduleQuery.blockedModuleCalls(block.target, block.selector);
         if (blocked)
             continue;
-        const selectorLabel = block.signature ? `${block.selector} (${block.signature})` : block.selector;
+        const selectorLabel = block.signature ? `${block.selector} [${block.signature}]` : block.selector;
         actions.push({
             to: chain.module,
             data: MODULE_ADD_IFACE.encodeFunctionData('addBlockedModuleCall', [block.target, block.selector]),
