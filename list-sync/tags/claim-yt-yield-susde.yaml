@@ -1,0 +1,11 @@
+slug: claim-yt-yield-susde
+guard:
+  allow:
+    - target: "0x888888888889758F76e7103c6CbF23ABbF58F946"
+      selectors:
+        - selector: "0xf7e375e8"
+          state: "ON"
+    - target: "0xD288755556c235afFfb6316702719C32bD8706e8"
+      selectors:
+        - selector: "0x769f8e5d"
+          state: "ON"

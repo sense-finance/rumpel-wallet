@@ -1,0 +1,30 @@
+slug: initial-resolv-strategies
+guard:
+  allow:
+    - target: "0x0C9a3dd6b8F28529d72d7f9cE918D493519EE383"
+      selectors:
+        - selector: "0xc16ae7a4"
+          state: "ON"
+    - target: "0x6c78661c00D797C9c7fCBE4BCacbD9612A61C07f"
+      selectors:
+        - selector: "0x769f8e5d"
+          state: "ON"
+  tokens:
+    - token: "0x1202F5C7b4B9E47a1A484E8B270be34dbbC75055"
+      transfer: "ON"
+      approve: "ON"
+    - token: "0x4956b52aE2fF65D74CA2d61207523288e4528f96"
+      transfer: "ON"
+      approve: "OFF"
+    - token: "0x66a1E37c9b0eAddca17d3662D6c05F4DECf3e110"
+      transfer: "ON"
+      approve: "OFF"
+    - token: "0x6c78661c00D797C9c7fCBE4BCacbD9612A61C07f"
+      transfer: "ON"
+      approve: "ON"
+    - token: "0x6c8984bc7DBBeDAf4F6b2FD766f16eBB7d10AAb4"
+      transfer: "ON"
+      approve: "OFF"
+    - token: "0xe0e034AfF49755e80b15594ce3A16d74d1a09b2F"
+      transfer: "ON"
+      approve: "OFF"

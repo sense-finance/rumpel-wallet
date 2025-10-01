@@ -1,0 +1,6 @@
+slug: eth-allow-eul
+guard:
+  tokens:
+    - token: "0xd9Fcd98c322942075A5C3860693e9f4f03AAE07b"
+      transfer: "ON"
+      approve: "OFF"

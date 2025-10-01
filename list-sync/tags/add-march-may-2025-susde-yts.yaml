@@ -1,0 +1,24 @@
+slug: add-march-may-2025-susde-yts
+guard:
+  allow:
+    - target: "0x3Ee118EFC826d30A29645eAf3b2EaaC9E8320185"
+      selectors:
+        - selector: "0x769f8e5d"
+          state: "ON"
+    - target: "0xE877B2A8a53763C8B0534a15e87da28f3aC1257e"
+      selectors:
+        - selector: "0x769f8e5d"
+          state: "ON"
+  tokens:
+    - token: "0x1de6Ff19FDA7496DdC12f2161f6ad6427c52aBBe"
+      transfer: "ON"
+      approve: "OFF"
+    - token: "0x3Ee118EFC826d30A29645eAf3b2EaaC9E8320185"
+      transfer: "ON"
+      approve: "ON"
+    - token: "0x96512230bF0Fa4E20Cf02C3e8A7d983132cd2b9F"
+      transfer: "ON"
+      approve: "OFF"
+    - token: "0xE877B2A8a53763C8B0534a15e87da28f3aC1257e"
+      transfer: "ON"
+      approve: "ON"

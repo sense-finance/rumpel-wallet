@@ -1,0 +1,33 @@
+slug: mellow-re7
+guard:
+  allow:
+    - target: "0x7F43fDe12A40dE708d908Fb3b9BFB8540d9Ce444"
+      selectors:
+        - selector: "0x2e3d46dc"
+          state: "ON"
+        - selector: "0x5f097d40"
+          state: "ON"
+    - target: "0x84631c0d0081FDe56DeB72F6DE77abBbF6A9f93a"
+      selectors:
+        - selector: "0x2e3d46dc"
+          state: "ON"
+        - selector: "0x5f097d40"
+          state: "ON"
+  tokens:
+    - token: "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599"
+      transfer: "ON"
+      approve: "ON"
+    - token: "0x7F43fDe12A40dE708d908Fb3b9BFB8540d9Ce444"
+      transfer: "PERMANENTLY_ON"
+      approve: "OFF"
+    - token: "0x84631c0d0081FDe56DeB72F6DE77abBbF6A9f93a"
+      transfer: "PERMANENTLY_ON"
+      approve: "OFF"
+module:
+  tokens:
+    - token: "0x7F43fDe12A40dE708d908Fb3b9BFB8540d9Ce444"
+      transfer: true
+      approve: true
+    - token: "0x84631c0d0081FDe56DeB72F6DE77abBbF6A9f93a"
+      transfer: true
+      approve: true

@@ -1,0 +1,53 @@
+name: list-sync diff preview
+
+on:
+  pull_request:
+
+jobs:
+  diff:
+    runs-on: ubuntu-latest
+    env:
+      RPC_MAINNET: ${{ secrets.RPC_MAINNET }}
+      RPC_HYPEREVM: ${{ secrets.RPC_HYPEREVM }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        working-directory: list-sync
+        run: npm ci
+
+      - name: Build TypeScript
+        working-directory: list-sync
+        run: npm run build
+
+      - name: Run diff preview
+        working-directory: list-sync
+        run: npm run diff -- --dry-run > ../list-sync-diff.txt || true
+
+      - name: Comment diff on PR
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            const diffPath = path.join(process.env.GITHUB_WORKSPACE, 'list-sync-diff.txt');
+            if (!fs.existsSync(diffPath)) {
+              return;
+            }
+            const content = fs.readFileSync(diffPath, 'utf8').trim();
+            if (!content) {
+              return;
+            }
+            const body = ['```', content, '```'].join('\n');
+            await github.rest.issues.createComment({
+              ...context.repo,
+              issue_number: context.issue.number,
+              body,
+            });

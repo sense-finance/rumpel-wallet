@@ -1,0 +1,15 @@
+slug: hyperevm-behype-update
+guard:
+  allow:
+    - target: "0x9d0B0877b9f2204CF414Ca7862E4f03506822538"
+      selectors:
+        - selector: "0x7f223b4c"
+          state: "ON"
+    - target: "0xCeaD893b162D38e714D82d06a7fe0b0dc3c38E0b"
+      selectors:
+        - selector: "0x46f45b8d"
+          state: "ON"
+  tokens:
+    - token: "0xd8FC8F0b03eBA61F64D08B0bef69d80916E5DdA9"
+      transfer: "ON"
+      approve: "ON"

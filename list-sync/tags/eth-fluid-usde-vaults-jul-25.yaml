@@ -1,0 +1,23 @@
+slug: eth-fluid-usde-vaults-jul-25
+guard:
+  allow:
+    - target: "0x1e6ce96d65901E0779C17E83258e07D2f8962fa4"
+      selectors:
+        - selector: "0x10259f26"
+          state: "ON"
+    - target: "0x5668c53C6188BA0a311E28b54D7822771D9BDeea"
+      selectors:
+        - selector: "0x10259f26"
+          state: "ON"
+    - target: "0x71a3bD2B2214E51e33144590948aA88beAfF2E44"
+      selectors:
+        - selector: "0x10259f26"
+          state: "ON"
+    - target: "0xe3Cac7cC6b0EeD28e16331F08be7948BbfcB5acC"
+      selectors:
+        - selector: "0x58cc871e"
+          state: "ON"
+  tokens:
+    - token: "0xC139190F447e929f090Edeb554D95AbB8b18aC1C"
+      transfer: "ON"
+      approve: "ON"

@@ -1,0 +1,6 @@
+slug: hyperevm-hyperbeat-hyperusdt0-token
+guard:
+  tokens:
+    - token: "0xe5ADd96840F0B908ddeB3Bd144C0283Ac5ca7cA0"
+      transfer: "ON"
+      approve: "ON"

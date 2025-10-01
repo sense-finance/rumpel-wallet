@@ -1,0 +1,7 @@
+slug: ethena-staking-lp-withdraw
+guard:
+  allow:
+    - target: "0x8707f238936c12c309bfc2B9959C35828AcFc512"
+      selectors:
+        - selector: "0x6ab498a3"
+          state: "ON"

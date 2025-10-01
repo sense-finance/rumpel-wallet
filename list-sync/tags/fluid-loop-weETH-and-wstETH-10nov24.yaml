@@ -1,0 +1,11 @@
+slug: fluid-loop-weETH-and-wstETH-10nov24
+guard:
+  allow:
+    - target: "0x324c5Dc1fC42c7a4D43d92df1eBA58a54d13Bf2d"
+      selectors:
+        - selector: "0xb88d4fde"
+          state: "ON"
+    - target: "0xeAEf563015634a9d0EE6CF1357A3b205C35e028D"
+      selectors:
+        - selector: "0x032d2276"
+          state: "ON"

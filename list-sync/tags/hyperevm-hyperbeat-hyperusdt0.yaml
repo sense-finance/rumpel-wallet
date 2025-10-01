@@ -1,0 +1,9 @@
+slug: hyperevm-hyperbeat-hyperusdt0
+guard:
+  allow:
+    - target: "0xe5ADd96840F0B908ddeB3Bd144C0283Ac5ca7cA0"
+      selectors:
+        - selector: "0x6e553f65"
+          state: "ON"
+        - selector: "0xb460af94"
+          state: "ON"
