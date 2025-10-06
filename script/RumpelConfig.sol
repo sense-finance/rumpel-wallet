@@ -53,7 +53,8 @@ library RumpelConfig {
     address public constant MAINNET_SYMBIOTIC_SWETH_COLLATERAL = 0x38B86004842D3FA4596f0b7A0b53DE90745Ab654;
     address public constant MAINNET_SYMBIOTIC_LSETH_COLLATERAL = 0xB09A50AcFFF7D12B7d18adeF3D1027bC149Bad1c;
     address public constant MAINNET_SYMBIOTIC_OSETH_COLLATERAL = 0x52cB8A621610Cc3cCf498A1981A8ae7AD6B8AB2a;
-    address public constant MAINNET_SYMBIOTIC_MEV_CAPITAL_WSTETH_COLLATERAL = 0x4e0554959A631B3D3938ffC158e0a7b2124aF9c5;
+    address public constant MAINNET_SYMBIOTIC_MEV_CAPITAL_WSTETH_COLLATERAL =
+        0x4e0554959A631B3D3938ffC158e0a7b2124aF9c5;
     address public constant MAINNET_SYMBIOTIC_SFRXETH_COLLATERAL = 0x5198CB44D7B2E993ebDDa9cAd3b9a0eAa32769D2;
     address public constant MAINNET_SYMBIOTIC_GUANTLET_RESTAKED_SWETH_COLLATERAL =
         0x65B560d887c010c4993C8F8B36E595C171d69D63;
@@ -80,12 +81,14 @@ library RumpelConfig {
     address public constant MAINNET_FLUID_VAULT_SUSDE_DEX_USDC_USDT = 0xe210d8ded13Abe836a10E8Aa956dd424658d0034; // sUSDe/USDC-USDT
     address public constant MAINNET_FLUID_VAULT_DEX_USDE_USDT_USDT = 0x989a44CB4dBb7eBe20e0aBf3C1E1d727BF90F881; // USDe-USDT/USDT
     address public constant MAINNET_FLUID_VAULT_DEX_EBTC_CBBTC_WBTC = 0x43d1cA906c72f09D96291B4913D7255E241F428d; // EBTC-cbBTC/WBTC
-    address public constant MAINNET_FLUID_VAULT_DEX_SUDE_USDT_DEX_USDC_USDT = 0xB170B94BeFe21098966aa9905Da6a2F569463A21; // sUSDe-USDT/USDC-USDT
+    address public constant MAINNET_FLUID_VAULT_DEX_SUDE_USDT_DEX_USDC_USDT =
+        0xB170B94BeFe21098966aa9905Da6a2F569463A21; // sUSDe-USDT/USDC-USDT
     address public constant MAINNET_FLUID_VAULT_DEX_UDE_USDT_DEX_USDC_USDT = 0xaEac94D417BF8d8bb3A44507100Ab8c0D3b12cA1; // USDe-USDT/USDC-USDT
     address public constant MAINNET_FLUID_VAULT_DEX_GHO_SUSDE_DEX_GHO_USDC = 0x0a90ED6964f6bA56902fD35EE11857A810Dd5543; // GHO smart debt/collateral
     address public constant MAINNET_FLUID_VAULT_DEX_SUSDE_USDT_DEX_USDC_USDT =
         0x91D5884a57E4A3718654B462B32cC628b2c6A39A; // sUSDe smart debt/collateral
-    address public constant MAINNET_FLUID_VAULT_DEX_USDE_USDT_DEX_USDC_USDT = 0x4B5fa15996C2E23b35E64f0ca62d30c4945E53Cb; // USDe smart debt/collateral
+    address public constant MAINNET_FLUID_VAULT_DEX_USDE_USDT_DEX_USDC_USDT =
+        0x4B5fa15996C2E23b35E64f0ca62d30c4945E53Cb; // USDe smart debt/collateral
     address public constant MAINNET_FLUID_VAULT_DEX_GHO_USDE_DEX_GHO = 0x4095a3A8efe779D283102377669778900212D856; // GHO-USDE/GHO
     address public constant MAINNET_FLUID_MERKLE_DISTRIBUTOR = 0xD833484b198D3d05707832cc1C2D62b520D95B8A;
     address public constant MAINNET_FLUID_TOKEN = 0x6f40d4A6237C257fff2dB00FA0510DeEECd303eb;
@@ -591,6 +594,8 @@ library RumpelConfig {
             return getEthKingClaimAndSRUSDProtocolConfigs();
         } else if (tagHash == keccak256(bytes("eth-approve-king"))) {
             return new ProtocolGuardConfig[](0);
+        } else if (tagHash == keccak256(bytes("claim-symbiotic-wsteth"))) {
+            return getClaimSymbioticWstEthProtocolGuardConfigs();
         }
 
         revert("Unsupported tag");
@@ -735,6 +740,8 @@ library RumpelConfig {
             return getEthKingClaimAndSRUSDTokenConfigs();
         } else if (tagHash == keccak256(bytes("eth-approve-king"))) {
             return getEthApproveKingTokenConfigs();
+        } else if (tagHash == keccak256(bytes("claim-symbiotic-wsteth"))) {
+            return new TokenGuardConfig[](0);
         }
 
         revert("Unsupported tag");
@@ -876,8 +883,9 @@ library RumpelConfig {
             return new TokenModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("eth-approve-king"))) {
             return new TokenModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("claim-symbiotic-wsteth"))) {
+            return new TokenModuleConfig[](0);
         }
-
 
         revert("Unsupported tag");
     }
@@ -1015,6 +1023,8 @@ library RumpelConfig {
             return new ProtocolModuleConfig[](0);
         } else if (tagHash == keccak256(bytes("eth-approve-king"))) {
             return new ProtocolModuleConfig[](0);
+        } else if (tagHash == keccak256(bytes("claim-symbiotic-wsteth"))) {
+            return new ProtocolModuleConfig[](0);
         }
 
         revert("Unsupported tag");
@@ -1041,24 +1051,20 @@ library RumpelConfig {
         configs[2] =
             ProtocolGuardConfig({target: MAINNET_SYMBIOTIC_WSTETH_COLLATERAL, selectorStates: new SelectorState[](2)});
         configs[2].selectorStates[0] = SelectorState({
-            selector: ISymbioticDefaultCollateral.deposit.selector,
-            state: RumpelGuard.AllowListState.ON
+            selector: ISymbioticDefaultCollateral.deposit.selector, state: RumpelGuard.AllowListState.ON
         });
         configs[2].selectorStates[1] = SelectorState({
-            selector: ISymbioticDefaultCollateral.withdraw.selector,
-            state: RumpelGuard.AllowListState.ON
+            selector: ISymbioticDefaultCollateral.withdraw.selector, state: RumpelGuard.AllowListState.ON
         });
 
         // Symbiotic SUSDe Collateral
         configs[3] =
             ProtocolGuardConfig({target: MAINNET_SYMBIOTIC_SUSDE_COLLATERAL, selectorStates: new SelectorState[](2)});
         configs[3].selectorStates[0] = SelectorState({
-            selector: ISymbioticDefaultCollateral.deposit.selector,
-            state: RumpelGuard.AllowListState.ON
+            selector: ISymbioticDefaultCollateral.deposit.selector, state: RumpelGuard.AllowListState.ON
         });
         configs[3].selectorStates[1] = SelectorState({
-            selector: ISymbioticDefaultCollateral.withdraw.selector,
-            state: RumpelGuard.AllowListState.ON
+            selector: ISymbioticDefaultCollateral.withdraw.selector, state: RumpelGuard.AllowListState.ON
         });
 
         // Karak Vault Supervisor
@@ -1066,13 +1072,14 @@ library RumpelConfig {
             ProtocolGuardConfig({target: MAINNET_KARAK_VAULT_SUPERVISOR, selectorStates: new SelectorState[](4)});
         configs[4].selectorStates[0] =
             SelectorState({selector: IKarakVaultSupervisor.deposit.selector, state: RumpelGuard.AllowListState.ON});
-        configs[4].selectorStates[1] =
-            SelectorState({selector: IKarakVaultSupervisor.gimmieShares.selector, state: RumpelGuard.AllowListState.ON});
-        configs[4].selectorStates[2] =
-            SelectorState({selector: IKarakVaultSupervisor.returnShares.selector, state: RumpelGuard.AllowListState.ON});
+        configs[4].selectorStates[1] = SelectorState({
+            selector: IKarakVaultSupervisor.gimmieShares.selector, state: RumpelGuard.AllowListState.ON
+        });
+        configs[4].selectorStates[2] = SelectorState({
+            selector: IKarakVaultSupervisor.returnShares.selector, state: RumpelGuard.AllowListState.ON
+        });
         configs[4].selectorStates[3] = SelectorState({
-            selector: IKarakVaultSupervisor.depositAndGimmie.selector,
-            state: RumpelGuard.AllowListState.ON
+            selector: IKarakVaultSupervisor.depositAndGimmie.selector, state: RumpelGuard.AllowListState.ON
         });
 
         // Karak Delegation Supervisor
@@ -1727,8 +1734,7 @@ library RumpelConfig {
 
         configs[1] = ProtocolGuardConfig({target: MAINNET_FLUID_VAULT_FACTORY, selectorStates: new SelectorState[](1)});
         configs[1].selectorStates[0] = SelectorState({
-            selector: IFluidVaultFactory.safeTransferFrom.selector,
-            state: RumpelGuard.AllowListState.ON
+            selector: IFluidVaultFactory.safeTransferFrom.selector, state: RumpelGuard.AllowListState.ON
         });
 
         return configs;
@@ -1743,8 +1749,7 @@ library RumpelConfig {
 
         configs[1] = ProtocolGuardConfig({target: MAINNET_FLUID_VAULT_FACTORY, selectorStates: new SelectorState[](1)});
         configs[1].selectorStates[0] = SelectorState({
-            selector: IFluidVaultFactory_.safeTransferFrom.selector,
-            state: RumpelGuard.AllowListState.ON
+            selector: IFluidVaultFactory_.safeTransferFrom.selector, state: RumpelGuard.AllowListState.ON
         });
 
         return configs;
@@ -1820,8 +1825,7 @@ library RumpelConfig {
 
         configs[0] = ProtocolGuardConfig({target: MAINNET_PENDLE_ROUTERV4, selectorStates: new SelectorState[](1)});
         configs[0].selectorStates[0] = SelectorState({
-            selector: IPendleRouterV4.redeemDueInterestAndRewards.selector,
-            state: RumpelGuard.AllowListState.ON
+            selector: IPendleRouterV4.redeemDueInterestAndRewards.selector, state: RumpelGuard.AllowListState.ON
         });
 
         configs[1] = ProtocolGuardConfig({target: MAINNET_SY_SUSDE, selectorStates: new SelectorState[](1)});
@@ -1836,8 +1840,7 @@ library RumpelConfig {
 
         configs[0] = ProtocolGuardConfig({target: MAINNET_PENDLE_ROUTERV4, selectorStates: new SelectorState[](1)});
         configs[0].selectorStates[0] = SelectorState({
-            selector: IPendleRouterV4.redeemDueInterestAndRewardsV2.selector,
-            state: RumpelGuard.AllowListState.ON
+            selector: IPendleRouterV4.redeemDueInterestAndRewardsV2.selector, state: RumpelGuard.AllowListState.ON
         });
 
         return configs;
@@ -2201,54 +2204,46 @@ library RumpelConfig {
         configs[0] =
             ProtocolGuardConfig({target: MAINNET_SYMBIOTIC_METH_COLLATERAL, selectorStates: new SelectorState[](2)});
         configs[0].selectorStates[0] = SelectorState({
-            selector: ISymbioticDefaultCollateral.deposit.selector,
-            state: RumpelGuard.AllowListState.ON
+            selector: ISymbioticDefaultCollateral.deposit.selector, state: RumpelGuard.AllowListState.ON
         });
         configs[0].selectorStates[1] = SelectorState({
-            selector: ISymbioticDefaultCollateral.withdraw.selector,
-            state: RumpelGuard.AllowListState.ON
+            selector: ISymbioticDefaultCollateral.withdraw.selector, state: RumpelGuard.AllowListState.ON
         });
 
         configs[1] =
             ProtocolGuardConfig({target: MAINNET_SYMBIOTIC_WBTC_COLLATERAL, selectorStates: new SelectorState[](2)});
         configs[1].selectorStates[0] = SelectorState({
-            selector: ISymbioticDefaultCollateral.deposit.selector,
-            state: RumpelGuard.AllowListState.ON
+            selector: ISymbioticDefaultCollateral.deposit.selector, state: RumpelGuard.AllowListState.ON
         });
         configs[1].selectorStates[0] = SelectorState({
-            selector: ISymbioticDefaultCollateral.withdraw.selector,
-            state: RumpelGuard.AllowListState.ON
+            selector: ISymbioticDefaultCollateral.withdraw.selector, state: RumpelGuard.AllowListState.ON
         });
 
         configs[2] =
             ProtocolGuardConfig({target: MAINNET_SYMBIOTIC_RETH_COLLATERAL, selectorStates: new SelectorState[](2)});
         configs[2].selectorStates[0] = SelectorState({
-            selector: ISymbioticDefaultCollateral.deposit.selector,
-            state: RumpelGuard.AllowListState.ON
+            selector: ISymbioticDefaultCollateral.deposit.selector, state: RumpelGuard.AllowListState.ON
         });
         configs[2].selectorStates[1] = SelectorState({
-            selector: ISymbioticDefaultCollateral.withdraw.selector,
-            state: RumpelGuard.AllowListState.ON
+            selector: ISymbioticDefaultCollateral.withdraw.selector, state: RumpelGuard.AllowListState.ON
         });
 
         configs[3] =
             ProtocolGuardConfig({target: MAINNET_SYMBIOTIC_CBETH_COLLATERAL, selectorStates: new SelectorState[](2)});
         configs[3].selectorStates[0] = SelectorState({
-            selector: ISymbioticDefaultCollateral.deposit.selector,
-            state: RumpelGuard.AllowListState.ON
+            selector: ISymbioticDefaultCollateral.deposit.selector, state: RumpelGuard.AllowListState.ON
         });
         configs[3].selectorStates[1] = SelectorState({
-            selector: ISymbioticDefaultCollateral.withdraw.selector,
-            state: RumpelGuard.AllowListState.ON
+            selector: ISymbioticDefaultCollateral.withdraw.selector, state: RumpelGuard.AllowListState.ON
         });
 
         // skip deposit and withdraw of ENA -- only allow asset receipt asset transfer
 
-        configs[4] =
-            ProtocolGuardConfig({target: MAINNET_SYMBIOTIC_COLLATERAL_MIGRATOR, selectorStates: new SelectorState[](1)});
+        configs[4] = ProtocolGuardConfig({
+            target: MAINNET_SYMBIOTIC_COLLATERAL_MIGRATOR, selectorStates: new SelectorState[](1)
+        });
         configs[4].selectorStates[0] = SelectorState({
-            selector: ISymbioticDefaultCollateralMigrator.migrate.selector,
-            state: RumpelGuard.AllowListState.ON
+            selector: ISymbioticDefaultCollateralMigrator.migrate.selector, state: RumpelGuard.AllowListState.ON
         });
 
         return configs;
@@ -2315,58 +2310,47 @@ library RumpelConfig {
         configs[0] =
             ProtocolGuardConfig({target: MAINNET_SYMBIOTIC_WBETH_COLLATERAL, selectorStates: new SelectorState[](2)});
         configs[0].selectorStates[0] = SelectorState({
-            selector: ISymbioticDefaultCollateral.deposit.selector,
-            state: RumpelGuard.AllowListState.ON
+            selector: ISymbioticDefaultCollateral.deposit.selector, state: RumpelGuard.AllowListState.ON
         });
         configs[0].selectorStates[1] = SelectorState({
-            selector: ISymbioticDefaultCollateral.withdraw.selector,
-            state: RumpelGuard.AllowListState.ON
+            selector: ISymbioticDefaultCollateral.withdraw.selector, state: RumpelGuard.AllowListState.ON
         });
 
         configs[1] = ProtocolGuardConfig({
-            target: MAINNET_SYMBIOTIC_SWELL_SWBTC_COLLATERAL,
-            selectorStates: new SelectorState[](2)
+            target: MAINNET_SYMBIOTIC_SWELL_SWBTC_COLLATERAL, selectorStates: new SelectorState[](2)
         });
         configs[1].selectorStates[0] = SelectorState({
-            selector: ISymbioticDefaultCollateral.deposit.selector,
-            state: RumpelGuard.AllowListState.ON
+            selector: ISymbioticDefaultCollateral.deposit.selector, state: RumpelGuard.AllowListState.ON
         });
         configs[1].selectorStates[1] = SelectorState({
-            selector: ISymbioticDefaultCollateral.withdraw.selector,
-            state: RumpelGuard.AllowListState.ON
+            selector: ISymbioticDefaultCollateral.withdraw.selector, state: RumpelGuard.AllowListState.ON
         });
 
         configs[2] =
             ProtocolGuardConfig({target: MAINNET_SYMBIOTIC_SWETH_COLLATERAL, selectorStates: new SelectorState[](2)});
         configs[2].selectorStates[0] = SelectorState({
-            selector: ISymbioticDefaultCollateral.deposit.selector,
-            state: RumpelGuard.AllowListState.ON
+            selector: ISymbioticDefaultCollateral.deposit.selector, state: RumpelGuard.AllowListState.ON
         });
         configs[2].selectorStates[1] = SelectorState({
-            selector: ISymbioticDefaultCollateral.withdraw.selector,
-            state: RumpelGuard.AllowListState.ON
+            selector: ISymbioticDefaultCollateral.withdraw.selector, state: RumpelGuard.AllowListState.ON
         });
 
         configs[3] =
             ProtocolGuardConfig({target: MAINNET_SYMBIOTIC_LSETH_COLLATERAL, selectorStates: new SelectorState[](2)});
         configs[3].selectorStates[0] = SelectorState({
-            selector: ISymbioticDefaultCollateral.deposit.selector,
-            state: RumpelGuard.AllowListState.ON
+            selector: ISymbioticDefaultCollateral.deposit.selector, state: RumpelGuard.AllowListState.ON
         });
         configs[3].selectorStates[1] = SelectorState({
-            selector: ISymbioticDefaultCollateral.withdraw.selector,
-            state: RumpelGuard.AllowListState.ON
+            selector: ISymbioticDefaultCollateral.withdraw.selector, state: RumpelGuard.AllowListState.ON
         });
 
         configs[4] =
             ProtocolGuardConfig({target: MAINNET_SYMBIOTIC_OSETH_COLLATERAL, selectorStates: new SelectorState[](2)});
         configs[4].selectorStates[0] = SelectorState({
-            selector: ISymbioticDefaultCollateral.deposit.selector,
-            state: RumpelGuard.AllowListState.ON
+            selector: ISymbioticDefaultCollateral.deposit.selector, state: RumpelGuard.AllowListState.ON
         });
         configs[4].selectorStates[1] = SelectorState({
-            selector: ISymbioticDefaultCollateral.withdraw.selector,
-            state: RumpelGuard.AllowListState.ON
+            selector: ISymbioticDefaultCollateral.withdraw.selector, state: RumpelGuard.AllowListState.ON
         });
 
         return configs;
@@ -2428,40 +2412,32 @@ library RumpelConfig {
         // ETHFI skipped as reward token - only transfer enabled
 
         configs[0] = ProtocolGuardConfig({
-            target: MAINNET_SYMBIOTIC_MEV_CAPITAL_WSTETH_COLLATERAL,
-            selectorStates: new SelectorState[](2)
+            target: MAINNET_SYMBIOTIC_MEV_CAPITAL_WSTETH_COLLATERAL, selectorStates: new SelectorState[](2)
         });
         configs[0].selectorStates[0] = SelectorState({
-            selector: ISymbioticDefaultCollateral.deposit.selector,
-            state: RumpelGuard.AllowListState.ON
+            selector: ISymbioticDefaultCollateral.deposit.selector, state: RumpelGuard.AllowListState.ON
         });
         configs[0].selectorStates[1] = SelectorState({
-            selector: ISymbioticDefaultCollateral.withdraw.selector,
-            state: RumpelGuard.AllowListState.ON
+            selector: ISymbioticDefaultCollateral.withdraw.selector, state: RumpelGuard.AllowListState.ON
         });
 
         configs[1] =
             ProtocolGuardConfig({target: MAINNET_SYMBIOTIC_SFRXETH_COLLATERAL, selectorStates: new SelectorState[](2)});
         configs[1].selectorStates[0] = SelectorState({
-            selector: ISymbioticDefaultCollateral.deposit.selector,
-            state: RumpelGuard.AllowListState.ON
+            selector: ISymbioticDefaultCollateral.deposit.selector, state: RumpelGuard.AllowListState.ON
         });
         configs[1].selectorStates[1] = SelectorState({
-            selector: ISymbioticDefaultCollateral.withdraw.selector,
-            state: RumpelGuard.AllowListState.ON
+            selector: ISymbioticDefaultCollateral.withdraw.selector, state: RumpelGuard.AllowListState.ON
         });
 
         configs[2] = ProtocolGuardConfig({
-            target: MAINNET_SYMBIOTIC_GUANTLET_RESTAKED_SWETH_COLLATERAL,
-            selectorStates: new SelectorState[](2)
+            target: MAINNET_SYMBIOTIC_GUANTLET_RESTAKED_SWETH_COLLATERAL, selectorStates: new SelectorState[](2)
         });
         configs[2].selectorStates[0] = SelectorState({
-            selector: ISymbioticDefaultCollateral.deposit.selector,
-            state: RumpelGuard.AllowListState.ON
+            selector: ISymbioticDefaultCollateral.deposit.selector, state: RumpelGuard.AllowListState.ON
         });
         configs[2].selectorStates[1] = SelectorState({
-            selector: ISymbioticDefaultCollateral.withdraw.selector,
-            state: RumpelGuard.AllowListState.ON
+            selector: ISymbioticDefaultCollateral.withdraw.selector, state: RumpelGuard.AllowListState.ON
         });
 
         return configs;
@@ -2504,62 +2480,50 @@ library RumpelConfig {
         ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](5);
 
         configs[0] = ProtocolGuardConfig({
-            target: MAINNET_SYMBIOTIC_GAUNTLET_RESTAKED_CBETH_COLLATERAL,
-            selectorStates: new SelectorState[](2)
+            target: MAINNET_SYMBIOTIC_GAUNTLET_RESTAKED_CBETH_COLLATERAL, selectorStates: new SelectorState[](2)
         });
         configs[0].selectorStates[0] = SelectorState({
-            selector: ISymbioticDefaultCollateral.deposit.selector,
-            state: RumpelGuard.AllowListState.ON
+            selector: ISymbioticDefaultCollateral.deposit.selector, state: RumpelGuard.AllowListState.ON
         });
         configs[0].selectorStates[1] = SelectorState({
-            selector: ISymbioticDefaultCollateral.withdraw.selector,
-            state: RumpelGuard.AllowListState.ON
+            selector: ISymbioticDefaultCollateral.withdraw.selector, state: RumpelGuard.AllowListState.ON
         });
 
         configs[1] =
             ProtocolGuardConfig({target: MAINNET_SYMBIOTIC_FXS_COLLATERAL, selectorStates: new SelectorState[](2)});
         configs[1].selectorStates[0] = SelectorState({
-            selector: ISymbioticDefaultCollateral.deposit.selector,
-            state: RumpelGuard.AllowListState.ON
+            selector: ISymbioticDefaultCollateral.deposit.selector, state: RumpelGuard.AllowListState.ON
         });
         configs[1].selectorStates[1] = SelectorState({
-            selector: ISymbioticDefaultCollateral.withdraw.selector,
-            state: RumpelGuard.AllowListState.ON
+            selector: ISymbioticDefaultCollateral.withdraw.selector, state: RumpelGuard.AllowListState.ON
         });
 
         configs[2] =
             ProtocolGuardConfig({target: MAINNET_SYMBIOTIC_TBTC_COLLATERAL, selectorStates: new SelectorState[](2)});
         configs[2].selectorStates[0] = SelectorState({
-            selector: ISymbioticDefaultCollateral.deposit.selector,
-            state: RumpelGuard.AllowListState.ON
+            selector: ISymbioticDefaultCollateral.deposit.selector, state: RumpelGuard.AllowListState.ON
         });
         configs[2].selectorStates[1] = SelectorState({
-            selector: ISymbioticDefaultCollateral.withdraw.selector,
-            state: RumpelGuard.AllowListState.ON
+            selector: ISymbioticDefaultCollateral.withdraw.selector, state: RumpelGuard.AllowListState.ON
         });
 
         configs[3] =
             ProtocolGuardConfig({target: MAINNET_SYMBIOTIC_MANTA_COLLATERAL, selectorStates: new SelectorState[](2)});
         configs[3].selectorStates[0] = SelectorState({
-            selector: ISymbioticDefaultCollateral.deposit.selector,
-            state: RumpelGuard.AllowListState.ON
+            selector: ISymbioticDefaultCollateral.deposit.selector, state: RumpelGuard.AllowListState.ON
         });
         configs[3].selectorStates[1] = SelectorState({
-            selector: ISymbioticDefaultCollateral.withdraw.selector,
-            state: RumpelGuard.AllowListState.ON
+            selector: ISymbioticDefaultCollateral.withdraw.selector, state: RumpelGuard.AllowListState.ON
         });
 
         configs[4] = ProtocolGuardConfig({
-            target: MAINNET_SYMBIOTIC_GAUNTLET_RESTAKED_WSTETH_COLLATERAL,
-            selectorStates: new SelectorState[](2)
+            target: MAINNET_SYMBIOTIC_GAUNTLET_RESTAKED_WSTETH_COLLATERAL, selectorStates: new SelectorState[](2)
         });
         configs[4].selectorStates[0] = SelectorState({
-            selector: ISymbioticDefaultCollateral.deposit.selector,
-            state: RumpelGuard.AllowListState.ON
+            selector: ISymbioticDefaultCollateral.deposit.selector, state: RumpelGuard.AllowListState.ON
         });
         configs[4].selectorStates[1] = SelectorState({
-            selector: ISymbioticDefaultCollateral.withdraw.selector,
-            state: RumpelGuard.AllowListState.ON
+            selector: ISymbioticDefaultCollateral.withdraw.selector, state: RumpelGuard.AllowListState.ON
         });
 
         return configs;
@@ -2672,22 +2636,19 @@ library RumpelConfig {
         ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](3);
 
         configs[0] = ProtocolGuardConfig({
-            target: MAINNET_FLUID_VAULT_DEX_GHO_SUSDE_DEX_GHO_USDC,
-            selectorStates: new SelectorState[](1)
+            target: MAINNET_FLUID_VAULT_DEX_GHO_SUSDE_DEX_GHO_USDC, selectorStates: new SelectorState[](1)
         });
         configs[0].selectorStates[0] =
             SelectorState({selector: IFluidVaultT4.operate.selector, state: RumpelGuard.AllowListState.ON});
 
         configs[1] = ProtocolGuardConfig({
-            target: MAINNET_FLUID_VAULT_DEX_SUSDE_USDT_DEX_USDC_USDT,
-            selectorStates: new SelectorState[](1)
+            target: MAINNET_FLUID_VAULT_DEX_SUSDE_USDT_DEX_USDC_USDT, selectorStates: new SelectorState[](1)
         });
         configs[1].selectorStates[0] =
             SelectorState({selector: IFluidVaultT4.operate.selector, state: RumpelGuard.AllowListState.ON});
 
         configs[2] = ProtocolGuardConfig({
-            target: MAINNET_FLUID_VAULT_DEX_USDE_USDT_DEX_USDC_USDT,
-            selectorStates: new SelectorState[](1)
+            target: MAINNET_FLUID_VAULT_DEX_USDE_USDT_DEX_USDC_USDT, selectorStates: new SelectorState[](1)
         });
         configs[2].selectorStates[0] =
             SelectorState({selector: IFluidVaultT4.operate.selector, state: RumpelGuard.AllowListState.ON});
@@ -2810,8 +2771,7 @@ library RumpelConfig {
         configs[0].selectorStates[0] =
             SelectorState({selector: IKernelMerkleDistributor.claim.selector, state: RumpelGuard.AllowListState.ON});
         configs[0].selectorStates[1] = SelectorState({
-            selector: IKernelMerkleDistributor.claimAndStake.selector,
-            state: RumpelGuard.AllowListState.ON
+            selector: IKernelMerkleDistributor.claimAndStake.selector, state: RumpelGuard.AllowListState.ON
         });
 
         return configs;
@@ -3013,16 +2973,13 @@ library RumpelConfig {
 
         configs[0] = ProtocolGuardConfig({target: MAINNET_PENDLE_ROUTERV4, selectorStates: new SelectorState[](5)});
         configs[0].selectorStates[0] = SelectorState({
-            selector: IPendleRouterV4.addLiquiditySingleToken.selector,
-            state: RumpelGuard.AllowListState.ON
+            selector: IPendleRouterV4.addLiquiditySingleToken.selector, state: RumpelGuard.AllowListState.ON
         });
         configs[0].selectorStates[1] = SelectorState({
-            selector: IPendleRouterV4.addLiquiditySingleTokenKeepYt.selector,
-            state: RumpelGuard.AllowListState.ON
+            selector: IPendleRouterV4.addLiquiditySingleTokenKeepYt.selector, state: RumpelGuard.AllowListState.ON
         });
         configs[0].selectorStates[2] = SelectorState({
-            selector: IPendleRouterV4.removeLiquiditySingleToken.selector,
-            state: RumpelGuard.AllowListState.ON
+            selector: IPendleRouterV4.removeLiquiditySingleToken.selector, state: RumpelGuard.AllowListState.ON
         });
         configs[0].selectorStates[3] =
             SelectorState({selector: IPendleRouterV4.multicall.selector, state: RumpelGuard.AllowListState.ON});
@@ -3031,8 +2988,7 @@ library RumpelConfig {
 
         configs[1] = ProtocolGuardConfig({target: MAINNET_VEPENDLE, selectorStates: new SelectorState[](2)});
         configs[1].selectorStates[0] = SelectorState({
-            selector: IPVotingEscrowMainchain.increaseLockPosition.selector,
-            state: RumpelGuard.AllowListState.ON
+            selector: IPVotingEscrowMainchain.increaseLockPosition.selector, state: RumpelGuard.AllowListState.ON
         });
         configs[1].selectorStates[1] =
             SelectorState({selector: IPVotingEscrowMainchain.withdraw.selector, state: RumpelGuard.AllowListState.ON});
@@ -3140,8 +3096,7 @@ library RumpelConfig {
         configs[0].selectorStates[0] =
             SelectorState({selector: HyperbeatTokenizedAccount.deposit.selector, state: RumpelGuard.AllowListState.ON});
         configs[0].selectorStates[1] = SelectorState({
-            selector: HyperbeatTokenizedAccount.requestRedeem.selector,
-            state: RumpelGuard.AllowListState.ON
+            selector: HyperbeatTokenizedAccount.requestRedeem.selector, state: RumpelGuard.AllowListState.ON
         });
 
         // sentiment position manager - process & processBatch
@@ -3150,8 +3105,7 @@ library RumpelConfig {
         configs[1].selectorStates[0] =
             SelectorState({selector: SentimentPositionManager.process.selector, state: RumpelGuard.AllowListState.ON});
         configs[1].selectorStates[1] = SelectorState({
-            selector: SentimentPositionManager.processBatch.selector,
-            state: RumpelGuard.AllowListState.ON
+            selector: SentimentPositionManager.processBatch.selector, state: RumpelGuard.AllowListState.ON
         });
 
         // sentiment pool muli-token.transfer
@@ -3229,35 +3183,28 @@ library RumpelConfig {
         configs[0].selectorStates[0] =
             SelectorState({selector: HyperbeatTokenizedAccount.deposit.selector, state: RumpelGuard.AllowListState.ON});
         configs[0].selectorStates[1] = SelectorState({
-            selector: HyperbeatTokenizedAccount.requestRedeem.selector,
-            state: RumpelGuard.AllowListState.ON
+            selector: HyperbeatTokenizedAccount.requestRedeem.selector, state: RumpelGuard.AllowListState.ON
         });
 
         configs[1] = ProtocolGuardConfig({
-            target: HYPEREVM_HYPERBEAT_VAULT_DEPOSIT_XUAT0,
-            selectorStates: new SelectorState[](1)
+            target: HYPEREVM_HYPERBEAT_VAULT_DEPOSIT_XUAT0, selectorStates: new SelectorState[](1)
         });
         configs[1].selectorStates[0] = SelectorState({
-            selector: HyperbeatDepositVault.depositInstant.selector,
-            state: RumpelGuard.AllowListState.ON
+            selector: HyperbeatDepositVault.depositInstant.selector, state: RumpelGuard.AllowListState.ON
         });
 
         configs[2] = ProtocolGuardConfig({
-            target: HYPEREVM_HYPERBEAT_VAULT_REDEMPTION_XUAT0,
-            selectorStates: new SelectorState[](2)
+            target: HYPEREVM_HYPERBEAT_VAULT_REDEMPTION_XUAT0, selectorStates: new SelectorState[](2)
         });
         configs[2].selectorStates[0] = SelectorState({
-            selector: HyperbeatRedemptionVault.redeemInstant.selector,
-            state: RumpelGuard.AllowListState.ON
+            selector: HyperbeatRedemptionVault.redeemInstant.selector, state: RumpelGuard.AllowListState.ON
         });
         configs[2].selectorStates[1] = SelectorState({
-            selector: HyperbeatRedemptionVault.redeemRequest.selector,
-            state: RumpelGuard.AllowListState.ON
+            selector: HyperbeatRedemptionVault.redeemRequest.selector, state: RumpelGuard.AllowListState.ON
         });
 
         configs[3] = ProtocolGuardConfig({
-            target: HYPEREVM_HYPERBEAT_GAUNTLET_VAULT_USDT0,
-            selectorStates: new SelectorState[](2)
+            target: HYPEREVM_HYPERBEAT_GAUNTLET_VAULT_USDT0, selectorStates: new SelectorState[](2)
         });
         configs[3].selectorStates[0] =
             SelectorState({selector: IERC4626.deposit.selector, state: RumpelGuard.AllowListState.ON});
@@ -3272,8 +3219,7 @@ library RumpelConfig {
             SelectorState({selector: IERC4626.redeem.selector, state: RumpelGuard.AllowListState.ON});
 
         configs[5] = ProtocolGuardConfig({
-            target: HYPEREVM_HYPERBEAT_GAUNTLET_VAULT_UETH,
-            selectorStates: new SelectorState[](2)
+            target: HYPEREVM_HYPERBEAT_GAUNTLET_VAULT_UETH, selectorStates: new SelectorState[](2)
         });
         configs[5].selectorStates[0] =
             SelectorState({selector: IERC4626.deposit.selector, state: RumpelGuard.AllowListState.ON});
@@ -3351,12 +3297,10 @@ library RumpelConfig {
         configs[0].selectorStates[0] =
             SelectorState({selector: LiquityStabilityPool.provideToSP.selector, state: RumpelGuard.AllowListState.ON});
         configs[0].selectorStates[1] = SelectorState({
-            selector: LiquityStabilityPool.withdrawFromSP.selector,
-            state: RumpelGuard.AllowListState.ON
+            selector: LiquityStabilityPool.withdrawFromSP.selector, state: RumpelGuard.AllowListState.ON
         });
         configs[0].selectorStates[2] = SelectorState({
-            selector: LiquityStabilityPool.claimAllCollGains.selector,
-            state: RumpelGuard.AllowListState.ON
+            selector: LiquityStabilityPool.claimAllCollGains.selector, state: RumpelGuard.AllowListState.ON
         });
 
         configs[1] =
@@ -3364,12 +3308,10 @@ library RumpelConfig {
         configs[1].selectorStates[0] =
             SelectorState({selector: LiquityStabilityPool.provideToSP.selector, state: RumpelGuard.AllowListState.ON});
         configs[1].selectorStates[1] = SelectorState({
-            selector: LiquityStabilityPool.withdrawFromSP.selector,
-            state: RumpelGuard.AllowListState.ON
+            selector: LiquityStabilityPool.withdrawFromSP.selector, state: RumpelGuard.AllowListState.ON
         });
         configs[1].selectorStates[2] = SelectorState({
-            selector: LiquityStabilityPool.claimAllCollGains.selector,
-            state: RumpelGuard.AllowListState.ON
+            selector: LiquityStabilityPool.claimAllCollGains.selector, state: RumpelGuard.AllowListState.ON
         });
 
         // Felix metamorpho vaults ---
@@ -3384,8 +3326,9 @@ library RumpelConfig {
         configs[2].selectorStates[3] =
             SelectorState({selector: IERC4626.redeem.selector, state: RumpelGuard.AllowListState.ON});
 
-        configs[3] =
-            ProtocolGuardConfig({target: HYPEREVM_USDT0_FELIX_METAMORPHO_VAULT, selectorStates: new SelectorState[](4)});
+        configs[3] = ProtocolGuardConfig({
+            target: HYPEREVM_USDT0_FELIX_METAMORPHO_VAULT, selectorStates: new SelectorState[](4)
+        });
         configs[3].selectorStates[0] =
             SelectorState({selector: IERC4626.deposit.selector, state: RumpelGuard.AllowListState.ON});
         configs[3].selectorStates[1] =
@@ -3395,8 +3338,9 @@ library RumpelConfig {
         configs[3].selectorStates[3] =
             SelectorState({selector: IERC4626.redeem.selector, state: RumpelGuard.AllowListState.ON});
 
-        configs[4] =
-            ProtocolGuardConfig({target: HYPEREVM_USDHL_FELIX_METAMORPHO_VAULT, selectorStates: new SelectorState[](4)});
+        configs[4] = ProtocolGuardConfig({
+            target: HYPEREVM_USDHL_FELIX_METAMORPHO_VAULT, selectorStates: new SelectorState[](4)
+        });
         configs[4].selectorStates[0] =
             SelectorState({selector: IERC4626.deposit.selector, state: RumpelGuard.AllowListState.ON});
         configs[4].selectorStates[1] =
@@ -3450,50 +3394,40 @@ library RumpelConfig {
 
         configs[0] = ProtocolGuardConfig({target: HYPEEVM_HYPERBEAT_VAULT_HYPE, selectorStates: new SelectorState[](2)});
         configs[0].selectorStates[0] = SelectorState({
-            selector: HyperbeatTokenizedAccount.deposit.selector,
-            state: RumpelGuard.AllowListState.PERMANENTLY_ON
+            selector: HyperbeatTokenizedAccount.deposit.selector, state: RumpelGuard.AllowListState.PERMANENTLY_ON
         });
         configs[0].selectorStates[1] = SelectorState({
-            selector: HyperbeatTokenizedAccount.requestRedeem.selector,
-            state: RumpelGuard.AllowListState.PERMANENTLY_ON
+            selector: HyperbeatTokenizedAccount.requestRedeem.selector, state: RumpelGuard.AllowListState.PERMANENTLY_ON
         });
 
         configs[1] =
             ProtocolGuardConfig({target: HYPEREVM_HYPERBEAT_VAULT_UBTC, selectorStates: new SelectorState[](2)});
         configs[1].selectorStates[0] = SelectorState({
-            selector: HyperbeatTokenizedAccount.deposit.selector,
-            state: RumpelGuard.AllowListState.PERMANENTLY_ON
+            selector: HyperbeatTokenizedAccount.deposit.selector, state: RumpelGuard.AllowListState.PERMANENTLY_ON
         });
         configs[1].selectorStates[1] = SelectorState({
-            selector: HyperbeatTokenizedAccount.requestRedeem.selector,
-            state: RumpelGuard.AllowListState.PERMANENTLY_ON
+            selector: HyperbeatTokenizedAccount.requestRedeem.selector, state: RumpelGuard.AllowListState.PERMANENTLY_ON
         });
 
         configs[2] = ProtocolGuardConfig({
-            target: HYPEREVM_HYPERBEAT_VAULT_DEPOSIT_XUAT0,
-            selectorStates: new SelectorState[](1)
+            target: HYPEREVM_HYPERBEAT_VAULT_DEPOSIT_XUAT0, selectorStates: new SelectorState[](1)
         });
         configs[2].selectorStates[0] = SelectorState({
-            selector: HyperbeatDepositVault.depositInstant.selector,
-            state: RumpelGuard.AllowListState.PERMANENTLY_ON
+            selector: HyperbeatDepositVault.depositInstant.selector, state: RumpelGuard.AllowListState.PERMANENTLY_ON
         });
 
         configs[3] = ProtocolGuardConfig({
-            target: HYPEREVM_HYPERBEAT_VAULT_REDEMPTION_XUAT0,
-            selectorStates: new SelectorState[](2)
+            target: HYPEREVM_HYPERBEAT_VAULT_REDEMPTION_XUAT0, selectorStates: new SelectorState[](2)
         });
         configs[3].selectorStates[0] = SelectorState({
-            selector: HyperbeatRedemptionVault.redeemInstant.selector,
-            state: RumpelGuard.AllowListState.PERMANENTLY_ON
+            selector: HyperbeatRedemptionVault.redeemInstant.selector, state: RumpelGuard.AllowListState.PERMANENTLY_ON
         });
         configs[3].selectorStates[1] = SelectorState({
-            selector: HyperbeatRedemptionVault.redeemRequest.selector,
-            state: RumpelGuard.AllowListState.PERMANENTLY_ON
+            selector: HyperbeatRedemptionVault.redeemRequest.selector, state: RumpelGuard.AllowListState.PERMANENTLY_ON
         });
 
         configs[4] = ProtocolGuardConfig({
-            target: HYPEREVM_HYPERBEAT_GAUNTLET_VAULT_USDT0,
-            selectorStates: new SelectorState[](2)
+            target: HYPEREVM_HYPERBEAT_GAUNTLET_VAULT_USDT0, selectorStates: new SelectorState[](2)
         });
         configs[4].selectorStates[0] =
             SelectorState({selector: IERC4626.deposit.selector, state: RumpelGuard.AllowListState.PERMANENTLY_ON});
@@ -3508,8 +3442,7 @@ library RumpelConfig {
             SelectorState({selector: IERC4626.redeem.selector, state: RumpelGuard.AllowListState.PERMANENTLY_ON});
 
         configs[6] = ProtocolGuardConfig({
-            target: HYPEREVM_HYPERBEAT_GAUNTLET_VAULT_UETH,
-            selectorStates: new SelectorState[](2)
+            target: HYPEREVM_HYPERBEAT_GAUNTLET_VAULT_UETH, selectorStates: new SelectorState[](2)
         });
         configs[6].selectorStates[0] =
             SelectorState({selector: IERC4626.deposit.selector, state: RumpelGuard.AllowListState.PERMANENTLY_ON});
@@ -3605,8 +3538,9 @@ library RumpelConfig {
         configs[3] = TokenModuleConfig({token: HYPEREVM_XAUT0, blockTransfer: true, blockApprove: true});
         configs[4] = TokenModuleConfig({token: HYPEREVM_HYPERBEAT_VAULT_XUAT0, blockTransfer: true, blockApprove: true});
         configs[5] = TokenModuleConfig({token: HYPEREVM_USDT0, blockTransfer: true, blockApprove: true});
-        configs[6] =
-            TokenModuleConfig({token: HYPEREVM_HYPERBEAT_GAUNTLET_VAULT_USDT0, blockTransfer: true, blockApprove: true});
+        configs[6] = TokenModuleConfig({
+            token: HYPEREVM_HYPERBEAT_GAUNTLET_VAULT_USDT0, blockTransfer: true, blockApprove: true
+        });
         configs[7] =
             TokenModuleConfig({token: HYPEREVM_HYPERBEAT_MEV_VAULT_HYPE, blockTransfer: true, blockApprove: true});
         configs[8] = TokenModuleConfig({token: HYPEREVM_UETH, blockTransfer: true, blockApprove: true});
@@ -3625,8 +3559,9 @@ library RumpelConfig {
         configs[1] = ProtocolModuleConfig({target: HYPEREVM_HYPERBEAT_VAULT_UBTC, blockedSelectors: new bytes4[](1)});
         configs[1].blockedSelectors[0] = HyperbeatTokenizedAccount.requestRedeem.selector;
 
-        configs[2] =
-            ProtocolModuleConfig({target: HYPEREVM_HYPERBEAT_VAULT_REDEMPTION_XUAT0, blockedSelectors: new bytes4[](2)});
+        configs[2] = ProtocolModuleConfig({
+            target: HYPEREVM_HYPERBEAT_VAULT_REDEMPTION_XUAT0, blockedSelectors: new bytes4[](2)
+        });
         configs[2].blockedSelectors[0] = HyperbeatRedemptionVault.redeemInstant.selector;
         configs[2].blockedSelectors[1] = HyperbeatRedemptionVault.redeemRequest.selector;
 
@@ -3666,21 +3601,17 @@ library RumpelConfig {
         configs[0] =
             ProtocolGuardConfig({target: HYPEEVM_HYPERBEAT_VAULT_DEPOSIT_LST, selectorStates: new SelectorState[](1)});
         configs[0].selectorStates[0] = SelectorState({
-            selector: HyperbeatDepositVault.depositInstant.selector,
-            state: RumpelGuard.AllowListState.ON
+            selector: HyperbeatDepositVault.depositInstant.selector, state: RumpelGuard.AllowListState.ON
         });
 
         configs[1] = ProtocolGuardConfig({
-            target: HYPEEVM_HYPERBEAT_VAULT_REDEMPTION_LST,
-            selectorStates: new SelectorState[](2)
+            target: HYPEEVM_HYPERBEAT_VAULT_REDEMPTION_LST, selectorStates: new SelectorState[](2)
         });
         configs[1].selectorStates[0] = SelectorState({
-            selector: HyperbeatRedemptionVault.redeemInstant.selector,
-            state: RumpelGuard.AllowListState.ON
+            selector: HyperbeatRedemptionVault.redeemInstant.selector, state: RumpelGuard.AllowListState.ON
         });
         configs[1].selectorStates[1] = SelectorState({
-            selector: HyperbeatRedemptionVault.redeemRequest.selector,
-            state: RumpelGuard.AllowListState.ON
+            selector: HyperbeatRedemptionVault.redeemRequest.selector, state: RumpelGuard.AllowListState.ON
         });
 
         return configs;
@@ -3706,8 +3637,7 @@ library RumpelConfig {
             SelectorState({selector: IStandardizedYield.redeem.selector, state: RumpelGuard.AllowListState.ON});
 
         configs[1] = ProtocolGuardConfig({
-            target: MAINNET_FLUID_VAULT_DEX_GHO_USDE_DEX_GHO,
-            selectorStates: new SelectorState[](1)
+            target: MAINNET_FLUID_VAULT_DEX_GHO_USDE_DEX_GHO, selectorStates: new SelectorState[](1)
         });
         configs[1].selectorStates[0] =
             SelectorState({selector: IFluidVaultT2.operate.selector, state: RumpelGuard.AllowListState.ON});
@@ -3752,34 +3682,27 @@ library RumpelConfig {
         ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](3);
 
         configs[0] = ProtocolGuardConfig({
-            target: HYPEEVM_HYPERBEAT_VAULT_DEPOSIT_LIQUIDHYPE,
-            selectorStates: new SelectorState[](1)
+            target: HYPEEVM_HYPERBEAT_VAULT_DEPOSIT_LIQUIDHYPE, selectorStates: new SelectorState[](1)
         });
         configs[0].selectorStates[0] = SelectorState({
-            selector: HyperbeatDepositVault.depositInstant.selector,
-            state: RumpelGuard.AllowListState.ON
+            selector: HyperbeatDepositVault.depositInstant.selector, state: RumpelGuard.AllowListState.ON
         });
 
         configs[1] = ProtocolGuardConfig({
-            target: HYPEEVM_HYPERBEAT_VAULT_DEPOSIT_ADAPTER_LIQUIDHYPE,
-            selectorStates: new SelectorState[](1)
+            target: HYPEEVM_HYPERBEAT_VAULT_DEPOSIT_ADAPTER_LIQUIDHYPE, selectorStates: new SelectorState[](1)
         });
         configs[1].selectorStates[0] = SelectorState({
-            selector: HyperbeatDepositAdapter.depositInstantWithHype.selector,
-            state: RumpelGuard.AllowListState.ON
+            selector: HyperbeatDepositAdapter.depositInstantWithHype.selector, state: RumpelGuard.AllowListState.ON
         });
 
         configs[2] = ProtocolGuardConfig({
-            target: HYPEEVM_HYPERBEAT_VAULT_REDEMPTION_LIQUIDHYPE,
-            selectorStates: new SelectorState[](2)
+            target: HYPEEVM_HYPERBEAT_VAULT_REDEMPTION_LIQUIDHYPE, selectorStates: new SelectorState[](2)
         });
         configs[2].selectorStates[0] = SelectorState({
-            selector: HyperbeatRedemptionVault.redeemInstant.selector,
-            state: RumpelGuard.AllowListState.ON
+            selector: HyperbeatRedemptionVault.redeemInstant.selector, state: RumpelGuard.AllowListState.ON
         });
         configs[2].selectorStates[1] = SelectorState({
-            selector: HyperbeatRedemptionVault.redeemRequest.selector,
-            state: RumpelGuard.AllowListState.ON
+            selector: HyperbeatRedemptionVault.redeemRequest.selector, state: RumpelGuard.AllowListState.ON
         });
 
         return configs;
@@ -3817,29 +3740,25 @@ library RumpelConfig {
         ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](4);
 
         configs[0] = ProtocolGuardConfig({
-            target: MAINNET_FLUID_VAULT_USDE_USDTB_DEX_USDT,
-            selectorStates: new SelectorState[](1)
+            target: MAINNET_FLUID_VAULT_USDE_USDTB_DEX_USDT, selectorStates: new SelectorState[](1)
         });
         configs[0].selectorStates[0] =
             SelectorState({selector: IFluidVaultT2.operate.selector, state: RumpelGuard.AllowListState.ON});
 
         configs[1] = ProtocolGuardConfig({
-            target: MAINNET_FLUID_VAULT_USDE_USDTB_DEX_USDC,
-            selectorStates: new SelectorState[](1)
+            target: MAINNET_FLUID_VAULT_USDE_USDTB_DEX_USDC, selectorStates: new SelectorState[](1)
         });
         configs[1].selectorStates[0] =
             SelectorState({selector: IFluidVaultT2.operate.selector, state: RumpelGuard.AllowListState.ON});
 
         configs[2] = ProtocolGuardConfig({
-            target: MAINNET_FLUID_VAULT_USDE_USDTB_DEX_GHO,
-            selectorStates: new SelectorState[](1)
+            target: MAINNET_FLUID_VAULT_USDE_USDTB_DEX_GHO, selectorStates: new SelectorState[](1)
         });
         configs[2].selectorStates[0] =
             SelectorState({selector: IFluidVaultT2.operate.selector, state: RumpelGuard.AllowListState.ON});
 
         configs[3] = ProtocolGuardConfig({
-            target: MAINNET_FLUID_VAULT_GHO_USDE_DEX_GHO_USDC,
-            selectorStates: new SelectorState[](1)
+            target: MAINNET_FLUID_VAULT_GHO_USDE_DEX_GHO_USDC, selectorStates: new SelectorState[](1)
         });
         configs[3].selectorStates[0] =
             SelectorState({selector: IFluidVaultT4.operate.selector, state: RumpelGuard.AllowListState.ON});
@@ -3895,15 +3814,13 @@ library RumpelConfig {
         configs[2] =
             ProtocolGuardConfig({target: HYPEREVM_KINETIQ_EARN_WITHDRAW_QUEUE, selectorStates: new SelectorState[](1)});
         configs[2].selectorStates[0] = SelectorState({
-            selector: BoringOnChainQueue.requestOnChainWithdraw.selector,
-            state: RumpelGuard.AllowListState.ON
+            selector: BoringOnChainQueue.requestOnChainWithdraw.selector, state: RumpelGuard.AllowListState.ON
         });
 
         // pendle strats
         configs[3] = ProtocolGuardConfig({target: HYPEREVM_PENDLE_ROUTERV4, selectorStates: new SelectorState[](2)});
         configs[3].selectorStates[0] = SelectorState({
-            selector: IPendleRouterV4.redeemDueInterestAndRewardsV2.selector,
-            state: RumpelGuard.AllowListState.ON
+            selector: IPendleRouterV4.redeemDueInterestAndRewardsV2.selector, state: RumpelGuard.AllowListState.ON
         });
 
         configs[4] =
@@ -3927,23 +3844,20 @@ library RumpelConfig {
             SelectorState({selector: IStandardizedYield.redeem.selector, state: RumpelGuard.AllowListState.ON});
 
         // hyperbeat usdt vault
-        configs[8] =
-            ProtocolGuardConfig({target: HYPEREVM_HYPERBEAT_VAULT_DEPOSIT_USDT, selectorStates: new SelectorState[](1)});
+        configs[8] = ProtocolGuardConfig({
+            target: HYPEREVM_HYPERBEAT_VAULT_DEPOSIT_USDT, selectorStates: new SelectorState[](1)
+        });
         configs[8].selectorStates[0] = SelectorState({
-            selector: HyperbeatDepositVault.depositInstant.selector,
-            state: RumpelGuard.AllowListState.ON
+            selector: HyperbeatDepositVault.depositInstant.selector, state: RumpelGuard.AllowListState.ON
         });
         configs[9] = ProtocolGuardConfig({
-            target: HYPEREVM_HYPERBEAT_VAULT_REDEMPTION_USDT,
-            selectorStates: new SelectorState[](2)
+            target: HYPEREVM_HYPERBEAT_VAULT_REDEMPTION_USDT, selectorStates: new SelectorState[](2)
         });
         configs[9].selectorStates[0] = SelectorState({
-            selector: HyperbeatRedemptionVault.redeemInstant.selector,
-            state: RumpelGuard.AllowListState.ON
+            selector: HyperbeatRedemptionVault.redeemInstant.selector, state: RumpelGuard.AllowListState.ON
         });
         configs[9].selectorStates[1] = SelectorState({
-            selector: HyperbeatRedemptionVault.redeemRequest.selector,
-            state: RumpelGuard.AllowListState.ON
+            selector: HyperbeatRedemptionVault.redeemRequest.selector, state: RumpelGuard.AllowListState.ON
         });
 
         return configs;
@@ -4036,8 +3950,7 @@ library RumpelConfig {
         ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](1);
 
         configs[0] = ProtocolGuardConfig({
-            target: HYPEREVM_HYPERBEAT_VAULT_HYPERITHM_HYPE,
-            selectorStates: new SelectorState[](2)
+            target: HYPEREVM_HYPERBEAT_VAULT_HYPERITHM_HYPE, selectorStates: new SelectorState[](2)
         });
         configs[0].selectorStates[0] =
             SelectorState({selector: IERC4626.deposit.selector, state: RumpelGuard.AllowListState.ON});
@@ -4054,8 +3967,9 @@ library RumpelConfig {
     {
         TokenModuleConfig[] memory configs = new TokenModuleConfig[](1);
 
-        configs[0] =
-            TokenModuleConfig({token: HYPEREVM_HYPERBEAT_VAULT_HYPERITHM_HYPE, blockTransfer: true, blockApprove: true});
+        configs[0] = TokenModuleConfig({
+            token: HYPEREVM_HYPERBEAT_VAULT_HYPERITHM_HYPE, blockTransfer: true, blockApprove: true
+        });
 
         return configs;
     }
@@ -4099,8 +4013,7 @@ library RumpelConfig {
         ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](1);
 
         configs[0] = ProtocolGuardConfig({
-            target: HYPEREVM_HYPERBEAT_VAULT_HYPERITHM_HYPE,
-            selectorStates: new SelectorState[](2)
+            target: HYPEREVM_HYPERBEAT_VAULT_HYPERITHM_HYPE, selectorStates: new SelectorState[](2)
         });
         configs[0].selectorStates[0] =
             SelectorState({selector: IERC4626.deposit.selector, state: RumpelGuard.AllowListState.PERMANENTLY_ON});
@@ -4127,14 +4040,12 @@ library RumpelConfig {
 
         configs[0] = ProtocolGuardConfig({target: MAINNET_PENDLE_ROUTERV4, selectorStates: new SelectorState[](1)});
         configs[0].selectorStates[0] = SelectorState({
-            selector: IPendleRouterV4.redeemDueInterestAndRewardsV2.selector,
-            state: RumpelGuard.AllowListState.OFF
+            selector: IPendleRouterV4.redeemDueInterestAndRewardsV2.selector, state: RumpelGuard.AllowListState.OFF
         });
 
         configs[1] = ProtocolGuardConfig({target: MAINNET_PENDLE_ROUTERV4, selectorStates: new SelectorState[](1)});
         configs[1].selectorStates[0] = SelectorState({
-            selector: ActionMiscV3_RumpelV2.redeemDueInterestAndRewardsV2.selector,
-            state: RumpelGuard.AllowListState.ON
+            selector: ActionMiscV3_RumpelV2.redeemDueInterestAndRewardsV2.selector, state: RumpelGuard.AllowListState.ON
         });
 
         return configs;
@@ -4238,15 +4149,13 @@ library RumpelConfig {
         ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](2);
 
         configs[0] = ProtocolGuardConfig({
-            target: HYPEREVM_HYPERBEAT_VAULT_DEPOSIT_BEHYPE,
-            selectorStates: new SelectorState[](1)
+            target: HYPEREVM_HYPERBEAT_VAULT_DEPOSIT_BEHYPE, selectorStates: new SelectorState[](1)
         });
         configs[0].selectorStates[0] =
             SelectorState({selector: StakingCore.stake.selector, state: RumpelGuard.AllowListState.ON});
 
         configs[1] = ProtocolGuardConfig({
-            target: HYPEREVM_HYPERBEAT_VAULT_REDEMPTION_BEHYPE,
-            selectorStates: new SelectorState[](1)
+            target: HYPEREVM_HYPERBEAT_VAULT_REDEMPTION_BEHYPE, selectorStates: new SelectorState[](1)
         });
         configs[1].selectorStates[0] =
             SelectorState({selector: WithdrawManager.withdraw.selector, state: RumpelGuard.AllowListState.ON});
@@ -4270,7 +4179,8 @@ library RumpelConfig {
         ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](1);
 
         configs[0] = ProtocolGuardConfig({target: MAINNET_BARD_CLAIM, selectorStates: new SelectorState[](1)});
-        configs[0].selectorStates[0] = SelectorState({selector: IBardClaim.claim.selector, state: RumpelGuard.AllowListState.ON});
+        configs[0].selectorStates[0] =
+            SelectorState({selector: IBardClaim.claim.selector, state: RumpelGuard.AllowListState.ON});
 
         return configs;
     }
@@ -4278,7 +4188,11 @@ library RumpelConfig {
     function getEthBardClaimTokenConfigs() internal pure returns (TokenGuardConfig[] memory) {
         TokenGuardConfig[] memory configs = new TokenGuardConfig[](1);
 
-        configs[0] = TokenGuardConfig({token: MAINNET_BARD, transferAllowState: RumpelGuard.AllowListState.ON, approveAllowState: RumpelGuard.AllowListState.OFF});
+        configs[0] = TokenGuardConfig({
+            token: MAINNET_BARD,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
 
         return configs;
     }
@@ -4295,7 +4209,11 @@ library RumpelConfig {
     function getEthKingClaimAndSRUSDTokenConfigs() internal pure returns (TokenGuardConfig[] memory) {
         TokenGuardConfig[] memory configs = new TokenGuardConfig[](1);
 
-        configs[0] = TokenGuardConfig({token: MAINNET_SRUSD, transferAllowState: RumpelGuard.AllowListState.ON, approveAllowState: RumpelGuard.AllowListState.OFF});
+        configs[0] = TokenGuardConfig({
+            token: MAINNET_SRUSD,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
 
         return configs;
     }
@@ -4303,7 +4221,23 @@ library RumpelConfig {
     function getEthApproveKingTokenConfigs() internal pure returns (TokenGuardConfig[] memory) {
         TokenGuardConfig[] memory configs = new TokenGuardConfig[](1);
 
-        configs[0] = TokenGuardConfig({token: MAINNET_LRT2, transferAllowState: RumpelGuard.AllowListState.ON, approveAllowState: RumpelGuard.AllowListState.OFF});
+        configs[0] = TokenGuardConfig({
+            token: MAINNET_LRT2,
+            transferAllowState: RumpelGuard.AllowListState.ON,
+            approveAllowState: RumpelGuard.AllowListState.OFF
+        });
+
+        return configs;
+    }
+
+    function getClaimSymbioticWstEthProtocolGuardConfigs() internal pure returns (ProtocolGuardConfig[] memory) {
+        ProtocolGuardConfig[] memory configs = new ProtocolGuardConfig[](1);
+
+        configs[0] = ProtocolGuardConfig({
+            target: MAINNET_SYMBIOTIC_GAUNTLET_RESTAKED_WSTETH_COLLATERAL, selectorStates: new SelectorState[](1)
+        });
+        configs[0].selectorStates[0] =
+            SelectorState({selector: ISymbioticDefaultCollateral.claim.selector, state: RumpelGuard.AllowListState.ON});
 
         return configs;
     }
@@ -4364,6 +4298,7 @@ interface IZircuitRestakingPool {
 interface ISymbioticDefaultCollateral {
     function deposit(address recipient, uint256 amount) external returns (uint256);
     function withdraw(address recipient, uint256 amount) external;
+    function claim(address recipient, uint256 epoch) external;
 }
 
 interface ISymbioticDefaultCollateralMigrator {
@@ -4780,7 +4715,6 @@ contract SentimentPositionManager {
         Borrow, // increase position debt
         AddToken, // upsert collateral asset to position storage
         RemoveToken // remove collateral asset from position storage
-
     }
 
     struct Action {
@@ -4803,8 +4737,7 @@ interface HyperbeatTokenizedAccount {
 }
 
 interface HyperbeatDepositVault {
-    function depositInstant(address tokenIn, uint256 amountToken, uint256 minReceiveAmount, bytes32 referrerId)
-        external;
+    function depositInstant(address tokenIn, uint256 amountToken, uint256 minReceiveAmount, bytes32 referrerId) external;
 }
 
 interface HyperbeatRedemptionVault {
@@ -4838,16 +4771,17 @@ interface TellWithMultiAssetSupport {
 
 // Kinetiq Earn withdraw queue
 interface BoringOnChainQueue {
-    function requestOnChainWithdraw(address assetOut, uint128 amountOfShares, uint16 discount, uint24 secondsToDeadline)
-        external
-        returns (bytes32 requestId);
+    function requestOnChainWithdraw(
+        address assetOut,
+        uint128 amountOfShares,
+        uint16 discount,
+        uint24 secondsToDeadline
+    ) external returns (bytes32 requestId);
 }
 
 // behype withdrawals
 interface WithdrawManager {
-    function withdraw(uint256 beHypeAmount, bool instant, uint256 minAmountOut)
-        external
-        returns (uint256 withdrawalId);
+    function withdraw(uint256 beHypeAmount, bool instant, uint256 minAmountOut) external returns (uint256 withdrawalId);
 }
 
 // behype staking
@@ -4857,9 +4791,5 @@ interface StakingCore {
 
 // actual contract name = TokenDistributor
 interface IBardClaim {
-    function claim(
-        address _account,
-        uint256 _amount,
-        bytes32[] calldata _merkleProof
-    ) external;
+    function claim(address _account, uint256 _amount, bytes32[] calldata _merkleProof) external;
 }

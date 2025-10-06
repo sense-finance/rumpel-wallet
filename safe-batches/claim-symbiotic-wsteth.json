@@ -1,0 +1,20 @@
+{
+  "version": "1.0",
+  "chainId": "1",
+  "createdAt": 1759733700584,
+  "meta": {
+    "name": "Transactions Batch",
+    "description": "claim-symbiotic-wsteth",
+    "txBuilderVersion": "1.10.0",
+    "createdFromSafeAddress": "0x9D89745fD63Af482ce93a9AdB8B0BbDbb98D3e06",
+    "createdFromOwnerAddress": "",
+    "checksum": "0xe03f6425b0fef704a05d6c9769232555ea9b4a2f67942303de6ac4ed1a865ed7"
+  },
+  "transactions": [
+    {
+      "to": "0x9000fef2846a5253fd2c6ed5241de0fddb404302",
+      "value": "0x0",
+      "data": "0x5534fa0c000000000000000000000000c10a7f0ac6e3944f4860ee97a937c51572e3a1daaad3ec96000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001"
+    }
+  ]
+}
