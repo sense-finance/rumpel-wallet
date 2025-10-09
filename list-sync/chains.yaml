@@ -1,7 +1,7 @@
 chains:
   - slug: ethereum
     chainId: 1
-    rpcEnv: RPC_MAINNET
+    rpcEnv: MAINNET_RPC_URL
     guard: "0x9000fef2846a5253fd2c6ed5241de0fddb404302"
     module: "0x28c3498b4956f4ad8d4549aca8f66260975d361a"
     startBlock: 20696000
@@ -60,7 +60,7 @@ chains:
       - eth-king-claim-and-srusd
   - slug: hyperEVM
     chainId: 999
-    rpcEnv: RPC_HYPEREVM
+    rpcEnv: HYPEREVM_RPC_URL
     guard: "0x33e3fca5c2972781a32ca0f034ae293d77962210"
     module: "0xa1804146617bfdb81df7bf35a1dcc02f922559fe"
     startBlock: 4536600

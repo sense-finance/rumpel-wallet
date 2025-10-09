@@ -21,15 +21,15 @@ function formatModule(entry) {
 async function main() {
     const args = process.argv.slice(2);
     if (args.includes('--help') || args.includes('-h')) {
-        console.log(`Usage: RPC_MAINNET=... RPC_HYPEREVM=... node list-sync/dist/cli.js
+        console.log(`Usage: MAINNET_RPC_URL=... HYPEREVM_RPC_URL=... node list-sync/dist/cli.js
 
 Commands (npm scripts):
   npm run verify   Validate YAML against the historical snapshot
   npm run diff     Compare desired YAML state with on-chain guard/module state
 
 Environment:
-  RPC_MAINNET      Ethereum JSON-RPC endpoint
-  RPC_HYPEREVM     HyperEVM JSON-RPC endpoint`);
+  MAINNET_RPC_URL  Ethereum JSON-RPC endpoint
+  HYPEREVM_RPC_URL HyperEVM JSON-RPC endpoint`);
         return;
     }
     const results = await diffChains();

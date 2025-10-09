@@ -4,4 +4,4 @@ guard:
     - target: "0x888888888889758F76e7103c6CbF23ABbF58F946"
       selectors:
         - selector: "0xec5702da"
-          state: "ON"
+          state: "OFF"
