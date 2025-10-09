@@ -24,7 +24,7 @@ contract RumpelGuard is Ownable, IGuard {
     error CallNotAllowed(address target, bytes4 functionSelector);
     error PermanentlyOn();
 
-    constructor(address _signMessageLib) Ownable(msg.sender) {
+    constructor(address _signMessageLib, address owner_) Ownable(owner_) {
         signMessageLib = _signMessageLib;
     }
 
