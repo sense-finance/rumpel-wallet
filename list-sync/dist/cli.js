@@ -24,7 +24,6 @@ async function main() {
         console.log(`Usage: MAINNET_RPC_URL=... HYPEREVM_RPC_URL=... node list-sync/dist/cli.js
 
 Commands (npm scripts):
-  npm run verify   Validate YAML against the historical snapshot
   npm run diff     Compare desired YAML state with on-chain guard/module state
 
 Environment:

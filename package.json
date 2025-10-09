@@ -5,7 +5,6 @@
   "scripts": {
     "build": "tsc --project list-sync/tsconfig.json",
     "typecheck": "tsc --noEmit --project list-sync/tsconfig.json",
-    "verify": "node list-sync/dist/verify.js",
     "diff": "dotenv -e .env -- node list-sync/dist/cli.js",
     "sync": "dotenv -e .env -- node list-sync/dist/sync.js"
   },
