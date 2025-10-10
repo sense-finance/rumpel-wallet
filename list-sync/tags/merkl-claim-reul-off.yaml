@@ -1,0 +1,11 @@
+slug: merkl-claim-reul-off
+guard:
+  allow:
+    - target: "0x3Ef3D8bA38EBe18DB133cEc108f4D14CE00Dd9Ae"
+      selectors:
+        - selector: "0x71ee95c0"
+          state: "OFF"
+  tokens:
+    - token: "0xf3e621395fc714B90dA337AA9108771597b4E696"
+      transfer: "OFF"
+      approve: "OFF"

@@ -1,0 +1,21 @@
+slug: hyper-evm-hyperbeat-behype
+guard:
+  allow:
+    - target: "0x558806a80b42cAB4ED75c74bfB178EDc9087AA32"
+      selectors:
+        - selector: "0x8b53f75e"
+          state: "ON"
+        - selector: "0xbfc2d46a"
+          state: "ON"
+    - target: "0xF538675D292d8b372712f44eaf306Cc66cF6d8DC"
+      selectors:
+        - selector: "0xc02dd27a"
+          state: "ON"
+    - target: "0xf8deEFa84b87b9702474b2D198bb8d21FA03Cd2D"
+      selectors:
+        - selector: "0x99e97b91"
+          state: "ON"
+  tokens:
+    - token: "0x441794D6a8F9A3739F5D4E98a728937b33489D29"
+      transfer: "ON"
+      approve: "ON"

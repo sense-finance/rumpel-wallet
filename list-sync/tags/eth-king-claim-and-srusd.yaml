@@ -1,0 +1,11 @@
+slug: eth-king-claim-and-srusd
+guard:
+  allow:
+    - target: "0x6Db24Ee656843E3fE03eb8762a54D86186bA6B64"
+      selectors:
+        - selector: "0x1d7d4ebc"
+          state: "ON"
+  tokens:
+    - token: "0x738d1115B90efa71AE468F1287fc864775e23a31"
+      transfer: "ON"
+      approve: "OFF"

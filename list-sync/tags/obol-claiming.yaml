@@ -1,0 +1,15 @@
+slug: obol-claiming
+guard:
+  allow:
+    - target: "0x3b9122704A20946E9Cb49b2a8616CCC0f0d61AdB"
+      selectors:
+        - selector: "0x6198e339"
+          state: "ON"
+    - target: "0xEfd2247fcC3C7aA1FCbE1d2b81e6d0164583eeA3"
+      selectors:
+        - selector: "0x4a3067b9"
+          state: "ON"
+  tokens:
+    - token: "0x0B010000b7624eb9B3DfBC279673C76E9D29D5F7"
+      transfer: "ON"
+      approve: "OFF"

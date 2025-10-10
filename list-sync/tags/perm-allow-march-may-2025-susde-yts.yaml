@@ -1,0 +1,20 @@
+slug: perm-allow-march-may-2025-susde-yts
+guard:
+  tokens:
+    - token: "0x1de6Ff19FDA7496DdC12f2161f6ad6427c52aBBe"
+      transfer: "PERMANENTLY_ON"
+      approve: "OFF"
+    - token: "0x96512230bF0Fa4E20Cf02C3e8A7d983132cd2b9F"
+      transfer: "PERMANENTLY_ON"
+      approve: "OFF"
+module:
+  tokens:
+    - token: "0x0000000000000000000000000000000000000000"
+      transfer: false
+      approve: false
+    - token: "0x1de6Ff19FDA7496DdC12f2161f6ad6427c52aBBe"
+      transfer: true
+      approve: true
+    - token: "0x96512230bF0Fa4E20Cf02C3e8A7d983132cd2b9F"
+      transfer: true
+      approve: true

@@ -1,0 +1,13 @@
+slug: kernel
+guard:
+  allow:
+    - target: "0x68B55c20A2634B25a50a219b632F22854D810bf5"
+      selectors:
+        - selector: "0x2e7ba6ef"
+          state: "ON"
+        - selector: "0x9e05537b"
+          state: "ON"
+  tokens:
+    - token: "0x3f80B1c54Ae920Be41a77f8B902259D48cf24cCf"
+      transfer: "ON"
+      approve: "ON"

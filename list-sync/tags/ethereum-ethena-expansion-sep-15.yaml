@@ -1,0 +1,17 @@
+slug: ethereum-ethena-expansion-sep-15
+guard:
+  allow:
+    - target: "0xAbf8165dD7a90ab75878161db15Bf85F6F781d9b"
+      selectors:
+        - selector: "0x769f8e5d"
+          state: "ON"
+  tokens:
+    - token: "0x28E626b560F1FaaC01544770425e2De8FD179c79"
+      transfer: "ON"
+      approve: "OFF"
+    - token: "0x99C92D4Da7a81c7698EF33a39D7538d0f92623f7"
+      transfer: "ON"
+      approve: "OFF"
+    - token: "0xAbf8165dD7a90ab75878161db15Bf85F6F781d9b"
+      transfer: "ON"
+      approve: "ON"
