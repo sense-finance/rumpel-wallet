@@ -1,0 +1,20 @@
+{
+  "version": "1.0",
+  "chainId": "999",
+  "createdAt": 1760463986953,
+  "meta": {
+    "name": "Transactions Batch",
+    "description": "hyperevm-pendle-multicall (hyperEVM)",
+    "txBuilderVersion": "1.10.0",
+    "createdFromSafeAddress": "0x3ffd3d3695ee8d51a54b46e37bacaa86776a8cda",
+    "createdFromOwnerAddress": "",
+    "checksum": null
+  },
+  "transactions": [
+    {
+      "to": "0x33e3fca5c2972781a32ca0f034ae293d77962210",
+      "value": "0x0",
+      "data": "0x5534fa0c000000000000000000000000888888888889758f76e7103c6cbf23abbf58f94660fc8466000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001"
+    }
+  ]
+}
