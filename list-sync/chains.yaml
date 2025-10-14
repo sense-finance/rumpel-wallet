@@ -58,6 +58,7 @@ chains:
       - cap-money-expansion-sep-15
       - eth-bard-claim
       - eth-king-claim-and-srusd
+      - eth-king-transfer
   - slug: hyperEVM
     chainId: 999
     rpcEnv: HYPEREVM_RPC_URL
