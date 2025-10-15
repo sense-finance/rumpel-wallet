@@ -12,6 +12,6 @@ guard:
         - selector: "batchClaimWithdraws(uint256[],address)"
           state: "ON"
   tokens:
-    - token: "0x8888888FdAAc0E7CF8C6523c8955bF7954c216fa" # VHYPE
+    - token: "0x8888888FdAAc0E7CF8C6523c8955bF7954c216fa" # vHYPE
       transfer: "ON"
       approve: "ON"
