@@ -1,0 +1,20 @@
+{
+  "version": "1.0",
+  "chainId": "1",
+  "createdAt": 1760480565235,
+  "meta": {
+    "name": "Transactions Batch",
+    "description": "eth-king-transfer (ethereum)",
+    "txBuilderVersion": "1.10.0",
+    "createdFromSafeAddress": "0x9d89745fd63af482ce93a9adb8b0bbdbb98d3e06",
+    "createdFromOwnerAddress": "",
+    "checksum": null
+  },
+  "transactions": [
+    {
+      "to": "0x9000fef2846a5253fd2c6ed5241de0fddb404302",
+      "value": "0x0",
+      "data": "0x5534fa0c0000000000000000000000008f08b70456eb22f6109f57b8fafe862ed28e6040a9059cbb000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001"
+    }
+  ]
+}

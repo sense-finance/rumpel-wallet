@@ -1,0 +1,27 @@
+slug: ethereum-ethena-expansion-jul-25
+guard:
+  allow:
+    - target: "0x4095a3A8efe779D283102377669778900212D856"
+      selectors:
+        - selector: "0x10259f26"
+          state: "ON"
+    - target: "0xC01cde799245a25e6EabC550b36A47F6F83cc0f1"
+      selectors:
+        - selector: "0x769f8e5d"
+          state: "ON"
+  tokens:
+    - token: "0x029d6247ADb0A57138c62E3019C92d3dfC9c1840"
+      transfer: "ON"
+      approve: "OFF"
+    - token: "0x48bbbEdc4d2491cc08915D7a5c7cc8A8EdF165da"
+      transfer: "ON"
+      approve: "OFF"
+    - token: "0x6d98a2b6CDbF44939362a3E99793339Ba2016aF4"
+      transfer: "ON"
+      approve: "ON"
+    - token: "0xA36b60A14A1A5247912584768C6e53E1a269a9F7"
+      transfer: "ON"
+      approve: "ON"
+    - token: "0xC01cde799245a25e6EabC550b36A47F6F83cc0f1"
+      transfer: "ON"
+      approve: "ON"

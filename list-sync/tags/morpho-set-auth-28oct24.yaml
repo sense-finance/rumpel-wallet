@@ -1,0 +1,7 @@
+slug: morpho-set-auth-28oct24
+guard:
+  allow:
+    - target: "0xBBBBBbbBBb9cC5e90e3b3Af64bdAF62C37EEFFCb"
+      selectors:
+        - selector: "0xeecea000"
+          state: "ON"

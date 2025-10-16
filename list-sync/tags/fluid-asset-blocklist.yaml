@@ -1,0 +1,44 @@
+slug: fluid-asset-blocklist
+guard:
+  tokens:
+    - token: "0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0"
+      transfer: "PERMANENTLY_ON"
+      approve: "PERMANENTLY_ON"
+    - token: "0x917ceE801a67f933F2e6b33fC0cD1ED2d5909D88"
+      transfer: "PERMANENTLY_ON"
+      approve: "PERMANENTLY_ON"
+    - token: "0xCd5fE23C85820F7B72D0926FC9b05b43E359b7ee"
+      transfer: "PERMANENTLY_ON"
+      approve: "PERMANENTLY_ON"
+module:
+  block:
+    - target: "0x1c6068eC051f0Ac1688cA1FE76810FA9c8644278"
+      selectors:
+        - "0x032d2276"
+    - target: "0x2F3780e21cAba1bEdFB24E37C97917def304dFFA"
+      selectors:
+        - "0x032d2276"
+    - target: "0x324c5Dc1fC42c7a4D43d92df1eBA58a54d13Bf2d"
+      selectors:
+        - "0x23b872dd"
+        - "0x42842e0e"
+        - "0xb88d4fde"
+    - target: "0x3996464c0fCCa8183e13ea5E5e74375e2c8744Dd"
+      selectors:
+        - "0x032d2276"
+    - target: "0xBc345229C1b52e4c30530C614BB487323BA38Da5"
+      selectors:
+        - "0x032d2276"
+    - target: "0xeAEf563015634a9d0EE6CF1357A3b205C35e028D"
+      selectors:
+        - "0x032d2276"
+  tokens:
+    - token: "0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0"
+      transfer: true
+      approve: true
+    - token: "0x917ceE801a67f933F2e6b33fC0cD1ED2d5909D88"
+      transfer: true
+      approve: true
+    - token: "0xCd5fE23C85820F7B72D0926FC9b05b43E359b7ee"
+      transfer: true
+      approve: true

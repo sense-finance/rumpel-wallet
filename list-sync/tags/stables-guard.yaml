@@ -1,0 +1,9 @@
+slug: stables-guard
+guard:
+  tokens:
+    - token: "0x40D16FC0246aD3160Ccc09B8D0D3A2cD28aE6C2f"
+      transfer: "ON"
+      approve: "ON"
+    - token: "0xdAC17F958D2ee523a2206206994597C13D831ec7"
+      transfer: "ON"
+      approve: "ON"

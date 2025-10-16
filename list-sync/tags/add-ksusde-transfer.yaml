@@ -1,0 +1,6 @@
+slug: add-ksusde-transfer
+guard:
+  tokens:
+    - token: "0xDe5Bff0755F192C333B126A449FF944Ee2B69681"
+      transfer: "ON"
+      approve: "OFF"

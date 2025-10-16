@@ -1,0 +1,11 @@
+slug: add-karak-pendle-sy-token
+guard:
+  allow:
+    - target: "0x1b641894e66aec7Bf5ab86517e8D81763Cc8e19E"
+      selectors:
+        - selector: "0x769f8e5d"
+          state: "ON"
+  tokens:
+    - token: "0x1b641894e66aec7Bf5ab86517e8D81763Cc8e19E"
+      transfer: "ON"
+      approve: "ON"
