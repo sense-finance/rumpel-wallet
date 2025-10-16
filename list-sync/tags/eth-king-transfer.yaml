@@ -1,0 +1,6 @@
+slug: eth-king-transfer
+guard:
+  tokens:
+    - token: "0x8F08B70456eb22f6109F57b8fafE862ED28E6040"
+      transfer: "ON"
+      approve: "OFF"
