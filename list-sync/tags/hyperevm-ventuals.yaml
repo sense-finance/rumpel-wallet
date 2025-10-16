@@ -1,0 +1,17 @@
+slug: hyperevm-ventuals
+guard:
+  allow:
+    - target: "0x88888880793F89cE85777FF2e0e2d366bf05b20c" # Ventuals Staking Vault Manager
+      selectors:
+        - selector: "deposit()"
+          state: "ON"
+        - selector: "queueWithdraw(uint256)"
+          state: "ON"
+        - selector: "claimWithdraw(uint256,address)"
+          state: "ON"
+        - selector: "batchClaimWithdraws(uint256[],address)"
+          state: "ON"
+  tokens:
+    - token: "0x8888888FdAAc0E7CF8C6523c8955bF7954c216fa" # vHYPE
+      transfer: "ON"
+      approve: "ON"
