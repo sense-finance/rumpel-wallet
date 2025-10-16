@@ -82,4 +82,5 @@ chains:
       - hyper-evm-hyperbeat-hyperithm-hype-aug18-blocklist
       - hyperevm-pendle-claim-update
       - hyperevm-behype-update
+      - hyperevm-pendle-multicall
       - hyperevm-ventuals

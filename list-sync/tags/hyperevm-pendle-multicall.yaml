@@ -1,0 +1,7 @@
+slug: hyperevm-pendle-multicall
+guard:
+  allow:
+    - target: "0x888888888889758f76e7103c6cbf23abbf58f946"
+      selectors:
+        - selector: "multicall((bool,bytes)[])"
+          state: "ON"
