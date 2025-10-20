@@ -1,0 +1,113 @@
+slug: first-pass-blocklist-policy-16oct24
+guard:
+  tokens:
+    - token: "0x11CCff2F748a0100dBd457FF7170A54e12064Aba"
+      transfer: "PERMANENTLY_ON"
+      approve: "OFF"
+    - token: "0x19d0D8e6294B7a04a2733FE433444704B791939A"
+      transfer: "PERMANENTLY_ON"
+      approve: "OFF"
+    - token: "0x2DABcea55a12d73191AeCe59F508b191Fb68AdaC"
+      transfer: "PERMANENTLY_ON"
+      approve: "PERMANENTLY_ON"
+    - token: "0x3568f1d2e8058F6D99Daa17051Cb4a2930C83978"
+      transfer: "PERMANENTLY_ON"
+      approve: "OFF"
+    - token: "0x5D8B3cd632c58D5CE75C2141C1C8b3b0C209b3ed"
+      transfer: "PERMANENTLY_ON"
+      approve: "OFF"
+    - token: "0x5dB8a2391a72F1114BbaE30eFc9CD89f4a29F988"
+      transfer: "PERMANENTLY_ON"
+      approve: "OFF"
+    - token: "0x5fD13359Ba15A84B76f7F87568309040176167cd"
+      transfer: "PERMANENTLY_ON"
+      approve: "ON"
+    - token: "0x719B51Dd92B7809A80A2E8c91D89367BF58f1D7A"
+      transfer: "PERMANENTLY_ON"
+      approve: "OFF"
+    - token: "0x7B64b99A1fd80b6c012E354a14ADb352b5916CE1"
+      transfer: "PERMANENTLY_ON"
+      approve: "OFF"
+    - token: "0x7a4EffD87C2f3C55CA251080b1343b605f327E3a"
+      transfer: "PERMANENTLY_ON"
+      approve: "OFF"
+    - token: "0x82f5104b23FF2FA54C2345F821dAc9369e9E0B26"
+      transfer: "PERMANENTLY_ON"
+      approve: "OFF"
+    - token: "0x89E7f4E5210A77Ac0f20511389Df71eC98ce9971"
+      transfer: "PERMANENTLY_ON"
+      approve: "OFF"
+    - token: "0x9C0823D3A1172F9DdF672d438dec79c39a64f448"
+      transfer: "PERMANENTLY_ON"
+      approve: "OFF"
+    - token: "0xBE3cA34D0E877A1Fc889BD5231D65477779AFf4e"
+      transfer: "PERMANENTLY_ON"
+      approve: "PERMANENTLY_ON"
+    - token: "0xC329400492c6ff2438472D4651Ad17389fCb843a"
+      transfer: "PERMANENTLY_ON"
+      approve: "OFF"
+    - token: "0xbE05538f48D76504953c5d1068898C6642937427"
+      transfer: "PERMANENTLY_ON"
+      approve: "OFF"
+    - token: "0xe1B4d34E8754600962Cd944B535180Bd758E6c2e"
+      transfer: "PERMANENTLY_ON"
+      approve: "OFF"
+    - token: "0xeB993B610b68F2631f70CA1cf4Fe651dB81f368e"
+      transfer: "PERMANENTLY_ON"
+      approve: "OFF"
+module:
+  tokens:
+    - token: "0x11CCff2F748a0100dBd457FF7170A54e12064Aba"
+      transfer: true
+      approve: true
+    - token: "0x19d0D8e6294B7a04a2733FE433444704B791939A"
+      transfer: true
+      approve: true
+    - token: "0x2DABcea55a12d73191AeCe59F508b191Fb68AdaC"
+      transfer: true
+      approve: true
+    - token: "0x3568f1d2e8058F6D99Daa17051Cb4a2930C83978"
+      transfer: true
+      approve: true
+    - token: "0x5D8B3cd632c58D5CE75C2141C1C8b3b0C209b3ed"
+      transfer: true
+      approve: true
+    - token: "0x5dB8a2391a72F1114BbaE30eFc9CD89f4a29F988"
+      transfer: true
+      approve: true
+    - token: "0x5fD13359Ba15A84B76f7F87568309040176167cd"
+      transfer: true
+      approve: true
+    - token: "0x719B51Dd92B7809A80A2E8c91D89367BF58f1D7A"
+      transfer: true
+      approve: true
+    - token: "0x7B64b99A1fd80b6c012E354a14ADb352b5916CE1"
+      transfer: true
+      approve: true
+    - token: "0x7a4EffD87C2f3C55CA251080b1343b605f327E3a"
+      transfer: true
+      approve: true
+    - token: "0x82f5104b23FF2FA54C2345F821dAc9369e9E0B26"
+      transfer: true
+      approve: true
+    - token: "0x89E7f4E5210A77Ac0f20511389Df71eC98ce9971"
+      transfer: true
+      approve: true
+    - token: "0x9C0823D3A1172F9DdF672d438dec79c39a64f448"
+      transfer: true
+      approve: true
+    - token: "0xBE3cA34D0E877A1Fc889BD5231D65477779AFf4e"
+      transfer: true
+      approve: true
+    - token: "0xC329400492c6ff2438472D4651Ad17389fCb843a"
+      transfer: true
+      approve: true
+    - token: "0xbE05538f48D76504953c5d1068898C6642937427"
+      transfer: true
+      approve: true
+    - token: "0xe1B4d34E8754600962Cd944B535180Bd758E6c2e"
+      transfer: true
+      approve: true
+    - token: "0xeB993B610b68F2631f70CA1cf4Fe651dB81f368e"
+      transfer: true
+      approve: true

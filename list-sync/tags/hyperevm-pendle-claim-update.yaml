@@ -1,0 +1,9 @@
+slug: hyperevm-pendle-claim-update
+guard:
+  allow:
+    - target: "0x888888888889758F76e7103c6CbF23ABbF58F946"
+      selectors:
+        - selector: "0x0741a803"
+          state: "ON"
+        - selector: "0xec5702da"
+          state: "OFF"

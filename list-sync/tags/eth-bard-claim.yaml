@@ -1,0 +1,11 @@
+slug: eth-bard-claim
+guard:
+  allow:
+    - target: "0x6fF742845D45d29cb38fa075EFc889247A52Eb02"
+      selectors:
+        - selector: "0x3d13f874"
+          state: "ON"
+  tokens:
+    - token: "0xf0DB65D17e30a966C2ae6A21f6BBA71cea6e9754"
+      transfer: "ON"
+      approve: "OFF"

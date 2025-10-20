@@ -1,0 +1,26 @@
+slug: fluid-loop-usde-smart-vaults
+guard:
+  allow:
+    - target: "0x43d1cA906c72f09D96291B4913D7255E241F428d"
+      selectors:
+        - selector: "0x10259f26"
+          state: "ON"
+    - target: "0x7503b58Bb29937e7E2980f70D3FD021B7ebeA6d0"
+      selectors:
+        - selector: "0x10259f26"
+          state: "ON"
+    - target: "0x989a44CB4dBb7eBe20e0aBf3C1E1d727BF90F881"
+      selectors:
+        - selector: "0x10259f26"
+          state: "ON"
+    - target: "0xe210d8ded13Abe836a10E8Aa956dd424658d0034"
+      selectors:
+        - selector: "0x10259f26"
+          state: "ON"
+  tokens:
+    - token: "0x657e8C867D8B37dCC18fA4Caead9C45EB088C642"
+      transfer: "ON"
+      approve: "ON"
+    - token: "0xcbB7C0000aB88B473b1f5aFd9ef808440eed33Bf"
+      transfer: "ON"
+      approve: "ON"

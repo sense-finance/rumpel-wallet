@@ -1,0 +1,6 @@
+slug: sYsUSDe-token-approve
+guard:
+  tokens:
+    - token: "0xD288755556c235afFfb6316702719C32bD8706e8"
+      transfer: "PERMANENTLY_ON"
+      approve: "PERMANENTLY_ON"

@@ -1,0 +1,13 @@
+slug: fluid-merkle-claim
+guard:
+  allow:
+    - target: "0xD833484b198D3d05707832cc1C2D62b520D95B8A"
+      selectors:
+        - selector: "0x8a1e6bba"
+          state: "ON"
+        - selector: "0xbe5013dc"
+          state: "ON"
+  tokens:
+    - token: "0x6f40d4A6237C257fff2dB00FA0510DeEECd303eb"
+      transfer: "ON"
+      approve: "OFF"

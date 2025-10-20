@@ -1,0 +1,7 @@
+slug: enable-swap-owner
+guard:
+  allow:
+    - target: "0x0000000000000000000000000000000000000000"
+      selectors:
+        - selector: "0xe318b52b"
+          state: "ON"

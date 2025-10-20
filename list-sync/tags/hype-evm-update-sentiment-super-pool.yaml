@@ -1,0 +1,11 @@
+slug: hype-evm-update-sentiment-super-pool
+guard:
+  allow:
+    - target: "0x36BFD6b40e2c9BbCfD36a6B1F1Aa65974f4fFA5D"
+      selectors:
+        - selector: "0x095bcdb6"
+          state: "OFF"
+  tokens:
+    - token: "0x2831775cb5e64B1D892853893858A261E898FbEb"
+      transfer: "ON"
+      approve: "OFF"

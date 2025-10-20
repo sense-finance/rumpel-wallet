@@ -451,11 +451,12 @@ contract RumpelWalletTest is Test {
         assertEq(address(safe).balance, 0.9 ether);
         assertEq(address(counter).balance, 0.1 ether);
 
-        // Transfer to address
-        this._execSafeTx(safe, address(alice), 0.1 ether, zeroData, Enum.Operation.Call);
+        // Transfer to address (use makeAddr with a different name to avoid mainnet contract collision)
+        address recipient = makeAddr("eth_transfer_recipient");
+        this._execSafeTx(safe, recipient, 0.1 ether, zeroData, Enum.Operation.Call);
 
         assertEq(address(safe).balance, 0.8 ether);
-        assertEq(address(alice).balance, 0.1 ether);
+        assertEq(recipient.balance, 0.1 ether);
     }
 
     function test_RumpelWalletConfigUpdateAuth() public {

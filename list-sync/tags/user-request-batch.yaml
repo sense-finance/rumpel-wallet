@@ -1,0 +1,29 @@
+slug: user-request-batch
+guard:
+  allow:
+    - target: "0x617895460004821C8DE800d4a644593cAb0aD40c"
+      selectors:
+        - selector: "0x2e2d2984"
+          state: "ON"
+        - selector: "0x6e553f65"
+          state: "ON"
+        - selector: "0xb460af94"
+          state: "ON"
+    - target: "0xB170B94BeFe21098966aa9905Da6a2F569463A21"
+      selectors:
+        - selector: "0x58cc871e"
+          state: "ON"
+    - target: "0xaEac94D417BF8d8bb3A44507100Ab8c0D3b12cA1"
+      selectors:
+        - selector: "0x58cc871e"
+          state: "ON"
+  tokens:
+    - token: "0x617895460004821C8DE800d4a644593cAb0aD40c"
+      transfer: "ON"
+      approve: "OFF"
+    - token: "0x65901Ac9EFA7CdAf1Bdb4dbce4c53B151ae8d014"
+      transfer: "ON"
+      approve: "OFF"
+    - token: "0x6a162ea0F31dC63Cd154f4fcCDD43B612Df731e9"
+      transfer: "ON"
+      approve: "OFF"

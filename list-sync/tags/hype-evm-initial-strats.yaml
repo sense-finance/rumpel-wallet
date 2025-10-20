@@ -1,0 +1,37 @@
+slug: hype-evm-initial-strats
+guard:
+  allow:
+    - target: "0x36BFD6b40e2c9BbCfD36a6B1F1Aa65974f4fFA5D"
+      selectors:
+        - selector: "0x095bcdb6"
+          state: "ON"
+    - target: "0x96C6cBB6251Ee1c257b2162ca0f39AA5Fa44B1FB"
+      selectors:
+        - selector: "0x6e553f65"
+          state: "ON"
+        - selector: "0x7d41c86e"
+          state: "ON"
+    - target: "0xE019Ce6e80dFe505bca229752A1ad727E14085a4"
+      selectors:
+        - selector: "0xcb043071"
+          state: "ON"
+        - selector: "0xe02cb6e5"
+          state: "ON"
+  tokens:
+    - token: "0x5555555555555555555555555555555555555555"
+      transfer: "ON"
+      approve: "ON"
+    - token: "0x94e8396e0869c9F2200760aF0621aFd240E1CF38"
+      transfer: "ON"
+      approve: "ON"
+    - token: "0x96C6cBB6251Ee1c257b2162ca0f39AA5Fa44B1FB"
+      transfer: "ON"
+      approve: "ON"
+module:
+  tokens:
+    - token: "0x5555555555555555555555555555555555555555"
+      transfer: true
+      approve: true
+    - token: "0x94e8396e0869c9F2200760aF0621aFd240E1CF38"
+      transfer: true
+      approve: true

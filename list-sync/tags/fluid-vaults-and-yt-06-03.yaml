@@ -1,0 +1,19 @@
+slug: fluid-vaults-and-yt-06-03
+guard:
+  allow:
+    - target: "0x0a90ED6964f6bA56902fD35EE11857A810Dd5543"
+      selectors:
+        - selector: "0x58cc871e"
+          state: "ON"
+    - target: "0x4B5fa15996C2E23b35E64f0ca62d30c4945E53Cb"
+      selectors:
+        - selector: "0x58cc871e"
+          state: "ON"
+    - target: "0x91D5884a57E4A3718654B462B32cC628b2c6A39A"
+      selectors:
+        - selector: "0x58cc871e"
+          state: "ON"
+  tokens:
+    - token: "0xe8eF806c8aaDc541408dcAd36107c7d26a391712"
+      transfer: "ON"
+      approve: "OFF"

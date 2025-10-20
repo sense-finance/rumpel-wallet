@@ -1,0 +1,15 @@
+slug: contango
+guard:
+  allow:
+    - target: "0x79B2374Bd437D031A4561fac55d62aD3E6516276"
+      selectors:
+        - selector: "0xac9650d8"
+          state: "ON"
+    - target: "0xC2462f03920D47fC5B9e2C5F0ba5D2ded058fD78"
+      selectors:
+        - selector: "0x23b872dd"
+          state: "ON"
+        - selector: "0x42842e0e"
+          state: "ON"
+        - selector: "0xb88d4fde"
+          state: "ON"
