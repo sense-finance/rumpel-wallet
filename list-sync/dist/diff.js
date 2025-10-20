@@ -3,22 +3,11 @@ import { existsSync, readFileSync } from 'fs';
 import { dirname, join } from 'path';
 import { loadAllAllowlists } from './allowlist.js';
 import { parse } from 'yaml';
+import { normalizeAddress, normalizeSelector } from './utils.js';
 const TRANSFER_SELECTOR = '0xa9059cbb';
 const APPROVE_SELECTOR = '0x095ea7b3';
 const ZERO_SELECTOR = '0x00000000';
 const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
-function normalizeAddress(address, context) {
-    if (!address.startsWith('0x') || address.length !== 42) {
-        throw new Error(`Invalid address ${address} (${context})`);
-    }
-    return address.toLowerCase();
-}
-function normalizeSelector(selector, context) {
-    if (!/^0x[0-9a-fA-F]{8}$/.test(selector)) {
-        throw new Error(`Invalid selector ${selector} (${context})`);
-    }
-    return { selector: selector.toLowerCase() };
-}
 function loadChainsConfig(path) {
     const raw = parse(readFileSync(path, 'utf8'));
     if (!raw || !Array.isArray(raw.chains)) {

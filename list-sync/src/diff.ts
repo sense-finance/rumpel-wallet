@@ -3,6 +3,7 @@ import { existsSync, readFileSync } from 'fs';
 import { dirname, join } from 'path';
 import { loadAllAllowlists, AllowlistNormalized, SelectorState } from './allowlist.js';
 import { parse } from 'yaml';
+import { normalizeAddress, normalizeSelector } from './utils.js';
 
 const TRANSFER_SELECTOR = '0xa9059cbb';
 const APPROVE_SELECTOR = '0x095ea7b3';
@@ -45,20 +46,6 @@ export interface ChainDiffResult {
   guardExtra: GuardDiffEntry[];
   moduleMissing: ModuleDiffEntry[];
   moduleExtra: ModuleDiffEntry[];
-}
-
-function normalizeAddress(address: string, context: string): string {
-  if (!address.startsWith('0x') || address.length !== 42) {
-    throw new Error(`Invalid address ${address} (${context})`);
-  }
-  return address.toLowerCase();
-}
-
-function normalizeSelector(selector: string, context: string): { selector: string; signature?: string } {
-  if (!/^0x[0-9a-fA-F]{8}$/.test(selector)) {
-    throw new Error(`Invalid selector ${selector} (${context})`);
-  }
-  return { selector: selector.toLowerCase() };
 }
 
 function loadChainsConfig(path: string): ChainConfig[] {
