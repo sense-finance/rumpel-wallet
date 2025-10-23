@@ -66,6 +66,13 @@ contract RumpelTimelockTest is Test {
         guardV2.transferOwnership(admin);
         module.transferOwnership(admin);
         registry.transferOwnership(admin);
+
+        // Set token functions as auto-approved for easier testing
+        vm.startPrank(admin);
+        registry.setAutoApproved(address(token), ERC20.transfer.selector, true);
+        registry.setAutoApproved(address(token), ERC20.approve.selector, true);
+        registry.setAutoApproved(address(token), bytes4(0), true); // wildcard
+        vm.stopPrank();
     }
 
     // Registry Tests ----
@@ -340,6 +347,175 @@ contract RumpelTimelockTest is Test {
         bytes memory transferData = abi.encodeCall(ERC20.transfer, (alice, 10e18));
         vm.expectRevert();
         this._execSafeTx(safe, address(token), 0, transferData, Enum.Operation.Call);
+    }
+
+    // Approval System Tests ----
+
+    function test_RequiresApprovalForNonWhitelisted() public {
+        MockERC20 newToken = new MockERC20("New Token", "NEW", 18);
+
+        address[] memory owners = new address[](1);
+        owners[0] = alice;
+        InitializationScript.InitCall[] memory initCalls = new InitializationScript.InitCall[](0);
+        address safe = factory.createWallet(owners, 1, initCalls);
+
+        // Try to set timelock on non-whitelisted token - should revert
+        vm.prank(safe);
+        vm.expectRevert(
+            abi.encodeWithSelector(RumpelTimelockRegistry.RequiresApproval.selector, address(newToken), ERC20.transfer.selector)
+        );
+        registry.setTimelock(address(newToken), ERC20.transfer.selector, 30 days);
+    }
+
+    function test_ProposeAndApproveTimelock() public {
+        MockERC20 newToken = new MockERC20("New Token", "NEW", 18);
+
+        address[] memory owners = new address[](1);
+        owners[0] = alice;
+        InitializationScript.InitCall[] memory initCalls = new InitializationScript.InitCall[](0);
+        address safe = factory.createWallet(owners, 1, initCalls);
+
+        // Propose timelock
+        vm.prank(safe);
+        bytes32 proposalId = registry.proposeTimelock(address(newToken), ERC20.transfer.selector, 30 days);
+
+        // Admin approves
+        vm.prank(admin);
+        registry.approveProposal(proposalId);
+
+        // Check timelock is set
+        (bool locked,) = registry.isLocked(safe, address(newToken), ERC20.transfer.selector);
+        assertTrue(locked);
+    }
+
+    function test_ProposeBatchAndApprove() public {
+        MockERC20 newToken = new MockERC20("New Token", "NEW", 18);
+
+        address[] memory owners = new address[](1);
+        owners[0] = alice;
+        InitializationScript.InitCall[] memory initCalls = new InitializationScript.InitCall[](0);
+        address safe = factory.createWallet(owners, 1, initCalls);
+
+        // Propose batch
+        RumpelTimelockRegistry.TimelockConfig[] memory configs = new RumpelTimelockRegistry.TimelockConfig[](2);
+        configs[0] = RumpelTimelockRegistry.TimelockConfig({
+            target: address(newToken),
+            selector: ERC20.transfer.selector,
+            duration: 30 days
+        });
+        configs[1] = RumpelTimelockRegistry.TimelockConfig({
+            target: address(newToken),
+            selector: ERC20.approve.selector,
+            duration: 60 days
+        });
+
+        vm.prank(safe);
+        bytes32[] memory proposalIds = registry.proposeTimelocks(configs);
+
+        // Admin batch approves
+        vm.prank(admin);
+        registry.batchApproveProposals(proposalIds);
+
+        // Check both are locked
+        (bool locked1,) = registry.isLocked(safe, address(newToken), ERC20.transfer.selector);
+        (bool locked2,) = registry.isLocked(safe, address(newToken), ERC20.approve.selector);
+        assertTrue(locked1);
+        assertTrue(locked2);
+    }
+
+    function test_RejectProposal() public {
+        MockERC20 newToken = new MockERC20("New Token", "NEW", 18);
+
+        address[] memory owners = new address[](1);
+        owners[0] = alice;
+        InitializationScript.InitCall[] memory initCalls = new InitializationScript.InitCall[](0);
+        address safe = factory.createWallet(owners, 1, initCalls);
+
+        // Propose timelock
+        vm.prank(safe);
+        bytes32 proposalId = registry.proposeTimelock(address(newToken), ERC20.transfer.selector, 30 days);
+
+        // Admin rejects
+        vm.prank(admin);
+        registry.rejectProposal(proposalId);
+
+        // Check timelock is NOT set
+        (bool locked,) = registry.isLocked(safe, address(newToken), ERC20.transfer.selector);
+        assertFalse(locked);
+    }
+
+    function test_ProposalExpiry() public {
+        MockERC20 newToken = new MockERC20("New Token", "NEW", 18);
+
+        address[] memory owners = new address[](1);
+        owners[0] = alice;
+        InitializationScript.InitCall[] memory initCalls = new InitializationScript.InitCall[](0);
+        address safe = factory.createWallet(owners, 1, initCalls);
+
+        // Propose timelock
+        vm.prank(safe);
+        bytes32 proposalId = registry.proposeTimelock(address(newToken), ERC20.transfer.selector, 30 days);
+
+        // Warp past expiry (7 days)
+        vm.warp(block.timestamp + 8 days);
+
+        // Admin tries to approve - should revert
+        vm.prank(admin);
+        vm.expectRevert(abi.encodeWithSelector(RumpelTimelockRegistry.ProposalExpired.selector, proposalId));
+        registry.approveProposal(proposalId);
+    }
+
+    function test_SetAutoApproved() public {
+        MockERC20 newToken = new MockERC20("New Token", "NEW", 18);
+
+        // Initially not auto-approved
+        assertFalse(registry.isAutoApproved(address(newToken), ERC20.transfer.selector));
+
+        // Admin sets as auto-approved
+        vm.prank(admin);
+        registry.setAutoApproved(address(newToken), ERC20.transfer.selector, true);
+
+        // Now is auto-approved
+        assertTrue(registry.isAutoApproved(address(newToken), ERC20.transfer.selector));
+
+        // Can now set timelock without proposal
+        address[] memory owners = new address[](1);
+        owners[0] = alice;
+        InitializationScript.InitCall[] memory initCalls = new InitializationScript.InitCall[](0);
+        address safe = factory.createWallet(owners, 1, initCalls);
+
+        vm.prank(safe);
+        registry.setTimelock(address(newToken), ERC20.transfer.selector, 30 days);
+
+        (bool locked,) = registry.isLocked(safe, address(newToken), ERC20.transfer.selector);
+        assertTrue(locked);
+    }
+
+    function test_BatchSetAutoApproved() public {
+        MockERC20 token1 = new MockERC20("Token1", "TK1", 18);
+        MockERC20 token2 = new MockERC20("Token2", "TK2", 18);
+
+        address[] memory targets = new address[](4);
+        targets[0] = address(token1);
+        targets[1] = address(token1);
+        targets[2] = address(token2);
+        targets[3] = address(token2);
+
+        bytes4[] memory selectors = new bytes4[](4);
+        selectors[0] = ERC20.transfer.selector;
+        selectors[1] = ERC20.approve.selector;
+        selectors[2] = ERC20.transfer.selector;
+        selectors[3] = ERC20.approve.selector;
+
+        // Batch set as auto-approved
+        vm.prank(admin);
+        registry.batchSetAutoApproved(targets, selectors, true);
+
+        // All should be auto-approved
+        assertTrue(registry.isAutoApproved(address(token1), ERC20.transfer.selector));
+        assertTrue(registry.isAutoApproved(address(token1), ERC20.approve.selector));
+        assertTrue(registry.isAutoApproved(address(token2), ERC20.transfer.selector));
+        assertTrue(registry.isAutoApproved(address(token2), ERC20.approve.selector));
     }
 
     // Helper Functions ----

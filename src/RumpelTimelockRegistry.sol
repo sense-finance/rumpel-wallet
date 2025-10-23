@@ -5,9 +5,16 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 /// @notice Registry for per-user timelocks on Rumpel Wallets.
 /// @dev Allows users to voluntarily lock specific function calls for a duration.
+/// @dev Two-tier system: auto-approved restrictions can be locked immediately, others require admin approval.
 contract RumpelTimelockRegistry is Ownable {
     /// @dev safe => restrictionHash => unlocksAt timestamp
     mapping(address => mapping(bytes32 => uint256)) public timelocks;
+
+    /// @dev restrictionHash => isAutoApproved (can be locked without admin approval)
+    mapping(bytes32 => bool) public autoApprovedRestrictions;
+
+    /// @dev proposalId => PendingTimelock
+    mapping(bytes32 => PendingTimelock) public pendingProposals;
 
     struct TimelockConfig {
         address target;
@@ -15,48 +22,166 @@ contract RumpelTimelockRegistry is Ownable {
         uint256 duration;
     }
 
+    struct PendingTimelock {
+        address safe;
+        address target;
+        bytes4 selector;
+        uint256 duration;
+        uint256 proposedAt;
+    }
+
     event TimelockSet(address indexed safe, address indexed target, bytes4 indexed selector, uint256 unlocksAt);
     event TimelockCleared(address indexed safe, address indexed target, bytes4 indexed selector);
+    event TimelockProposed(bytes32 indexed proposalId, address indexed safe, address indexed target, bytes4 selector, uint256 duration);
+    event ProposalApproved(bytes32 indexed proposalId, address indexed safe);
+    event ProposalRejected(bytes32 indexed proposalId, address indexed safe);
+    event AutoApprovalSet(address indexed target, bytes4 indexed selector, bool approved);
 
     error CannotReduceTimelock(address target, bytes4 selector, uint256 existingUnlock, uint256 newUnlock);
     error TimelockStillActive(address target, bytes4 selector, uint256 unlocksAt);
+    error RequiresApproval(address target, bytes4 selector);
+    error ProposalNotFound(bytes32 proposalId);
+    error ProposalExpired(bytes32 proposalId);
+
+    uint256 public constant PROPOSAL_EXPIRY = 7 days;
 
     constructor() Ownable(msg.sender) {}
 
     /// @notice Set a timelock for a specific target and function selector.
     /// @dev Can only extend timelocks, not reduce them. Called by Safe via execTransaction.
+    /// @dev If the restriction is not auto-approved, this will revert with RequiresApproval.
     /// @param target The contract address to lock
     /// @param selector The function selector to lock
     /// @param duration The duration in seconds to lock for
     function setTimelock(address target, bytes4 selector, uint256 duration) external {
-        bytes32 hash = _getRestrictionHash(target, selector);
-        uint256 existingUnlock = timelocks[msg.sender][hash];
-        uint256 newUnlock = block.timestamp + duration;
+        bytes32 restrictionHash = _getRestrictionHash(target, selector);
 
-        // Can only extend, not reduce
-        if (existingUnlock > 0 && newUnlock < existingUnlock) {
-            revert CannotReduceTimelock(target, selector, existingUnlock, newUnlock);
+        // Check if this restriction requires approval
+        if (!autoApprovedRestrictions[restrictionHash]) {
+            revert RequiresApproval(target, selector);
         }
 
-        timelocks[msg.sender][hash] = newUnlock;
-        emit TimelockSet(msg.sender, target, selector, newUnlock);
+        _setTimelockInternal(msg.sender, target, selector, duration);
     }
 
     /// @notice Set multiple timelocks in a single transaction.
+    /// @dev All configs must be auto-approved, otherwise reverts with RequiresApproval.
     /// @param configs Array of timelock configurations
     function setTimelocks(TimelockConfig[] calldata configs) external {
         for (uint256 i = 0; i < configs.length;) {
-            bytes32 hash = _getRestrictionHash(configs[i].target, configs[i].selector);
-            uint256 existingUnlock = timelocks[msg.sender][hash];
-            uint256 newUnlock = block.timestamp + configs[i].duration;
+            bytes32 restrictionHash = _getRestrictionHash(configs[i].target, configs[i].selector);
 
-            // Can only extend, not reduce
-            if (existingUnlock > 0 && newUnlock < existingUnlock) {
-                revert CannotReduceTimelock(configs[i].target, configs[i].selector, existingUnlock, newUnlock);
+            // Check if this restriction requires approval
+            if (!autoApprovedRestrictions[restrictionHash]) {
+                revert RequiresApproval(configs[i].target, configs[i].selector);
             }
 
-            timelocks[msg.sender][hash] = newUnlock;
-            emit TimelockSet(msg.sender, configs[i].target, configs[i].selector, newUnlock);
+            _setTimelockInternal(msg.sender, configs[i].target, configs[i].selector, configs[i].duration);
+
+            unchecked {
+                ++i;
+            }
+        }
+    }
+
+    /// @notice Propose a timelock that requires admin approval.
+    /// @dev Creates a pending proposal that admin must approve before lock activates.
+    /// @param target The contract address to lock
+    /// @param selector The function selector to lock
+    /// @param duration The duration in seconds to lock for
+    /// @return proposalId The ID of the created proposal
+    function proposeTimelock(address target, bytes4 selector, uint256 duration) external returns (bytes32 proposalId) {
+        proposalId = keccak256(abi.encodePacked(msg.sender, target, selector, duration, block.timestamp));
+
+        pendingProposals[proposalId] = PendingTimelock({
+            safe: msg.sender,
+            target: target,
+            selector: selector,
+            duration: duration,
+            proposedAt: block.timestamp
+        });
+
+        emit TimelockProposed(proposalId, msg.sender, target, selector, duration);
+    }
+
+    /// @notice Propose multiple timelocks that require admin approval.
+    /// @param configs Array of timelock configurations
+    /// @return proposalIds Array of created proposal IDs
+    function proposeTimelocks(TimelockConfig[] calldata configs) external returns (bytes32[] memory proposalIds) {
+        proposalIds = new bytes32[](configs.length);
+
+        for (uint256 i = 0; i < configs.length;) {
+            bytes32 proposalId = keccak256(
+                abi.encodePacked(msg.sender, configs[i].target, configs[i].selector, configs[i].duration, block.timestamp, i)
+            );
+
+            pendingProposals[proposalId] = PendingTimelock({
+                safe: msg.sender,
+                target: configs[i].target,
+                selector: configs[i].selector,
+                duration: configs[i].duration,
+                proposedAt: block.timestamp
+            });
+
+            emit TimelockProposed(proposalId, msg.sender, configs[i].target, configs[i].selector, configs[i].duration);
+            proposalIds[i] = proposalId;
+
+            unchecked {
+                ++i;
+            }
+        }
+    }
+
+    /// @notice Admin approves a pending timelock proposal.
+    /// @param proposalId The ID of the proposal to approve
+    function approveProposal(bytes32 proposalId) external onlyOwner {
+        PendingTimelock memory proposal = pendingProposals[proposalId];
+
+        if (proposal.proposedAt == 0) {
+            revert ProposalNotFound(proposalId);
+        }
+
+        if (block.timestamp > proposal.proposedAt + PROPOSAL_EXPIRY) {
+            revert ProposalExpired(proposalId);
+        }
+
+        _setTimelockInternal(proposal.safe, proposal.target, proposal.selector, proposal.duration);
+
+        delete pendingProposals[proposalId];
+        emit ProposalApproved(proposalId, proposal.safe);
+    }
+
+    /// @notice Admin rejects a pending timelock proposal.
+    /// @param proposalId The ID of the proposal to reject
+    function rejectProposal(bytes32 proposalId) external onlyOwner {
+        PendingTimelock memory proposal = pendingProposals[proposalId];
+
+        if (proposal.proposedAt == 0) {
+            revert ProposalNotFound(proposalId);
+        }
+
+        delete pendingProposals[proposalId];
+        emit ProposalRejected(proposalId, proposal.safe);
+    }
+
+    /// @notice Admin batch approves multiple proposals.
+    /// @param proposalIds Array of proposal IDs to approve
+    function batchApproveProposals(bytes32[] calldata proposalIds) external onlyOwner {
+        for (uint256 i = 0; i < proposalIds.length;) {
+            PendingTimelock memory proposal = pendingProposals[proposalIds[i]];
+
+            if (proposal.proposedAt == 0) {
+                revert ProposalNotFound(proposalIds[i]);
+            }
+
+            if (block.timestamp > proposal.proposedAt + PROPOSAL_EXPIRY) {
+                revert ProposalExpired(proposalIds[i]);
+            }
+
+            _setTimelockInternal(proposal.safe, proposal.target, proposal.selector, proposal.duration);
+
+            delete pendingProposals[proposalIds[i]];
+            emit ProposalApproved(proposalIds[i], proposal.safe);
 
             unchecked {
                 ++i;
@@ -66,20 +191,18 @@ contract RumpelTimelockRegistry is Ownable {
 
     /// @notice Set a wildcard timelock for all functions on a target contract.
     /// @dev Uses bytes4(0) as the selector to indicate a wildcard
+    /// @dev If the wildcard restriction is not auto-approved, this will revert with RequiresApproval.
     /// @param target The contract address to lock
     /// @param duration The duration in seconds to lock for
     function setTargetTimelock(address target, uint256 duration) external {
-        bytes32 hash = _getRestrictionHash(target, bytes4(0));
-        uint256 existingUnlock = timelocks[msg.sender][hash];
-        uint256 newUnlock = block.timestamp + duration;
+        bytes32 restrictionHash = _getRestrictionHash(target, bytes4(0));
 
-        // Can only extend, not reduce
-        if (existingUnlock > 0 && newUnlock < existingUnlock) {
-            revert CannotReduceTimelock(target, bytes4(0), existingUnlock, newUnlock);
+        // Check if this wildcard restriction requires approval
+        if (!autoApprovedRestrictions[restrictionHash]) {
+            revert RequiresApproval(target, bytes4(0));
         }
 
-        timelocks[msg.sender][hash] = newUnlock;
-        emit TimelockSet(msg.sender, target, bytes4(0), newUnlock);
+        _setTimelockInternal(msg.sender, target, bytes4(0), duration);
     }
 
     /// @notice Check if a specific call is currently locked.
@@ -131,6 +254,66 @@ contract RumpelTimelockRegistry is Ownable {
         bytes32 hash = _getRestrictionHash(target, selector);
         delete timelocks[safe][hash];
         emit TimelockCleared(safe, target, selector);
+    }
+
+    // Admin - Auto-Approval Management ----
+
+    /// @notice Admin sets whether a restriction can be auto-approved.
+    /// @dev Auto-approved restrictions can be locked immediately without admin approval.
+    /// @param target The contract address
+    /// @param selector The function selector
+    /// @param approved Whether this restriction is auto-approved
+    function setAutoApproved(address target, bytes4 selector, bool approved) external onlyOwner {
+        bytes32 restrictionHash = _getRestrictionHash(target, selector);
+        autoApprovedRestrictions[restrictionHash] = approved;
+        emit AutoApprovalSet(target, selector, approved);
+    }
+
+    /// @notice Admin batch sets auto-approval for multiple restrictions.
+    /// @param targets Array of contract addresses
+    /// @param selectors Array of function selectors
+    /// @param approved Whether these restrictions are auto-approved
+    function batchSetAutoApproved(address[] calldata targets, bytes4[] calldata selectors, bool approved)
+        external
+        onlyOwner
+    {
+        require(targets.length == selectors.length, "Length mismatch");
+
+        for (uint256 i = 0; i < targets.length;) {
+            bytes32 restrictionHash = _getRestrictionHash(targets[i], selectors[i]);
+            autoApprovedRestrictions[restrictionHash] = approved;
+            emit AutoApprovalSet(targets[i], selectors[i], approved);
+
+            unchecked {
+                ++i;
+            }
+        }
+    }
+
+    /// @notice Check if a restriction is auto-approved.
+    /// @param target The contract address
+    /// @param selector The function selector
+    /// @return Whether this restriction is auto-approved
+    function isAutoApproved(address target, bytes4 selector) external view returns (bool) {
+        bytes32 restrictionHash = _getRestrictionHash(target, selector);
+        return autoApprovedRestrictions[restrictionHash];
+    }
+
+    // Internal Functions ----
+
+    /// @dev Internal function to set a timelock, enforcing extend-only rule.
+    function _setTimelockInternal(address safe, address target, bytes4 selector, uint256 duration) internal {
+        bytes32 hash = _getRestrictionHash(target, selector);
+        uint256 existingUnlock = timelocks[safe][hash];
+        uint256 newUnlock = block.timestamp + duration;
+
+        // Can only extend, not reduce
+        if (existingUnlock > 0 && newUnlock < existingUnlock) {
+            revert CannotReduceTimelock(target, selector, existingUnlock, newUnlock);
+        }
+
+        timelocks[safe][hash] = newUnlock;
+        emit TimelockSet(safe, target, selector, newUnlock);
     }
 
     /// @dev Internal function to generate a unique hash for each restriction
