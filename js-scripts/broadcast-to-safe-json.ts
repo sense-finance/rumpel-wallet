@@ -47,13 +47,19 @@ async function main() {
     rumpelAdminSafe = RUMPEL_ADMIN_SAFE_HYPEREVM;
   }
 
+  const alternateScriptName = process.argv[4];
+  let folderName = "RumpelWalletFactory.s.sol";
+  if (alternateScriptName) {
+    folderName = `${alternateScriptName}.s.sol`;
+  }
+
   const dryRunPath =
     process.env.DRYRUN_PATH ||
     path.join(
       process.cwd(),
       "..",
       "broadcast",
-      "RumpelWalletFactory.s.sol",
+      folderName,
       chainId.toString(),
       "dry-run"
     );
